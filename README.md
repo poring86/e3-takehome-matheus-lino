@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# E3 Take-home: Multi-tenant Notes Platform
 
-## Getting Started
+Production-style take-home project built with Next.js, Supabase, Drizzle, and TypeScript.
 
-First, run the development server:
+## Scope Summary
+
+- Multi-tenant auth and organization membership
+- Notes CRUD with permissions
+- Visibility and selective sharing
+- Versioning and history endpoints
+- Search across title/content/tags
+- File upload flow
+- AI note summary (generate + accept/reject)
+- Structured logging for key events
+- Seed data for large test volume
+
+## Tech Stack
+
+- Next.js 16
+- TypeScript
+- Supabase (Auth + Storage + Postgres)
+- Drizzle ORM
+- Zod
+- Vitest
+
+## Project Structure
+
+- src/app: routes, pages, and API handlers
+- src/components: UI and route guards
+- src/lib: clients, db setup, helpers, schemas
+- src/drizzle: runtime schema definitions
+- drizzle and supabase/migrations: SQL and migration artifacts
+- scripts/seed.ts: seed script for bulk sample data
+
+## Environment Variables
+
+Create a `.env` (or `.env.local`) with:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+DATABASE_URL=...
+OPENAI_API_KEY=...
+LOG_LEVEL=info
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run db:migrate
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Useful Scripts
 
-## Learn More
+```bash
+npm run dev        # start local dev server
+npm run build      # production build
+npm run start      # start production server
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Validation Commands
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+npx vitest run tests/auth.test.ts
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deployment
 
-## Deploy on Vercel
+For Railway deployment details, see:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- RAILWAY_DEPLOYMENT.md
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+- BUGS.md: bug tracking with status and commit references
+- NOTES.md: execution notes and checklist
+- AI_USAGE.md: agent usage and interventions
+- REVIEW.md: review coverage and risk notes

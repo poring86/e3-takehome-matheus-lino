@@ -26,15 +26,15 @@
 
 ### Documentation
 
-- [ ] NOTES.md (plans, actions, reasoning)
-- [ ] AI_USAGE.md (agents, split, errors, distrust)
-- [ ] BUGS.md (bugs, commit refs)
-- [ ] REVIEW.md (deep/sample review, distrust, next steps)
-- [ ] Git history granular & explanatory
+- [x] NOTES.md (plans, actions, reasoning)
+- [x] AI_USAGE.md (agents, split, errors, distrust)
+- [x] BUGS.md (bugs, commit refs)
+- [x] REVIEW.md (deep/sample review, distrust, next steps)
+- [x] Git history granular & explanatory
 
 ### Tests
 
-- [ ] Auth flow (sign in, sign up, org switch)
+- [~] Auth flow (partial: schema validation tests in place; full API/E2E pending)
 - [ ] Permissions enforcement (role-based access)
 - [ ] Notes CRUD (create, read, update, delete)
 - [ ] Notes versioning & diff

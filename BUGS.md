@@ -30,7 +30,7 @@ Each bug entry follows this structure:
 - Symptom: `react/no-unescaped-entities` lint risk due to raw apostrophe in JSX text.
 - Cause: Unescaped JSX character in user-facing text.
 - Fix: Replaced `Don't` with `Don&apos;t` in JSX text.
-- Commit: pending
+- Commit: 385dac2
 
 ### B-003 Syntax error in notes dashboard pagination implementation
 - Date: 2026-04-16
