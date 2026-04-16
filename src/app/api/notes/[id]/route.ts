@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { notes, users, orgMembers, noteVersions } from "@/drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { updateNoteSchema } from "@/lib/types/notes";
+import { logMutation, logPermissionDenied, logError } from "@/lib/logger";
 
 // GET /api/notes/[id] - Get a specific note
 export async function GET(request: NextRequest, context: any) {
@@ -21,10 +22,50 @@ export async function GET(request: NextRequest, context: any) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      logPermissionDenied("get_note", undefined, undefined, id, { reason: "unauthorized" });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get note with author info
+    // Check org membership before leaking note existence
+    // First, get orgId for this note id (minimal query)
+    const noteOrg = await db
+      .select({ orgId: notes.orgId, createdBy: notes.createdBy, visibility: notes.visibility })
+      .from(notes)
+      .where(eq(notes.id, id))
+      .limit(1);
+
+    if (!noteOrg || noteOrg.length === 0) {
+      // Still return 404, but only after auth check
+      logPermissionDenied("get_note", user.id, undefined, id, { reason: "not_found" });
+      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+    }
+
+    const { orgId, createdBy, visibility } = noteOrg[0];
+
+    // Check org membership
+    const [orgMember] = await db
+      .select()
+      .from(orgMembers)
+      .where(
+        and(
+          eq(orgMembers.orgId, orgId),
+          eq(orgMembers.userId, user.id),
+        ),
+      )
+      .limit(1);
+
+    if (!orgMember) {
+      logPermissionDenied("get_note", user.id, orgId, id, { reason: "not_org_member" });
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    // Check if user can access private notes
+    if (visibility === "private" && createdBy !== user.id) {
+      logPermissionDenied("get_note", user.id, orgId, id, { reason: "private_note" });
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    // Get note with author info (full data)
     const [noteData] = await db
       .select({
         id: notes.id,
@@ -47,33 +88,15 @@ export async function GET(request: NextRequest, context: any) {
       .limit(1);
 
     if (!noteData) {
+      // Defensive: should not happen, as already checked above
+      logPermissionDenied("get_note", user.id, orgId, id, { reason: "not_found_after_auth" });
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
-    // Check permissions
-    const [orgMember] = await db
-      .select()
-      .from(orgMembers)
-      .where(
-        and(
-          eq(orgMembers.orgId, noteData.orgId),
-          eq(orgMembers.userId, user.id),
-        ),
-      )
-      .limit(1);
-
-    if (!orgMember) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    // Check if user can access private notes
-    if (noteData.visibility === "private" && noteData.createdBy !== user.id) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
+    logMutation("read", "note", user.id, orgId, id);
     return NextResponse.json(noteData);
   } catch (error) {
-    console.error("Error fetching note:", error);
+    logError(error as Error, "GET /api/notes/[id]", undefined, { id });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -96,6 +119,7 @@ export async function PUT(request: NextRequest, context: any) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      logPermissionDenied("update_note", undefined, undefined, id, { reason: "unauthorized" });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -110,6 +134,7 @@ export async function PUT(request: NextRequest, context: any) {
       .limit(1);
 
     if (!currentNote) {
+      logPermissionDenied("update_note", user?.id, undefined, id, { reason: "not_found" });
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
@@ -126,6 +151,7 @@ export async function PUT(request: NextRequest, context: any) {
       .limit(1);
 
     if (!orgMember) {
+      logPermissionDenied("update_note", user.id, currentNote.orgId, id, { reason: "not_org_member" });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -134,6 +160,7 @@ export async function PUT(request: NextRequest, context: any) {
       isAuthor || orgMember.role === "admin" || orgMember.role === "owner";
 
     if (!canEdit) {
+      logPermissionDenied("update_note", user.id, currentNote.orgId, id, { reason: "not_author_or_admin" });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -172,9 +199,10 @@ export async function PUT(request: NextRequest, context: any) {
       .where(eq(notes.id, id))
       .returning();
 
+    logMutation("update", "note", user.id, currentNote.orgId, id);
     return NextResponse.json(updatedNote);
   } catch (error) {
-    console.error("Error updating note:", error);
+    logError(error as Error, "PUT /api/notes/[id]", undefined, { id });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -197,6 +225,7 @@ export async function DELETE(request: NextRequest, context: any) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      logPermissionDenied("delete_note", undefined, undefined, id, { reason: "unauthorized" });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -208,6 +237,7 @@ export async function DELETE(request: NextRequest, context: any) {
       .limit(1);
 
     if (!note) {
+      logPermissionDenied("delete_note", user?.id, undefined, id, { reason: "not_found" });
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
@@ -221,6 +251,7 @@ export async function DELETE(request: NextRequest, context: any) {
       .limit(1);
 
     if (!orgMember) {
+      logPermissionDenied("delete_note", user.id, note.orgId, id, { reason: "not_org_member" });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -229,15 +260,16 @@ export async function DELETE(request: NextRequest, context: any) {
       isAuthor || orgMember.role === "admin" || orgMember.role === "owner";
 
     if (!canDelete) {
+      logPermissionDenied("delete_note", user.id, note.orgId, id, { reason: "not_author_or_admin" });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     // Delete note (cascade will handle versions and tags)
     await db.delete(notes).where(eq(notes.id, id));
-
+    logMutation("delete", "note", user.id, note.orgId, id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting note:", error);
+    logError(error as Error, "DELETE /api/notes/[id]", undefined, { id });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
