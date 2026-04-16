@@ -11,57 +11,101 @@ export const logger = pino({
 });
 
 // Helper functions for common log patterns
-export const logAuthEvent = (event: string, userId?: string, orgId?: string, details?: any) => {
-  logger.info({
-    event: "auth",
-    action: event,
-    userId,
-    orgId,
-    ...details,
-  }, `Auth event: ${event}`);
+export const logAuthEvent = (
+  event: string,
+  userId?: string,
+  orgId?: string,
+  details?: any,
+) => {
+  logger.info(
+    {
+      event: "auth",
+      action: event,
+      userId,
+      orgId,
+      ...details,
+    },
+    `Auth event: ${event}`,
+  );
 };
 
-export const logMutation = (operation: string, resource: string, userId: string, orgId: string, resourceId?: string, details?: any) => {
-  logger.info({
-    event: "mutation",
-    operation,
-    resource,
-    userId,
-    orgId,
-    resourceId,
-    ...details,
-  }, `Mutation: ${operation} ${resource}`);
+export const logMutation = (
+  operation: string,
+  resource: string,
+  userId: string,
+  orgId: string,
+  resourceId?: string,
+  details?: any,
+) => {
+  logger.info(
+    {
+      event: "mutation",
+      operation,
+      resource,
+      userId,
+      orgId,
+      resourceId,
+      ...details,
+    },
+    `Mutation: ${operation} ${resource}`,
+  );
 };
 
-export const logAIRequest = (action: string, userId: string, orgId: string, noteId?: string, details?: any) => {
-  logger.info({
-    event: "ai",
-    action,
-    userId,
-    orgId,
-    noteId,
-    ...details,
-  }, `AI request: ${action}`);
+export const logAIRequest = (
+  action: string,
+  userId: string,
+  orgId: string,
+  noteId?: string,
+  details?: any,
+) => {
+  logger.info(
+    {
+      event: "ai",
+      action,
+      userId,
+      orgId,
+      noteId,
+      ...details,
+    },
+    `AI request: ${action}`,
+  );
 };
 
-export const logPermissionDenied = (action: string, userId: string, orgId: string, resource?: string, details?: any) => {
-  logger.warn({
-    event: "permission_denied",
-    action,
-    userId,
-    orgId,
-    resource,
-    ...details,
-  }, `Permission denied: ${action}`);
+export const logPermissionDenied = (
+  action: string,
+  userId: string,
+  orgId: string,
+  resource?: string,
+  details?: any,
+) => {
+  logger.warn(
+    {
+      event: "permission_denied",
+      action,
+      userId,
+      orgId,
+      resource,
+      ...details,
+    },
+    `Permission denied: ${action}`,
+  );
 };
 
-export const logError = (error: Error, context: string, userId?: string, details?: any) => {
-  logger.error({
-    event: "error",
-    context,
-    userId,
-    error: error.message,
-    stack: error.stack,
-    ...details,
-  }, `Error in ${context}: ${error.message}`);
+export const logError = (
+  error: Error,
+  context: string,
+  userId?: string,
+  details?: any,
+) => {
+  logger.error(
+    {
+      event: "error",
+      context,
+      userId,
+      error: error.message,
+      stack: error.stack,
+      ...details,
+    },
+    `Error in ${context}: ${error.message}`,
+  );
 };

@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get total count for pagination (before applying limit/offset)
-    const countQuery = db.$with('notes_query').as(notesQuery);
+    const countQuery = db.$with("notes_query").as(notesQuery);
     const [{ count }] = await db
       .with(countQuery)
       .select({ count: count() })

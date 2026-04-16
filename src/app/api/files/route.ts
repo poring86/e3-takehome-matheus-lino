@@ -22,7 +22,10 @@ export async function POST(request: NextRequest) {
     const orgId = formData.get("orgId") as string;
 
     if (!file || !orgId) {
-      return NextResponse.json({ error: "File and orgId required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File and orgId required" },
+        { status: 400 },
+      );
     }
 
     // Check if user is member of the org

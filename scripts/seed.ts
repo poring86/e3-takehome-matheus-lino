@@ -26,8 +26,26 @@ const SAMPLE_CONTENT = [
 ];
 
 const SAMPLE_TAGS = [
-  "meeting", "bug", "feature", "research", "planning", "review", "security", "performance", "design", "api",
-  "frontend", "backend", "mobile", "web", "testing", "deployment", "documentation", "analytics", "support", "sales"
+  "meeting",
+  "bug",
+  "feature",
+  "research",
+  "planning",
+  "review",
+  "security",
+  "performance",
+  "design",
+  "api",
+  "frontend",
+  "backend",
+  "mobile",
+  "web",
+  "testing",
+  "deployment",
+  "documentation",
+  "analytics",
+  "support",
+  "sales",
 ];
 
 async function seedDatabase() {
@@ -37,9 +55,12 @@ async function seedDatabase() {
     // Create sample organizations
     const orgs = [];
     for (let i = 1; i <= 5; i++) {
-      const [org] = await db.insert(organizations).values({
-        name: `Organization ${i}`,
-      }).returning();
+      const [org] = await db
+        .insert(organizations)
+        .values({
+          name: `Organization ${i}`,
+        })
+        .returning();
       orgs.push(org);
     }
     console.log(`Created ${orgs.length} organizations`);
@@ -47,11 +68,14 @@ async function seedDatabase() {
     // Create sample users
     const sampleUsers = [];
     for (let i = 1; i <= 20; i++) {
-      const [user] = await db.insert(users).values({
-        id: `user-${i}`,
-        email: `user${i}@example.com`,
-        fullName: `User ${i}`,
-      }).returning();
+      const [user] = await db
+        .insert(users)
+        .values({
+          id: `user-${i}`,
+          email: `user${i}@example.com`,
+          fullName: `User ${i}`,
+        })
+        .returning();
       sampleUsers.push(user);
     }
     console.log(`Created ${sampleUsers.length} users`);
@@ -81,10 +105,13 @@ async function seedDatabase() {
       const shuffledTags = [...SAMPLE_TAGS].sort(() => Math.random() - 0.5);
 
       for (let i = 0; i < numTags; i++) {
-        const [tag] = await db.insert(tags).values({
-          orgId: org.id,
-          name: shuffledTags[i],
-        }).returning();
+        const [tag] = await db
+          .insert(tags)
+          .values({
+            orgId: org.id,
+            name: shuffledTags[i],
+          })
+          .returning();
         tagsForOrg.push(tag);
       }
       orgTags.set(org.id, tagsForOrg);
@@ -104,18 +131,25 @@ async function seedDatabase() {
       const availableTags = orgTags.get(org.id) || [];
 
       for (let i = 0; i < NOTES_PER_ORG; i++) {
-        const author = orgMembersList[Math.floor(Math.random() * orgMembersList.length)];
-        const visibility = ["public", "private", "shared"][Math.floor(Math.random() * 3)];
-        const content = SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
+        const author =
+          orgMembersList[Math.floor(Math.random() * orgMembersList.length)];
+        const visibility = ["public", "private", "shared"][
+          Math.floor(Math.random() * 3)
+        ];
+        const content =
+          SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
         const title = `Note ${totalNotes + 1}: ${content.substring(0, 50)}...`;
 
-        const [note] = await db.insert(notes).values({
-          orgId: org.id,
-          title,
-          content,
-          visibility,
-          createdBy: author.userId,
-        }).returning();
+        const [note] = await db
+          .insert(notes)
+          .values({
+            orgId: org.id,
+            title,
+            content,
+            visibility,
+            createdBy: author.userId,
+          })
+          .returning();
 
         // Create version
         await db.insert(noteVersions).values({
@@ -141,9 +175,12 @@ async function seedDatabase() {
 
         // Sometimes add sharing for shared notes
         if (visibility === "shared" && Math.random() < 0.3) {
-          const otherMembers = orgMembersList.filter(m => m.userId !== author.userId);
+          const otherMembers = orgMembersList.filter(
+            (m) => m.userId !== author.userId,
+          );
           if (otherMembers.length > 0) {
-            const shareWith = otherMembers[Math.floor(Math.random() * otherMembers.length)];
+            const shareWith =
+              otherMembers[Math.floor(Math.random() * otherMembers.length)];
             await db.insert(noteShares).values({
               noteId: note.id,
               userId: shareWith.userId,
@@ -158,11 +195,14 @@ async function seedDatabase() {
       }
     }
 
-    console.log(`Seeding completed! Created ${totalNotes} notes across ${orgs.length} organizations`);
+    console.log(
+      `Seeding completed! Created ${totalNotes} notes across ${orgs.length} organizations`,
+    );
 
     // Create some sample files
     for (const org of orgs) {
-      const uploader = sampleUsers[Math.floor(Math.random() * sampleUsers.length)];
+      const uploader =
+        sampleUsers[Math.floor(Math.random() * sampleUsers.length)];
 
       for (let i = 0; i < 5; i++) {
         await db.insert(files).values({
@@ -174,7 +214,6 @@ async function seedDatabase() {
       }
     }
     console.log("Created sample files");
-
   } catch (error) {
     console.error("Error seeding database:", error);
     throw error;

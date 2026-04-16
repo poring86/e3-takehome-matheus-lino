@@ -69,7 +69,8 @@ export async function POST(
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant that creates concise, structured summaries of notes. Keep summaries under 200 words and focus on key points, action items, and insights.",
+          content:
+            "You are a helpful assistant that creates concise, structured summaries of notes. Keep summaries under 200 words and focus on key points, action items, and insights.",
         },
         {
           role: "user",
@@ -83,7 +84,10 @@ export async function POST(
     const summary = completion.choices[0]?.message?.content?.trim();
 
     if (!summary) {
-      return NextResponse.json({ error: "Failed to generate summary" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to generate summary" },
+        { status: 500 },
+      );
     }
 
     // Update note with summary (pending status)
