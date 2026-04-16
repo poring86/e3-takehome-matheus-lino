@@ -5,17 +5,17 @@ import { notes, orgMembers } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 // POST /api/notes/[id]/summarize - Generate AI summary for a note
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function POST(request: NextRequest, context: any) {
+  // Next.js 15+ may pass params as a Promise
+  const params =
+    typeof context.params?.then === "function"
+      ? await context.params
+      : context.params;
+  const noteId = params.id;
+
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -24,8 +24,6 @@ export async function POST(
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const noteId = params.id;
 
     // Get note
     const [note] = await db
@@ -62,6 +60,15 @@ export async function POST(
         { status: 400 },
       );
     }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: "OPENAI_API_KEY is not configured" },
+        { status: 500 },
+      );
+    }
+
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     // Generate summary with OpenAI
     const completion = await openai.chat.completions.create({
@@ -111,12 +118,15 @@ export async function POST(
 }
 
 // PUT /api/notes/[id]/summarize - Accept or reject summary
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PUT(request: NextRequest, context: any) {
+  // Next.js 15+ may pass params as a Promise
+  const params =
+    typeof context.params?.then === "function"
+      ? await context.params
+      : context.params;
+  const noteId = params.id;
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -126,7 +136,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const noteId = params.id;
+    // noteId already set above
     const { action } = await request.json(); // "accept" or "reject"
 
     if (!["accept", "reject"].includes(action)) {

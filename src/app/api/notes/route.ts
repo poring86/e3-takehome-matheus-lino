@@ -17,7 +17,7 @@ import { logMutation, logPermissionDenied, logError } from "@/lib/logger";
 // GET /api/notes - List notes for the current org
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -50,7 +50,33 @@ export async function GET(request: NextRequest) {
     const isOrgAdmin = orgMember.role === "admin" || orgMember.role === "owner";
     const searchText = query ? `%${query.toLowerCase()}%` : undefined;
 
-    let notesQuery = db
+    const filters = [eq(notes.orgId, orgId)];
+
+    if (!isOrgAdmin) {
+      filters.push(
+        or(
+          eq(notes.visibility, "public"),
+          and(eq(notes.visibility, "private"), eq(notes.createdBy, user.id)),
+          and(
+            eq(notes.visibility, "shared"),
+            or(eq(notes.createdBy, user.id), eq(noteShares.userId, user.id)),
+          ),
+        )!,
+      );
+    }
+
+    if (searchText) {
+      filters.push(
+        or(
+          like(notes.title, searchText),
+          like(notes.content, searchText),
+          like(notes.visibility, searchText),
+          like(tagSchema.name, searchText),
+        )!,
+      );
+    }
+
+    const notesQuery = db
       .select({
         id: notes.id,
         orgId: notes.orgId,
@@ -69,48 +95,13 @@ export async function GET(request: NextRequest) {
       .from(notes)
       .leftJoin(users, eq(notes.createdBy, users.id))
       .leftJoin(noteTags, eq(noteTags.noteId, notes.id))
-      .leftJoin(tagSchema, eq(noteTags.tagId, tagSchema.id));
-
-    if (!isOrgAdmin) {
-      notesQuery = notesQuery
-        .leftJoin(noteShares, eq(noteShares.noteId, notes.id))
-        .where(
-          and(
-            eq(notes.orgId, orgId),
-            or(
-              eq(notes.visibility, "public"),
-              and(
-                eq(notes.visibility, "private"),
-                eq(notes.createdBy, user.id),
-              ),
-              and(
-                eq(notes.visibility, "shared"),
-                or(
-                  eq(notes.createdBy, user.id),
-                  eq(noteShares.userId, user.id),
-                ),
-              ),
-            ),
-          ),
-        );
-    } else {
-      notesQuery = notesQuery.where(eq(notes.orgId, orgId));
-    }
-
-    if (searchText) {
-      notesQuery = notesQuery.where(
-        or(
-          like(notes.title, searchText),
-          like(notes.content, searchText),
-          like(notes.visibility, searchText),
-          like(tagSchema.name, searchText),
-        ),
-      );
-    }
+      .leftJoin(tagSchema, eq(noteTags.tagId, tagSchema.id))
+      .leftJoin(noteShares, eq(noteShares.noteId, notes.id))
+      .where(and(...filters));
 
     // Get total count for pagination (before applying limit/offset)
     const countQuery = db.$with("notes_query").as(notesQuery);
-    const [{ count }] = await db
+    const [{ count: totalCount }] = await db
       .with(countQuery)
       .select({ count: count() })
       .from(countQuery);
@@ -122,7 +113,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       notes: userNotes,
-      total: count,
+      total: totalCount,
       limit,
       offset,
     });
@@ -138,7 +129,7 @@ export async function GET(request: NextRequest) {
 // POST /api/notes - Create a new note
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,

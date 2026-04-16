@@ -6,12 +6,15 @@ import { eq, and, desc } from "drizzle-orm";
 import { updateNoteSchema } from "@/lib/types/notes";
 
 // GET /api/notes/[id] - Get a specific note
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(request: NextRequest, context: any) {
+  // Next.js 15+ may pass params as a Promise
+  const params =
+    typeof context.params?.then === "function"
+      ? await context.params
+      : context.params;
+  const { id } = params;
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -20,8 +23,6 @@ export async function GET(
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const noteId = params.id;
 
     // Get note with author info
     const [noteData] = await db
@@ -42,7 +43,7 @@ export async function GET(
       })
       .from(notes)
       .leftJoin(users, eq(notes.createdBy, users.id))
-      .where(eq(notes.id, noteId))
+      .where(eq(notes.id, id))
       .limit(1);
 
     if (!noteData) {
@@ -81,12 +82,14 @@ export async function GET(
 }
 
 // PUT /api/notes/[id] - Update a note
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function PUT(request: NextRequest, context: any) {
+  const params =
+    typeof context.params?.then === "function"
+      ? await context.params
+      : context.params;
+  const { id } = params;
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -96,7 +99,6 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const noteId = params.id;
     const body = await request.json();
     const validatedData = updateNoteSchema.parse(body);
 
@@ -104,7 +106,7 @@ export async function PUT(
     const [currentNote] = await db
       .select()
       .from(notes)
-      .where(eq(notes.id, noteId))
+      .where(eq(notes.id, id))
       .limit(1);
 
     if (!currentNote) {
@@ -139,7 +141,7 @@ export async function PUT(
     const [latestVersion] = await db
       .select({ version: noteVersions.version })
       .from(noteVersions)
-      .where(eq(noteVersions.noteId, noteId))
+      .where(eq(noteVersions.noteId, id))
       .orderBy(desc(noteVersions.version))
       .limit(1);
 
@@ -147,7 +149,7 @@ export async function PUT(
 
     // Save current content as new version
     await db.insert(noteVersions).values({
-      noteId,
+      noteId: id,
       version: newVersion,
       content: currentNote.content || "",
     });
@@ -167,7 +169,7 @@ export async function PUT(
     const [updatedNote] = await db
       .update(notes)
       .set(updateData)
-      .where(eq(notes.id, noteId))
+      .where(eq(notes.id, id))
       .returning();
 
     return NextResponse.json(updatedNote);
@@ -181,12 +183,14 @@ export async function PUT(
 }
 
 // DELETE /api/notes/[id] - Delete a note
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function DELETE(request: NextRequest, context: any) {
+  const params =
+    typeof context.params?.then === "function"
+      ? await context.params
+      : context.params;
+  const { id } = params;
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -196,13 +200,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const noteId = params.id;
-
     // Get note to check ownership
     const [note] = await db
       .select()
       .from(notes)
-      .where(eq(notes.id, noteId))
+      .where(eq(notes.id, id))
       .limit(1);
 
     if (!note) {
@@ -231,7 +233,7 @@ export async function DELETE(
     }
 
     // Delete note (cascade will handle versions and tags)
-    await db.delete(notes).where(eq(notes.id, noteId));
+    await db.delete(notes).where(eq(notes.id, id));
 
     return NextResponse.json({ success: true });
   } catch (error) {

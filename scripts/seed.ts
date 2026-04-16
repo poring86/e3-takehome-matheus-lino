@@ -49,6 +49,9 @@ const SAMPLE_TAGS = [
 ];
 
 async function seedDatabase() {
+  const roles = ["owner", "admin", "member"] as const;
+  const visibilities = ["public", "private", "shared"] as const;
+
   console.log("Starting database seeding...");
 
   try {
@@ -85,7 +88,6 @@ async function seedDatabase() {
       const orgUsers = sampleUsers.slice(0, Math.floor(Math.random() * 8) + 3); // 3-10 users per org
 
       for (const user of orgUsers) {
-        const roles = ["owner", "admin", "member"];
         const role = roles[Math.floor(Math.random() * roles.length)];
 
         await db.insert(orgMembers).values({
@@ -133,9 +135,7 @@ async function seedDatabase() {
       for (let i = 0; i < NOTES_PER_ORG; i++) {
         const author =
           orgMembersList[Math.floor(Math.random() * orgMembersList.length)];
-        const visibility = ["public", "private", "shared"][
-          Math.floor(Math.random() * 3)
-        ];
+        const visibility = visibilities[Math.floor(Math.random() * 3)];
         const content =
           SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
         const title = `Note ${totalNotes + 1}: ${content.substring(0, 50)}...`;

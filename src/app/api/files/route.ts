@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { db } from "@/lib/db";
 import { files, orgMembers } from "@/drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 
 // POST /api/files - Upload a file
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 // GET /api/files - List files for the current org
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const {
       data: { user },
       error: authError,
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       .select()
       .from(files)
       .where(eq(files.orgId, orgId))
-      .orderBy(files.createdAt, "desc");
+      .orderBy(desc(files.createdAt));
 
     return NextResponse.json(orgFiles);
   } catch (error) {
