@@ -27,11 +27,27 @@ Building a multi-tenant team notes app using NextJS, Supabase, Drizzle, TypeScri
 
 - **Timeline**: 24 hours, aim for completion with review
 
-## Actions Taken
-- [ ] Created NOTES.md
-- [ ] Created AI_USAGE.md, BUGS.md, REVIEW.md
-- [ ] Initialized git repo if needed
-- [ ] Set up environment variables for Supabase, OpenAI
+## Backend Setup Agent Actions
+
+- Created drizzle/schema.ts with all required tables: organizations, users, org_members, notes, note_versions, tags, note_tags, files
+- Defined role enum: owner, admin, member
+- Created drizzle.config.ts for migrations
+- Generated initial migration with Drizzle
+- Added RLS policies to migration for multi-tenancy and role-based access:
+  - Users can only access their own profile
+  - Org boundaries enforced via org_members
+  - Role-based permissions: members can read, admins/owners can manage
+- Created Supabase client/server libs in src/lib/
+- Created Drizzle db connection in src/lib/db.ts
+- Added middleware.ts for auth session management
+- Auth setup: Supabase Auth with RLS, users table linked to auth.users (manual sync needed)
+
+## Decisions Made
+- Used uuid for all IDs for consistency with Supabase
+- RLS policies use auth.uid() for user context
+- Basic RBAC: owners/admins can manage orgs/members, authors can manage their notes/files
+- Foreign keys without cascades for safety
+- Migration includes RLS enable and policies
 
 ## Decisions Made
 - Use RLS for all tenant isolation
