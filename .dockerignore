@@ -1,0 +1,16 @@
+node_modules
+.next
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.git
+.gitignore
+README.md
+NOTES.md
+AI_USAGE.md
+BUGS.md
+REVIEW.md
+.vercel
+*.log
+.DS_Store
