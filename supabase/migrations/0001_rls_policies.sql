@@ -48,22 +48,7 @@ CREATE POLICY "Users can insert own profile" ON users
 -- Org Members: Complex policies for membership management
 CREATE POLICY "Users can view org memberships they belong to" ON org_members
   FOR SELECT USING (
-    user_id = auth.uid() OR
-    EXISTS (
-      SELECT 1 FROM org_members om
-      WHERE om.org_id = org_members.org_id
-      AND om.user_id = auth.uid()
-    )
-  );
-
-CREATE POLICY "Org admins can manage memberships" ON org_members
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM org_members om
-      WHERE om.org_id = org_members.org_id
-      AND om.user_id = auth.uid()
-      AND om.role IN ('owner', 'admin')
-    )
+    user_id = auth.uid()
   );
 
 -- Notes: Complex visibility rules

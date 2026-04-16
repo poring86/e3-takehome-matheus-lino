@@ -1,10 +1,10 @@
-version: '3.8'
-
 services:
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3001}:3000"
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
@@ -14,10 +14,11 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - LOG_LEVEL=info
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - .:/app
-      - /app/node_modules
+      - app_node_modules:/app/node_modules
     command: npm run dev
 
   db:
@@ -27,9 +28,15 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5433}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d e3_notes"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
+  app_node_modules:
   postgres_data:

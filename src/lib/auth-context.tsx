@@ -67,25 +67,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUserOrganizations = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data: memberships, error: membershipsError } = await supabase
         .from('org_members')
-        .select(`
-          *,
-          organizations (*)
-        `)
+        .select('id, org_id, user_id, role, joined_at')
         .eq('user_id', userId);
 
-      if (error) throw error;
+      if (membershipsError) throw membershipsError;
 
-      const orgs = data as OrgMember[];
+      if (!memberships || memberships.length === 0) {
+        setUserOrgs([]);
+        setCurrentOrg(null);
+        localStorage.removeItem('currentOrgId');
+        return;
+      }
+
+      const orgIds = Array.from(new Set(memberships.map(member => member.org_id)));
+      const { data: organizationsData, error: organizationsError } = await supabase
+        .from('organizations')
+        .select('id, name, created_at')
+        .in('id', orgIds);
+
+      if (organizationsError) throw organizationsError;
+
+      const organizationsById = new Map(
+        (organizationsData || []).map(org => [org.id, org as Organization])
+      );
+
+      const orgs: OrgMember[] = memberships
+        .map(member => {
+          const organization = organizationsById.get(member.org_id);
+          if (!organization) return null;
+
+          return {
+            ...member,
+            organizations: organization,
+          } as OrgMember;
+        })
+        .filter((member): member is OrgMember => member !== null);
+
       setUserOrgs(orgs);
 
       // Set current org to first one or from localStorage
       const storedOrgId = localStorage.getItem('currentOrgId');
       const current = orgs.find(org => org.org_id === storedOrgId) || orgs[0];
       setCurrentOrg(current?.organizations || null);
+
+      if (!current) {
+        localStorage.removeItem('currentOrgId');
+      }
     } catch (error) {
-      console.error('Error loading organizations:', error);
+      const errorMessage =
+        error instanceof Error
+          ? { message: error.message, name: error.name }
+          : typeof error === 'object' && error !== null
+            ? error
+            : { message: String(error) };
+
+      console.error('Error loading organizations:', errorMessage);
+      setUserOrgs([]);
+      setCurrentOrg(null);
+      localStorage.removeItem('currentOrgId');
     }
   };
 

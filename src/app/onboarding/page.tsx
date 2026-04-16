@@ -42,27 +42,16 @@ function OnboardingContent() {
     setError(null);
 
     try {
+      const orgId = crypto.randomUUID();
+
       // Create organization
-      const { data: org, error: orgError } = await supabase
+      const { error: orgError } = await supabase
         .from('organizations')
-        .insert({ name: data.name })
-        .select()
-        .single();
+        .insert({ id: orgId, name: data.name });
 
       if (orgError) throw orgError;
 
-      // Add user as owner
-      const { error: memberError } = await supabase
-        .from('org_members')
-        .insert({
-          org_id: org.id,
-          user_id: user.id,
-          role: 'owner',
-        });
-
-      if (memberError) throw memberError;
-
-      // Create user profile if it doesn't exist
+      // Ensure user profile exists before creating membership (FK users.id)
       const { error: profileError } = await supabase
         .from('users')
         .upsert({
@@ -73,6 +62,23 @@ function OnboardingContent() {
 
       if (profileError) throw profileError;
 
+      // Add user as owner
+      const { error: memberError } = await supabase
+        .from('org_members')
+        .insert({
+          org_id: orgId,
+          user_id: user.id,
+          role: 'owner',
+        });
+
+      if (memberError) throw memberError;
+
+      // Força reload das organizações do usuário
+      if (typeof window !== 'undefined' && user) {
+        // Aguarda o contexto atualizar
+        const { loadUserOrganizations } = require('../../lib/auth-context');
+        await loadUserOrganizations(user.id);
+      }
       router.push('/dashboard');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred');

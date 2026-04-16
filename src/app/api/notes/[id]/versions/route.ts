@@ -22,7 +22,9 @@ export async function GET(request: NextRequest, context: any) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      logPermissionDenied("get_note_versions", undefined, undefined, noteId, { reason: "unauthorized" });
+      logPermissionDenied("get_note_versions", undefined, undefined, noteId, {
+        reason: "unauthorized",
+      });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -34,7 +36,9 @@ export async function GET(request: NextRequest, context: any) {
       .limit(1);
 
     if (!note) {
-      logPermissionDenied("get_note_versions", user?.id, undefined, noteId, { reason: "not_found" });
+      logPermissionDenied("get_note_versions", user?.id, undefined, noteId, {
+        reason: "not_found",
+      });
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
@@ -48,13 +52,17 @@ export async function GET(request: NextRequest, context: any) {
       .limit(1);
 
     if (!orgMember) {
-      logPermissionDenied("get_note_versions", user.id, note.orgId, noteId, { reason: "not_org_member" });
+      logPermissionDenied("get_note_versions", user.id, note.orgId, noteId, {
+        reason: "not_org_member",
+      });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
     // Check if user can access private notes
     if (note.visibility === "private" && note.createdBy !== user.id) {
-      logPermissionDenied("get_note_versions", user.id, note.orgId, noteId, { reason: "private_note" });
+      logPermissionDenied("get_note_versions", user.id, note.orgId, noteId, {
+        reason: "private_note",
+      });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -64,10 +72,14 @@ export async function GET(request: NextRequest, context: any) {
       .from(noteVersions)
       .where(eq(noteVersions.noteId, noteId))
       .orderBy(desc(noteVersions.version));
-    logMutation("read", "note_versions", user.id, note.orgId, noteId, { count: versions.length });
+    logMutation("read", "note_versions", user.id, note.orgId, noteId, {
+      count: versions.length,
+    });
     return NextResponse.json(versions);
   } catch (error) {
-    logError(error as Error, "GET /api/notes/[id]/versions", undefined, { noteId });
+    logError(error as Error, "GET /api/notes/[id]/versions", undefined, {
+      noteId,
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

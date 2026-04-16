@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
@@ -24,7 +24,14 @@ type SignInForm = z.infer<typeof signInSchema>;
 export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    setSuccessMessage(params.get('message'));
+  }, []);
 
   const {
     register,
@@ -97,6 +104,12 @@ export default function SignInPage() {
               </Alert>
             )}
 
+            {successMessage && (
+              <Alert>
+                <AlertDescription>{successMessage}</AlertDescription>
+              </Alert>
+            )}
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign in
@@ -104,6 +117,11 @@ export default function SignInPage() {
           </form>
 
           <div className="mt-4 text-center text-sm">
+            <div className="mb-2">
+              <Link href="/auth/forgot-password" className="text-blue-600 hover:underline">
+                Forgot your password?
+              </Link>
+            </div>
             Don&apos;t have an account?{' '}
             <Link href="/auth/signup" className="text-blue-600 hover:underline">
               Sign up

@@ -73,8 +73,8 @@ export const logAIRequest = (
 
 export const logPermissionDenied = (
   action: string,
-  userId: string,
-  orgId: string,
+  userId?: string,
+  orgId?: string,
   resource?: string,
   details?: any,
 ) => {

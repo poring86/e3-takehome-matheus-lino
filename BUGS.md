@@ -1,7 +1,9 @@
 # BUGS.md
 
 ## Format
+
 Each bug entry follows this structure:
+
 - Date
 - Status
 - Location
@@ -12,7 +14,18 @@ Each bug entry follows this structure:
 
 ## Open Bugs
 
+### B-025 Organization creation forbidden by RLS policy mismatch
+
+- Date: 2026-04-16
+- Status: Open
+- Location: Supabase Cloud policies on `organizations` and `org_members`
+- Symptom: `POST /rest/v1/organizations?select=*` returns HTTP 403 with `new row violates row-level security policy` during onboarding.
+- Cause: Effective cloud policy state does not allow onboarding insert path for organization creation and owner membership insertion.
+- Fix: Apply `supabase/migrations/0003_onboarding_org_creation_hotfix.sql` and, if 403 persists, apply `supabase/migrations/0004_organizations_insert_policy_reset.sql` and `supabase/migrations/0005_organizations_rls_full_reset.sql`. If organization creation succeeds but listing remains empty, apply `supabase/migrations/0006_organizations_select_policy_fix.sql`.
+- Commit: pending
+
 ### B-001 Agent orchestration deadlock and rate limit failure
+
 - Date: 2026-04-16
 - Status: Open
 - Location: Initial AI agent setup and build orchestration.
@@ -23,7 +36,33 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-024 Password reset flow failed with Supabase lock contention / expired link handling
+
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/auth/reset-password/page.tsx
+- Symptom: Password reset page could fail with messages like lock contention (`lock:sb-...-auth-token`) or raw `otp_expired` errors, blocking reset completion.
+- Cause: Recovery session initialization treated transient session lock contention as hard failure and did not normalize expired-link errors for users.
+- Fix: Added tolerant recovery-session handling, fallback session check, URL hash cleanup after successful session setup, and explicit user-friendly message for expired recovery links.
+- Validation: Local production build passes and reset flow now allows retry path via `/auth/forgot-password`.
+- Commit: pending
+
+### B-023 Infinite recursion in org_members RLS policy (Supabase)
+
+- Date: 2026-04-16
+- Status: Resolved
+- Location: supabase/migrations/0001_rls_policies.sql (Supabase Cloud)
+- Symptom: REST queries to org_members and organizations returned 500 with `infinite recursion detected in policy for relation "org_members"` (42P17).
+- Cause: The SELECT policy on org_members referenced org_members itself via EXISTS, triggering recursive RLS evaluation.
+- Fix: Dropped the recursive admin management policy in Supabase Cloud and kept a non-recursive read policy (`user_id = auth.uid()`).
+- Validation: Endpoints `/rest/v1/org_members` and `/rest/v1/organizations` returned HTTP 200 after the policy cleanup.
+- Lessons learned: Do not reference the same table inside its own RLS predicate unless the pattern is proven non-recursive.
+- Lessons learned: Prefer ownership checks through stable parent tables (for example, organizations.owner_id) when authorizing membership management.
+- Lessons learned: Validate policy changes immediately with direct REST calls before continuing feature testing.
+- Commit: n/a (manual fix in Supabase SQL Editor)
+
 ### B-002 Unescaped apostrophe in sign-in page JSX
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/auth/signin/page.tsx
@@ -33,6 +72,7 @@ Each bug entry follows this structure:
 - Commit: 385dac2
 
 ### B-003 Syntax error in notes dashboard pagination implementation
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/dashboard/notes/page.tsx
@@ -42,6 +82,7 @@ Each bug entry follows this structure:
 - Commit: historical (pre-atomic cleanup)
 
 ### B-004 Module resolution failures in dashboard and auth pages
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/dashboard/notes/[id]/page.tsx, src/app/auth/signin/page.tsx, src/app/auth/signup/page.tsx
@@ -51,6 +92,7 @@ Each bug entry follows this structure:
 - Commit: historical (pre-atomic cleanup)
 
 ### B-005 Route handler params type mismatch in dynamic API routes
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/api/notes/[id]/route.ts, src/app/api/notes/[id]/summarize/route.ts, src/app/api/notes/[id]/versions/route.ts
@@ -60,6 +102,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-006 Invalid parameter destructuring syntax in route handlers
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/api/notes/[id]/route.ts and summarize variants
@@ -69,6 +112,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-007 Duplicate exported symbol declarations in schema files
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: drizzle/schema.ts, src/drizzle/schema.ts
@@ -78,6 +122,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-008 Legacy schema import path in DB client
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/lib/db.ts
@@ -87,6 +132,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-009 Seed script union type mismatch for role/visibility
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: scripts/seed.ts
@@ -96,6 +142,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-010 Drizzle orderBy direction type error in files API
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/api/files/route.ts
@@ -105,6 +152,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-011 Drizzle query builder reassignment type mismatch in notes API
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/api/notes/route.ts
@@ -114,6 +162,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-012 `count` identifier shadowing in notes pagination
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/api/notes/route.ts
@@ -123,6 +172,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-013 Next 16 async cookies API incompatibility in server Supabase client
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/lib/supabase-server.ts
@@ -132,6 +182,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-014 Build failure from eager OpenAI client initialization
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/app/api/notes/[id]/summarize/route.ts
@@ -141,6 +192,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-015 Prerender failure from eager Supabase browser client env requirement
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/lib/supabase-client.ts
@@ -150,6 +202,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-016 Missing dialog UI component import target
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: src/components/ui/dialog.tsx and dependent dashboard settings page
@@ -159,6 +212,7 @@ Each bug entry follows this structure:
 - Commit: 2c78898
 
 ### B-017 Invalid test scaffold expecting Express entrypoint
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: tests/auth.test.ts
@@ -168,6 +222,7 @@ Each bug entry follows this structure:
 - Commit: 6e6c7ab
 
 ### B-018 Vitest alias resolution mismatch for `@` imports
+
 - Date: 2026-04-16
 - Status: Resolved
 - Location: tests/auth.test.ts
