@@ -6,9 +6,12 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
 import { LogOut, Building2, Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 function DashboardContent() {
   const { user, currentOrg, userOrgs, switchOrg, signOut } = useAuth();
+  const router = useRouter();
 
   const handleSignOut = async () => {
     await signOut();
@@ -92,9 +95,11 @@ function DashboardContent() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Note
+                  <Button asChild>
+                    <Link href="/dashboard/notes">
+                      <Plus className="h-4 w-4 mr-2" />
+                      View Notes
+                    </Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -108,7 +113,7 @@ function DashboardContent() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button>
+                <Button onClick={() => router.push('/onboarding')}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Organization
                 </Button>
