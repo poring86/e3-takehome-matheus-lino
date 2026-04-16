@@ -8,6 +8,47 @@
 
 ## Project Completion Checklist (2026-04-16)
 
+## Requirements Traceability (2026-04-16)
+
+### Product Requirements
+
+- Auth and multi-tenancy: **Done**
+	- Evidence: `src/app/auth/signin/page.tsx`, `src/app/auth/signup/page.tsx`, `src/lib/auth-context.tsx`, `supabase/migrations/0001_rls_policies.sql`
+- Notes CRUD: **Done**
+	- Evidence: `src/app/api/notes/route.ts`, `src/app/api/notes/[id]/route.ts`
+- Tagging, visibility, and selective sharing: **Done**
+	- Evidence: `src/app/api/notes/route.ts`, `src/drizzle/schema.ts`
+- Versioning and state history: **Done**
+	- Evidence: `src/app/api/notes/[id]/route.ts`, `src/app/api/notes/[id]/versions/route.ts`, `src/drizzle/schema.ts`
+- Search with org boundaries: **Done**
+	- Evidence: `src/app/api/notes/route.ts`
+- File upload with org access control: **Done**
+	- Evidence: `src/app/api/files/route.ts`
+- AI summary flow (generate + accept/reject): **Done**
+	- Evidence: `src/app/api/notes/[id]/summarize/route.ts`
+- Structured logging for auth/mutations/denials/errors: **Partial**
+	- Evidence: `src/lib/logger.ts`, `src/app/api/notes/route.ts`
+	- Gap: Logging is present but not fully wired in every API route.
+
+### Infra and Data Requirements
+
+- Dockerized deployment target: **Done**
+	- Evidence: `Dockerfile`, `docker-compose.yml`
+- Railway deployment documentation: **Done**
+	- Evidence: `RAILWAY_DEPLOYMENT.md`
+- Seed data at 10k+ notes scale: **Done**
+	- Evidence: `scripts/seed.ts` (`NOTES_PER_ORG = 2500`, 5 orgs => ~12,500 notes)
+- RLS policy coverage: **Done**
+	- Evidence: `supabase/migrations/0001_rls_policies.sql`
+
+### Quality Requirements
+
+- Production build passes: **Done**
+	- Evidence: Latest local `npm run build` completed successfully.
+- Automated tests for critical flows: **Partial**
+	- Evidence: `tests/auth.test.ts`
+	- Gap: Only schema validation tests are currently implemented; route/integration/E2E coverage remains pending.
+
 ### Core Features
 
 - [x] Auth + multi-tenancy (sign in, org creation, org switch, roles, permissions enforced)
