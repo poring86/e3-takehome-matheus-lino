@@ -2,15 +2,15 @@
 
 ## What Was Reviewed Deeply
 
-- **Multi-tenant isolation:** Org_id enforcement em todas as queries, permissões baseadas em roles (owner/admin/member)
-- **Authentication flow:** Supabase auth com middleware, troca de organizações, session management
-- **CRUD operations:** Create, read, update, delete de notas com validação e permissões
-- **Versioning system:** Snapshots completos, version tracking, diffs via API
-- **Search functionality:** Server-side search com paginação, filtros por título/conteúdo/tags
+- **Multi-tenant isolation:** orgId enforcement across all queries, role-based permissions (owner/admin/member)
+- **Authentication flow:** Supabase auth with middleware, organization switching, and session management
+- **CRUD operations:** Create, read, update, and delete notes with validation and permission checks
+- **Versioning system:** Full snapshots, version tracking, and diffs via API
+- **Search functionality:** Server-side search with pagination and title/content/tag filters
 - **File upload:** Supabase Storage integration, org-level isolation
-- **AI summaries:** OpenAI integration com workflow accept/reject, permission checks
-- **Logging:** Structured logs com Pino para auth, mutations, AI requests, permission denials
-- **Database schema:** Relationships, constraints, indexing para performance
+- **AI summaries:** OpenAI integration with accept/reject workflow and permission checks
+- **Logging:** Structured logs with Pino for auth, mutations, AI requests, and permission denials
+- **Database schema:** Relationships, constraints, and indexing for performance
 - **Security:** Input validation, SQL injection prevention, permission enforcement
 
 ## What Was Sampled
@@ -31,8 +31,8 @@
 
 ## What I'd Review Next With More Time
 
-- **Load testing:** Performance com 10k+ usuários simultâneos, query optimization
-- **E2E testing:** Cypress/Playwright para critical user journeys
+- **Load testing:** Performance with 10k+ concurrent users and query optimization
+- **E2E testing:** Cypress/Playwright for critical user journeys
 - **Accessibility audit:** WCAG compliance, screen reader support
 - **Security penetration testing:** OWASP top 10, API fuzzing
 - **Database performance:** Query plans, connection pooling, read replicas

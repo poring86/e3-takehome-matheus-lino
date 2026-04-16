@@ -2,12 +2,12 @@
 
 ## Agents Used
 
-- Main Agent: GitHub Copilot (Grok Code Fast 1) - Overall coordination, planning, review
-- Sub-agent 1: Backend Setup Agent - DB schema, auth, RLS policies
-- Sub-agent 2: Frontend Auth Agent - Auth UI, org management
-- Sub-agent 3: Notes Agent - CRUD, versioning, search
-- Sub-agent 4: Features Agent - File upload, AI summaries
-- Sub-agent 5: Infra Agent - Logging, deployment, seed data
+- Main agent: GitHub Copilot - overall coordination, planning, and review
+- Sub-agent 1: Backend Setup Agent - database schema, auth, and RLS policies
+- Sub-agent 2: Frontend Auth Agent - auth UI and organization management
+- Sub-agent 3: Notes Agent - CRUD, versioning, and search
+- Sub-agent 4: Features Agent - file upload and AI summaries
+- Sub-agent 5: Infra Agent - logging, deployment, and seed data
 
 ## Work Split
 
@@ -23,9 +23,10 @@
 ## Agent Errors and Interventions
 
 - Error: The initial agent (Antigravity/Gemini Pro) suffered a processing deadlock and subscription sync failure during the setup phase.
-- Intervention: I manually intervened to reset the environment and shifted to a hybrid workflow using GitHub Copilot and browser-based LLMs (Gemini Flash/Pro) to bypass tool limitations and maintain velocity.
+- Intervention: Manually reset the environment and switched to a hybrid workflow using GitHub Copilot and browser-based LLMs (Gemini Flash/Pro) to bypass tool limitations and maintain velocity.
 - Error: GitHub Copilot hit usage rate limits during intensive code generation and review phases.
-- Intervention: Had to restart VS Code and wait for quota reset to continue development. This caused a temporary pause in the workflow but was resolved within minutes.
+- Intervention: Restarted VS Code and waited for quota reset to continue development.
+- Update: Upgraded to the paid version of GitHub Copilot to overcome the usage limits of the free version, ensuring uninterrupted development progress.
 - Error: Agents occasionally suggested outdated Next.js 13/14 APIs for server components.
 - Intervention: I enforced the "nextjs-agent-rules" and manually corrected the code to use Next.js 15 async APIs and proper server-side patterns.
 
