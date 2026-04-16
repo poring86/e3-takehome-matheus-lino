@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '../../../../../lib/auth-context';
-import { ProtectedRoute } from '../../../../../components/protected-route';
-import { Button } from '../../../../../components/ui/button';
-import { Input } from '../../../../../components/ui/input';
-import { Label } from '../../../../../components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../../components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../../components/ui/select';
-import { Avatar, AvatarFallback } from '../../../../../components/ui/avatar';
+import { useAuth } from '../../../../lib/auth-context';
+import { ProtectedRoute } from '../../../../components/protected-route';
+import { Button } from '../../../../components/ui/button';
+import { Input } from '../../../../components/ui/input';
+import { Label } from '../../../../components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../components/ui/select';
+import { Avatar, AvatarFallback } from '../../../../components/ui/avatar';
 import { ArrowLeft, Save, Edit3, Eye, EyeOff, History, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useEditor, EditorContent } from '@tiptap/react';
