@@ -49,6 +49,13 @@ Building a multi-tenant team notes app using NextJS, Supabase, Drizzle, TypeScri
 - Added AuthProvider component wrapping the app
 - Implemented useAuth hook for accessing auth state
 - Added user session management and organization context
+- Committed: feat: implement auth context with Supabase auth hooks and organization management
+
+### Auth Pages Implementation
+- Created sign-in page with form validation using React Hook Form and Zod
+- Created sign-up page with email/password registration
+- Added protected route wrapper for authenticated pages
+- Implemented auth redirect logic
 - Fixed lint warnings (removed unused import)
 - Committed all changes
 
