@@ -1,11 +1,13 @@
 # Railway Deployment Guide
 
 ## Prerequisites
+
 - Railway account
 - Supabase project with database
 - OpenAI API key
 
 ## Environment Variables
+
 Set these in Railway project settings:
 
 ```
@@ -27,6 +29,7 @@ LOG_LEVEL=info
 ## Post-Deployment
 
 1. Run database migrations:
+
    ```bash
    npx drizzle-kit migrate
    ```

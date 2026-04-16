@@ -7,6 +7,7 @@ Building a multi-tenant team notes app using NextJS, Supabase, Drizzle, TypeScri
 ## Current Progress (April 16, 2026 - COMPLETED)
 
 ✅ **FULLY IMPLEMENTED:**
+
 - Schema completo com isolamento org_id
 - Auth multi-tenant com troca de orgs
 - Dashboard de notas com paginação server-side (limit/offset) - ESCALÁVEL PARA 10K+
