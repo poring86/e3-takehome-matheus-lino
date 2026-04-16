@@ -24,6 +24,8 @@
 
 - Error: The initial agent (Antigravity/Gemini Pro) suffered a processing deadlock and subscription sync failure during the setup phase.
 - Intervention: I manually intervened to reset the environment and shifted to a hybrid workflow using GitHub Copilot and browser-based LLMs (Gemini Flash/Pro) to bypass tool limitations and maintain velocity.
+- Error: GitHub Copilot hit usage rate limits during intensive code generation and review phases.
+- Intervention: Had to restart VS Code and wait for quota reset to continue development. This caused a temporary pause in the workflow but was resolved within minutes.
 - Error: Agents occasionally suggested outdated Next.js 13/14 APIs for server components.
 - Intervention: I enforced the "nextjs-agent-rules" and manually corrected the code to use Next.js 15 async APIs and proper server-side patterns.
 
@@ -42,25 +44,28 @@
 ## Multi-Agent Protocol Execution (Current Session)
 
 ### QA/Security Agent Review (Current)
+
 - **Decision**: Identified build failures due to module resolution issues. Prioritizing critical bug fixes before proceeding with Dashboard and Seed implementation.
 - **Rationale**: Cannot proceed with feature development while core build is broken. Security and stability must be ensured first.
 - **Action**: Investigating module not found errors in build output, focusing on dependency resolution and import paths.
 
 ### Feature Engineer Agent (Implementation Phase)
+
 - **Decision**: Proceeding with RLS policies implementation as highest security priority.
 - **Rationale**: Multi-tenant data isolation is incomplete without database-level RLS enforcement.
 - **Action**: Creating Supabase migration scripts for RLS policies on all tables.
 
 ### Architect Agent (Deployment Phase)
+
 - **Decision**: Created Railway deployment guide and Docker configuration.
 - **Rationale**: Ensures production-ready deployment with proper environment setup.
 - **Action**: Documented deployment process and post-deployment steps.
 
 ### QA/Security Agent (Commit Strategy)
+
 - **Decision**: Execute atomic commits as requested by user to maintain clean git history and demonstrate agent work split.
 - **Rationale**: Atomic commits provide clear audit trail of agent work and follow best practices for collaborative development.
 - **Action**: Create 4 separate commits covering setup, database, auth, and dashboard features.
-
 
 ## Atomic Commit History
 
