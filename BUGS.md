@@ -1,146 +1,177 @@
 # BUGS.md
 
-## Bugs Found During Review
+## Format
+Each bug entry follows this structure:
+- Date
+- Status
+- Location
+- Symptom
+- Cause
+- Fix
+- Commit
 
-### Bug 1: Agent orchestration deadlock and rate limit failure
+## Open Bugs
 
-- **Location**: initial AI agent setup / build orchestration
-- **Issue**: the first AI agent workflow deadlocked while waiting on subscription-sync events and hit rate limits during schema generation.
-- **Impact**: delayed initial architectural setup by ~1 hour and forced a pivot away from automated agent-only scaffolding.
-- **Fix**: moved to manual schema definition and switched LLM models to Gemini Flash/Pro to maintain velocity.
-- **Commit**: pending
+### B-001 Agent orchestration deadlock and rate limit failure
+- Date: 2026-04-16
+- Status: Open
+- Location: Initial AI agent setup and build orchestration.
+- Symptom: The first AI workflow deadlocked waiting on subscription-sync events and hit rate limits during schema generation.
+- Cause: Over-reliance on early automated orchestration during initial setup.
+- Fix: Switched to manual schema definition and changed model strategy to recover delivery speed.
+- Commit: pending
 
-### Bug 2: Unescaped apostrophe in sign-in page JSX
+### B-002 Unescaped apostrophe in sign-in page JSX
+- Date: 2026-04-16
+- Status: Open
+- Location: src/app/auth/signin/page.tsx
+- Symptom: `react/no-unescaped-entities` lint risk due to raw apostrophe in JSX text.
+- Cause: Unescaped JSX character in user-facing text.
+- Fix: Escape apostrophes using HTML entities or equivalent JSX-safe text.
+- Commit: pending
 
-- **Location**: `src/app/auth/signin/page.tsx` line 107
-- **Issue**: raw apostrophe in JSX triggers `react/no-unescaped-entities` lint errors and can cause rendering issues in strict React setups.
-- **Impact**: prevents a clean lint/build pass and indicates a production-quality rendering issue in the auth flow.
-- **Fix**: escape apostrophes in JSX text or use HTML entities to satisfy React linting.
-- **Commit**: pending
+## Resolved Bugs
 
-### Bug 3: Syntax error in notes dashboard pagination implementation
+### B-003 Syntax error in notes dashboard pagination implementation
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/dashboard/notes/page.tsx
+- Symptom: TypeScript compilation failed with `try expected` and `Declaration or statement expected`.
+- Cause: Duplicate/misplaced `finally` block and duplicate `useEffect` outside intended scope.
+- Fix: Removed duplicated blocks and restored valid function/component structure.
+- Commit: historical (pre-atomic cleanup)
 
-- **Location**: `src/app/dashboard/notes/page.tsx` lines 76-79
-- **Issue**: Duplicate and misplaced `finally` block in the `fetchNotes` function, causing TypeScript compilation to fail with "try expected" and "Declaration or statement expected" errors.
-- **Impact**: Prevents the application from building and deploying, blocking the pagination feature implementation.
-- **Fix**: Removed the duplicate `finally` block and duplicate `useEffect` that were incorrectly placed outside the function scope.
-- **Commit**: Fixed in current session - code now compiles and dev server starts successfully.
+### B-004 Module resolution failures in dashboard and auth pages
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/dashboard/notes/[id]/page.tsx, src/app/auth/signin/page.tsx, src/app/auth/signup/page.tsx
+- Symptom: 30+ `Module not found` errors under Turbopack.
+- Cause: Inconsistent internal import strategy and path resolution drift.
+- Fix: Standardized internal imports to `@` alias usage where applicable and aligned import paths.
+- Commit: historical (pre-atomic cleanup)
 
-### Bug 4: Module resolution failures in dashboard and auth pages (Next.js 16 Turbopack)
+### B-005 Route handler params type mismatch in dynamic API routes
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/api/notes/[id]/route.ts, src/app/api/notes/[id]/summarize/route.ts, src/app/api/notes/[id]/versions/route.ts
+- Symptom: Build/type-check errors expecting async-compatible `context.params` shape.
+- Cause: Handler signatures were not aligned with the active Next.js runtime expectations.
+- Fix: Updated handlers to read params from context safely and consistently.
+- Commit: 2c78898
 
-- **Location**: Multiple files in `src/app/dashboard/notes/[id]/page.tsx` and `src/app/auth/signin/page.tsx`, `src/app/auth/signup/page.tsx`
-- **Issue**: Turbopack build fails with 30+ "Module not found" errors. Cannot resolve relative imports like `'../../../../../components/protected-route'`, `'../../components/ui/button'`, etc.
-- **Affected files**:
-  - `src/app/dashboard/notes/[id]/page.tsx` - cannot resolve protected-route, avatar, button, card, input, label, select
-  - `src/app/auth/signin/page.tsx` - cannot resolve alert, button, card, input, label
-  - `src/app/auth/signup/page.tsx` - cannot resolve alert, button, card, input, label
-- **Impact**: `npm run build` fails completely with Turbopack. Build with `NEXT_DISABLE_TURBOPACK=1` shows the same errors, indicating a path resolution issue not specific to Turbopack.
-- **Root cause**: Import paths are incorrect or target files do not exist. Components exist in `src/components/ui/` but imports are failing.
-- **Severity**: **Critical** - blocks production deployment
-- **Status**: Needs investigation and fix
-- **Commit**: pending fix
+### B-006 Invalid parameter destructuring syntax in route handlers
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/api/notes/[id]/route.ts and summarize variants
+- Symptom: Parser error `Expected ',', got ':'`.
+- Cause: Invalid destructuring syntax in function parameter type annotation.
+- Fix: Removed invalid parameter destructuring pattern and normalized context access inside function body.
+- Commit: 2c78898
 
-## 2026-04-16
+### B-007 Duplicate exported symbol declarations in schema files
+- Date: 2026-04-16
+- Status: Resolved
+- Location: drizzle/schema.ts, src/drizzle/schema.ts
+- Symptom: `Cannot redeclare exported variable 'organizations'`.
+- Cause: Constants exported inline and re-exported again in trailing export block.
+- Fix: Removed duplicate trailing re-export blocks.
+- Commit: 2c78898
 
-### Bug: Module not found for internal imports (UI components, lib, drizzle)
+### B-008 Legacy schema import path in DB client
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/lib/db.ts
+- Symptom: Mixed schema import sources increased maintenance and resolution risk.
+- Cause: Partial migration to `@` alias left a legacy relative import.
+- Fix: Switched schema import to `@/drizzle/schema`.
+- Commit: 2c78898
 
-- Symptom: Next.js/Turbopack build failed with 'Module not found' for valid relative imports (e.g., '../../components/ui/button').
-- Root cause: Turbopack/Next.js 16+ with tsconfig 'paths' mapping requires all internal imports to use the alias '@' instead of relative paths for consistent resolution.
-- Fix: Refactored all internal imports to use '@' alias (e.g., '@/components/ui/button', '@/lib/supabase-client', '@/drizzle/schema').
-- Commit: [refactor: use @ alias for all internal imports]
+### B-009 Seed script union type mismatch for role/visibility
+- Date: 2026-04-16
+- Status: Resolved
+- Location: scripts/seed.ts
+- Symptom: Drizzle insert type mismatch because selected role/visibility inferred as `string`.
+- Cause: Arrays inferred as `string[]` instead of literal union tuples.
+- Fix: Declared arrays as `const` tuples and reused for random selection.
+- Commit: 2c78898
 
-### Bug: Next.js Route Handler context.params type mismatch (Promise vs. plain object)
+### B-010 Drizzle orderBy direction type error in files API
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/api/files/route.ts
+- Symptom: `.orderBy(files.createdAt, "desc")` type mismatch.
+- Cause: Incorrect Drizzle orderBy usage with string direction argument.
+- Fix: Replaced with `.orderBy(desc(files.createdAt))`.
+- Commit: 2c78898
 
-- Symptom: Type error in build: context.params expected as Promise<{ id: string }> but handler used plain object.
-- Attempted Fix: Updated handlers to accept Promise in context.params, but it introduced a TypeScript/ESM syntax error: "Expected ',', got ':'."
-- Next step: Adjust parameter handling syntax to a valid function signature using the context object inside the handler body.
-- Fix: Updated handlers to read params from context inside the function body and resolve Promise/object compatibility.
-- Commit: [fix: update Next.js route handler context.params to Promise]
+### B-011 Drizzle query builder reassignment type mismatch in notes API
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/api/notes/route.ts
+- Symptom: Query builder type incompatibility when reassigning different chained shapes.
+- Cause: Reassignment of strongly typed builder with variant generic output chains.
+- Fix: Refactored into single query construction path using composable filter list.
+- Commit: 2c78898
 
-### Bug: Syntax error while destructuring async route handler parameter
+### B-012 `count` identifier shadowing in notes pagination
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/api/notes/route.ts
+- Symptom: `'count' implicitly has type 'any'` self-reference error.
+- Cause: Destructured variable name shadowed imported `count()` function in same expression context.
+- Fix: Renamed destructured value to `totalCount`.
+- Commit: 2c78898
 
-- Symptom: "Expected ',', got ':'" when using 'context: { params }: any' in the handler signature.
-- Cause: That destructuring syntax is invalid for this route-handler function signature.
-- Next step: Use 'context: any' and access 'context.params' in the function body.
+### B-013 Next 16 async cookies API incompatibility in server Supabase client
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/lib/supabase-server.ts
+- Symptom: Cookie store methods accessed synchronously while `cookies()` resolved asynchronously.
+- Cause: Client helper assumed sync cookie API.
+- Fix: Made `createClient` async and updated API handlers to `await createClient()`.
+- Commit: 2c78898
 
-**Bug:** Handler signature/type mismatch in summarize route (English only)
+### B-014 Build failure from eager OpenAI client initialization
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/app/api/notes/[id]/summarize/route.ts
+- Symptom: Build failed during route data collection due to missing `OPENAI_API_KEY` at import time.
+- Cause: OpenAI client initialized at module scope.
+- Fix: Moved OpenAI client creation into POST handler with runtime env guard.
+- Commit: 2c78898
 
-- Symptom: Type error in build: context.params expected as Promise<{ id: string }> but handler used plain object in src/app/api/notes/[id]/summarize/route.ts.
-- Cause: Handler signature does not match Next.js 15+ expectations for context.params.
-- Next step: Refactor POST handler in summarize/route.ts to use context: any and resolve params as Promise or object, with all code and comments in English.
+### B-015 Prerender failure from eager Supabase browser client env requirement
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/lib/supabase-client.ts
+- Symptom: Prerender error `supabaseUrl is required`.
+- Cause: Module-scope client initialization used non-null assertions on missing env vars.
+- Fix: Added safe defaults to prevent prerender crash in env-missing contexts.
+- Commit: 2c78898
 
-### 2026-04-16
+### B-016 Missing dialog UI component import target
+- Date: 2026-04-16
+- Status: Resolved
+- Location: src/components/ui/dialog.tsx and dependent dashboard settings page
+- Symptom: Build failed because dialog UI module was imported but file did not exist.
+- Cause: Missing component implementation.
+- Fix: Added dialog component implementation compatible with existing UI patterns.
+- Commit: 2c78898
 
-**Bug:** Handler signature/type mismatch in versions route (English only)
+### B-017 Invalid test scaffold expecting Express entrypoint
+- Date: 2026-04-16
+- Status: Resolved
+- Location: tests/auth.test.ts
+- Symptom: Vitest failed with `Cannot find module '../src/app'` and executed zero tests.
+- Cause: Template test assumed an Express app entrypoint in a Next.js codebase.
+- Fix: Replaced with executable schema validation tests.
+- Commit: 6e6c7ab
 
-- Symptom: Type error in build: context.params expected as Promise<{ id: string }> but handler used plain object in src/app/api/notes/[id]/versions/route.ts.
-- Cause: Handler signature does not match Next.js 15+ expectations for context.params.
-- Next step: Refactor all handlers in versions/route.ts to use context: any and resolve params as Promise or object, with all code and comments in English.
-
-### 2026-04-16
-
-**Bug:** Duplicate exported symbol declarations in schema files
-
-- Symptom: Build/type-check failed with "Cannot redeclare exported variable 'organizations'" in drizzle/schema.ts.
-- Cause: The schema constants were exported where declared and then exported again in a trailing export block.
-- Fix: Removed duplicate trailing export blocks in both drizzle/schema.ts and src/drizzle/schema.ts.
-
-**Bug:** Legacy schema import path in database client
-
-- Symptom: App code still imported schema from ../../drizzle/schema in src/lib/db.ts.
-- Cause: Partial migration to @ alias left one old import path.
-- Fix: Updated src/lib/db.ts to import schema from @/drizzle/schema.
-
-**Bug:** Seed script role union type mismatch
-
-- Symptom: Build/type-check failed in scripts/seed.ts because role was inferred as string instead of the required literal union.
-- Cause: Roles and visibility arrays were inferred as string[] in random selection logic.
-- Fix: Typed arrays as const literal tuples and reused them for random selection.
-
-**Bug:** Drizzle orderBy direction string type error in files API
-
-- Symptom: Build/type-check failed in src/app/api/files/route.ts because `.orderBy(files.createdAt, "desc")` passed a string where Drizzle expects SQL/order expressions.
-- Cause: Incorrect use of string direction argument with Drizzle's orderBy API.
-- Fix: Imported `desc` from drizzle-orm and changed to `.orderBy(desc(files.createdAt))`.
-
-**Bug:** Drizzle query builder reassignment type mismatch in notes API
-
-- Symptom: Build/type-check failed in src/app/api/notes/route.ts when reassigning `notesQuery` with different chained builder shapes (with/without `.where` and extra joins).
-- Cause: Reassigning a strongly typed Drizzle query builder variable to different generic builder types.
-- Fix: Reworked query construction to build a single `filters` array and create one final query with a single `.where(and(...filters))`.
-
-**Bug:** `count` identifier shadowing in notes API pagination query
-
-- Symptom: TypeScript error: `'count' implicitly has type 'any' because it is referenced directly or indirectly in its own initializer`.
-- Cause: Destructuring `const [{ count }]` shadowed the imported `count()` function identifier in the same expression context.
-- Fix: Renamed destructured result to `totalCount` and returned `total: totalCount`.
-
-**Bug:** Next 16 async cookies API incompatibility in server Supabase client
-
-- Symptom: Build/type-check failed in src/lib/supabase-server.ts because `cookies()` returned a Promise and code tried to call `cookieStore.getAll()` synchronously.
-- Cause: Next.js 16 cookies API is async in this project setup, while the helper assumed a synchronous cookie store.
-- Fix: Made `createClient` async (`await cookies()`) and updated all server route handlers to use `await createClient()`.
-
-**Bug:** Build failed when collecting page data due to eager OpenAI client initialization
-
-- Symptom: Build failed for /api/notes/[id]/summarize with missing `OPENAI_API_KEY` during module import.
-- Cause: OpenAI client was instantiated at module scope, which executed during build-time route loading.
-- Fix: Moved OpenAI client creation into the POST handler and added an explicit runtime guard for missing `OPENAI_API_KEY`.
-
-**Bug:** Prerender failed due to eager Supabase browser client env requirement
-
-- Symptom: Build failed while prerendering `/_not-found` with `supabaseUrl is required`.
-- Cause: `src/lib/supabase-client.ts` instantiated a client at module scope with non-null assertions on missing env vars.
-- Fix: Added safe defaults for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` so prerender/build does not crash when env vars are absent.
-
-**Bug:** Auth test suite used invalid Express entrypoint for a Next.js app
-
-- Symptom: `npx vitest run tests/auth.test.ts` failed with `Cannot find module '../src/app'` and reported zero tests.
-- Cause: The test file was a template expecting an Express `app` entrypoint that does not exist in this Next.js project.
-- Fix: Replaced the suite with executable schema validation tests based on `createNoteSchema` and `updateNoteSchema`.
-
-**Bug:** Vitest path alias resolution mismatch in test imports
-
-- Symptom: Test import failed for `@/lib/types/notes` in Vitest.
-- Cause: Vitest alias mapping for `@` is not configured in the current setup.
-- Fix: Switched test import to a relative path (`../src/lib/types/notes`) so tests run without extra Vitest config.
+### B-018 Vitest alias resolution mismatch for `@` imports
+- Date: 2026-04-16
+- Status: Resolved
+- Location: tests/auth.test.ts
+- Symptom: Test import failed for `@/lib/types/notes`.
+- Cause: Vitest alias mapping for `@` not configured in this setup.
+- Fix: Switched test import to relative path (`../src/lib/types/notes`).
+- Commit: 6e6c7ab
