@@ -1,0 +1,1 @@
+ALTER TABLE "notes" ADD COLUMN "visibility" text DEFAULT 'private' NOT NULL;
