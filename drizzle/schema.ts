@@ -1,5 +1,4 @@
 import { pgTable, uuid, text, timestamp, integer, primaryKey } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 
 // Define enums
 export const roleEnum = ['owner', 'admin', 'member'] as const;

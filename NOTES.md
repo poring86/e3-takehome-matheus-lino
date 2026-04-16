@@ -42,12 +42,15 @@ Building a multi-tenant team notes app using NextJS, Supabase, Drizzle, TypeScri
 - Added middleware.ts for auth session management
 - Auth setup: Supabase Auth with RLS, users table linked to auth.users (manual sync needed)
 
-## Decisions Made
-- Used uuid for all IDs for consistency with Supabase
-- RLS policies use auth.uid() for user context
-- Basic RBAC: owners/admins can manage orgs/members, authors can manage their notes/files
-- Foreign keys without cascades for safety
-- Migration includes RLS enable and policies
+## Frontend Auth Agent Actions
+
+### Auth Context Implementation
+- Created auth context using Supabase auth helpers
+- Added AuthProvider component wrapping the app
+- Implemented useAuth hook for accessing auth state
+- Added user session management and organization context
+- Fixed lint warnings (removed unused import)
+- Committed all changes
 
 ## Decisions Made
 - Use RLS for all tenant isolation
