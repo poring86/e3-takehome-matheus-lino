@@ -21,16 +21,16 @@ Each bug entry follows this structure:
 - Fix: Switched to manual schema definition and changed model strategy to recover delivery speed.
 - Commit: pending
 
+## Resolved Bugs
+
 ### B-002 Unescaped apostrophe in sign-in page JSX
 - Date: 2026-04-16
-- Status: Open
+- Status: Resolved
 - Location: src/app/auth/signin/page.tsx
 - Symptom: `react/no-unescaped-entities` lint risk due to raw apostrophe in JSX text.
 - Cause: Unescaped JSX character in user-facing text.
-- Fix: Escape apostrophes using HTML entities or equivalent JSX-safe text.
+- Fix: Replaced `Don't` with `Don&apos;t` in JSX text.
 - Commit: pending
-
-## Resolved Bugs
 
 ### B-003 Syntax error in notes dashboard pagination implementation
 - Date: 2026-04-16
