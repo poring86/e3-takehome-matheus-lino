@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 import { db } from "@/lib/db";
 import { files, orgMembers } from "@/drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { logMutation, logPermissionDenied, logError } from "@/lib/logger";
 
 // POST /api/files - Upload a file
 export async function POST(request: NextRequest) {
@@ -14,6 +15,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      logPermissionDenied("upload_file", undefined, undefined, undefined, { reason: "unauthorized" });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -22,6 +24,7 @@ export async function POST(request: NextRequest) {
     const orgId = formData.get("orgId") as string;
 
     if (!file || !orgId) {
+      logPermissionDenied("upload_file", user.id, orgId, undefined, { reason: "missing_file_or_orgId" });
       return NextResponse.json(
         { error: "File and orgId required" },
         { status: 400 },
@@ -36,6 +39,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (!orgMember) {
+      logPermissionDenied("upload_file", user.id, orgId, undefined, { reason: "not_org_member" });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -46,7 +50,7 @@ export async function POST(request: NextRequest) {
       .upload(`${orgId}/${fileName}`, file);
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
+      logError(new Error(uploadError.message), "POST /api/files upload", user.id, { orgId });
       return NextResponse.json({ error: "Upload failed" }, { status: 500 });
     }
 
@@ -65,10 +69,10 @@ export async function POST(request: NextRequest) {
         uploadedBy: user.id,
       })
       .returning();
-
+    logMutation("create", "file", user.id, orgId, newFile.id, { name: file.name });
     return NextResponse.json(newFile, { status: 201 });
   } catch (error) {
-    console.error("Error uploading file:", error);
+    logError(error as Error, "POST /api/files", undefined);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -86,6 +90,7 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      logPermissionDenied("list_files", undefined, undefined, undefined, { reason: "unauthorized" });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -93,6 +98,7 @@ export async function GET(request: NextRequest) {
     const orgId = searchParams.get("orgId");
 
     if (!orgId) {
+      logPermissionDenied("list_files", user.id, undefined, undefined, { reason: "missing_orgId" });
       return NextResponse.json({ error: "orgId required" }, { status: 400 });
     }
 
@@ -103,6 +109,7 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (!orgMember) {
+      logPermissionDenied("list_files", user.id, orgId, undefined, { reason: "not_org_member" });
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -111,10 +118,10 @@ export async function GET(request: NextRequest) {
       .from(files)
       .where(eq(files.orgId, orgId))
       .orderBy(desc(files.createdAt));
-
+    logMutation("read", "file", user.id, orgId, undefined, { count: orgFiles.length });
     return NextResponse.json(orgFiles);
   } catch (error) {
-    console.error("Error fetching files:", error);
+    logError(error as Error, "GET /api/files", undefined);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
