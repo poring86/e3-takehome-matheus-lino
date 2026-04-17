@@ -1,27 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { db } from "@/lib/db";
-import { notes, users, orgMembers, noteVersions } from "@/drizzle/schema";
+import {
+  notes,
+  users,
+  orgMembers,
+  noteVersions,
+  noteTags,
+  noteShares,
+} from "@/drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { updateNoteSchema } from "@/lib/types/notes";
 import { logMutation, logPermissionDenied, logError } from "@/lib/logger";
 
-// GET /api/notes/[id] - Get a specific note
-export async function GET(request: NextRequest, context: any) {
-  // Next.js 15+ may pass params as a Promise
-  const params =
-    typeof context.params?.then === "function"
-      ? await context.params
-      : context.params;
-  const { id } = params;
-  try {
-    const supabase = await createClient();
+type RouteContext = {
+  params: { id: string } | Promise<{ id: string }>;
+};
+
+async function getAuthenticatedUser(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : null;
+
+  if (bearerToken) {
+    const tokenClient = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+
     const {
       data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+      error,
+    } = await tokenClient.auth.getUser(bearerToken);
 
-    if (authError || !user) {
+    if (!error && user) {
+      return user;
+    }
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return null;
+  }
+
+  return user;
+}
+
+// GET /api/notes/[id] - Get a specific note
+export async function GET(request: NextRequest, context: RouteContext) {
+  const { id } = await Promise.resolve(context.params);
+  try {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       logPermissionDenied("get_note", undefined, undefined, id, {
         reason: "unauthorized",
       });
@@ -114,20 +151,11 @@ export async function GET(request: NextRequest, context: any) {
 }
 
 // PUT /api/notes/[id] - Update a note
-export async function PUT(request: NextRequest, context: any) {
-  const params =
-    typeof context.params?.then === "function"
-      ? await context.params
-      : context.params;
-  const { id } = params;
+export async function PUT(request: NextRequest, context: RouteContext) {
+  const { id } = await Promise.resolve(context.params);
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       logPermissionDenied("update_note", undefined, undefined, id, {
         reason: "unauthorized",
       });
@@ -228,20 +256,11 @@ export async function PUT(request: NextRequest, context: any) {
 }
 
 // DELETE /api/notes/[id] - Delete a note
-export async function DELETE(request: NextRequest, context: any) {
-  const params =
-    typeof context.params?.then === "function"
-      ? await context.params
-      : context.params;
-  const { id } = params;
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  const { id } = await Promise.resolve(context.params);
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
       logPermissionDenied("delete_note", undefined, undefined, id, {
         reason: "unauthorized",
       });
@@ -289,7 +308,12 @@ export async function DELETE(request: NextRequest, context: any) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Delete note (cascade will handle versions and tags)
+    // Remove child records first for environments without FK cascade.
+    await db.delete(noteVersions).where(eq(noteVersions.noteId, id));
+    await db.delete(noteTags).where(eq(noteTags.noteId, id));
+    await db.delete(noteShares).where(eq(noteShares.noteId, id));
+
+    // Delete note
     await db.delete(notes).where(eq(notes.id, id));
     logMutation("delete", "note", user.id, note.orgId, id);
     return NextResponse.json({ success: true });
