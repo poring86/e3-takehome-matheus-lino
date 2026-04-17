@@ -25,6 +25,8 @@ Set these rules in GitHub repository settings for `main`:
 7. Restrict direct pushes to `main`
 8. Include administrators (recommended)
 
+For a fast UI walkthrough, see `docs/github-branch-protection-checklist.md`.
+
 ## Why this setup
 
 - CI gives fast signal for code health (lint/build/test)
