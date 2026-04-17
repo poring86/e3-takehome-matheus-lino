@@ -47,6 +47,10 @@ function NewNoteContent() {
 
     setSaving(true);
     setErrorMessage('');
+    const controller = new AbortController();
+    const timeoutMs = 20000;
+    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const {
         data: { session },
@@ -62,6 +66,8 @@ function NewNoteContent() {
 
       const response = await fetch(`/api/notes?orgId=${currentOrg.id}`, {
         method: 'POST',
+        credentials: 'include',
+        signal: controller.signal,
         headers,
         body: JSON.stringify({
           title: title.trim(),
@@ -75,14 +81,22 @@ function NewNoteContent() {
         router.push(`/dashboard/notes/${note.id}`);
       } else {
         const payload = await response.json().catch(() => null);
-        const apiError = payload?.error || 'Failed to create note';
+        const textBody = payload ? '' : await response.text().catch(() => '');
+        const apiError = payload?.error || textBody || 'Failed to create note';
         setErrorMessage(apiError);
         console.error('Failed to create note:', response.status, payload);
       }
     } catch (error) {
       console.error('Error creating note:', error);
-      setErrorMessage('Unexpected error while creating note');
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        setErrorMessage(
+          `Request timed out after ${timeoutMs / 1000}s. Please try again.`,
+        );
+      } else {
+        setErrorMessage('Unexpected error while creating note');
+      }
     } finally {
+      window.clearTimeout(timeoutId);
       setSaving(false);
     }
   };
