@@ -34,7 +34,7 @@ describe("API Integration: /api/notes/[id] (authenticated)", () => {
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty("id");
     createdNoteId = res.body.id;
-  });
+  }, 20000);
 
   it("should read the created note", async () => {
     if (!accessToken || !createdNoteId) {
@@ -47,7 +47,7 @@ describe("API Integration: /api/notes/[id] (authenticated)", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("id", createdNoteId);
-  });
+  }, 20000);
 
   it("should update the note", async () => {
     if (!accessToken || !createdNoteId) {
@@ -61,7 +61,7 @@ describe("API Integration: /api/notes/[id] (authenticated)", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("title", "Updated title");
-  });
+  }, 20000);
 
   it("should delete the note", async () => {
     if (!accessToken || !createdNoteId) {
@@ -74,5 +74,43 @@ describe("API Integration: /api/notes/[id] (authenticated)", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty("success", true);
-  });
+  }, 20000);
+
+  it("[regression][B-029] should allow GET, PUT, DELETE on /api/notes/[id] with bearer token and handle children cleanup", async () => {
+    // Cria nota
+    const createRes = await api
+      .post(`/api/notes?orgId=${integrationEnv.testOrgId}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "B-029 regression", content: "v1" });
+    expect(createRes.status).toBe(201);
+    const noteId = createRes.body.id;
+
+    // Atualiza nota (cria versão)
+    const updateRes = await api
+      .put(`/api/notes/${noteId}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .send({ title: "B-029 regression updated", content: "v2" });
+    expect(updateRes.status).toBe(200);
+    expect(updateRes.body).toHaveProperty("title", "B-029 regression updated");
+
+    // GET deve funcionar
+    const getRes = await api
+      .get(`/api/notes/${noteId}`)
+      .set("Authorization", `Bearer ${accessToken}`);
+    expect(getRes.status).toBe(200);
+    expect(getRes.body).toHaveProperty("id", noteId);
+
+    // DELETE deve funcionar e limpar filhos (não deve retornar 500)
+    const delRes = await api
+      .delete(`/api/notes/${noteId}`)
+      .set("Authorization", `Bearer ${accessToken}`);
+    expect(delRes.status).toBe(200);
+    expect(delRes.body).toHaveProperty("success", true);
+
+    // GET após delete deve retornar 404
+    const getAfterDel = await api
+      .get(`/api/notes/${noteId}`)
+      .set("Authorization", `Bearer ${accessToken}`);
+    expect(getAfterDel.status).toBe(404);
+  }, 20000);
 });

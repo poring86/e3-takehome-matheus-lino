@@ -1,7 +1,7 @@
 export const integrationEnv = {
   appBaseUrl:
     process.env.TEST_APP_BASE_URL?.trim() ||
-    `http://localhost:${process.env.APP_PORT || "3001"}`,
+    `http://localhost:${process.env.APP_PORT || "3000"}`,
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || "",
   supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || "",
   testEmail: process.env.TEST_EMAIL?.trim() || "",
