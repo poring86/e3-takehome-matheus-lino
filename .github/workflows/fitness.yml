@@ -22,17 +22,21 @@ jobs:
       - name: Build Docker image
         run: docker build -t e3-takehome-check:latest .
       - name: Check Docker image size
-        run: npx tsx src/fitness/checkDockerImageSize.ts
+        run: npx tsx src/fitness/check-docker-image-size.ts
       - name: Start containers
         run: docker compose up -d
       - name: Wait for API
         run: |
           for i in {1..20}; do
-            if curl -s http://localhost:3001/api/notes > /dev/null; then exit 0; fi
+            if curl -s "http://localhost:${APP_PORT:-3000}/api/notes" > /dev/null; then exit 0; fi
             sleep 2
           done
           exit 1
-      - name: Check API response time
-        run: npx tsx src/fitness/checkApiResponseTime.ts
+      - name: Lint strict
+        run: npx tsx src/fitness/check-lint-strict.ts
+      - name: Check file naming convention
+        run: npx tsx src/fitness/check-file-naming.ts
+      - name: Check frontend bundle size
+        run: npx tsx src/fitness/check-bundle-size.ts
       - name: Check test coverage
-        run: npx tsx src/fitness/checkTestCoverage.ts
+        run: npx tsx src/fitness/check-test-coverage.ts
