@@ -104,6 +104,22 @@
   - Motive: reduce host/container validation mismatch and improve reproducibility.
   - Trade-offs: slower full validation path and Docker dependency for release confidence.
 
+## CI/GitHub Governance Log (2026-04-17)
+
+- Decision: adopt two-tier GitHub validation with required branch protection checks.
+- Why:
+  - Keep fast PR feedback for developers.
+  - Keep stronger quality constraints enforced before merge.
+  - Prevent policy bypass through direct merge without validated checks.
+- Trade-offs:
+  - More CI runtime cost per PR.
+  - Higher friction when a required check is flaky.
+  - Requires ongoing curation of required checks as pipeline evolves.
+- Applied in this cycle:
+  - Added `.github/workflows/ci.yml` (`CI / verify`) for lint/build/test.
+  - Kept `.github/workflows/fitness.yml` for architecture/fitness constraints.
+  - Added governance runbook: `docs/github-governance.md`.
+
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 
 - Decision: migrated production Docker image to multi-stage build with Next standalone runtime.

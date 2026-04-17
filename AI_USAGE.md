@@ -300,3 +300,14 @@ Preserved existing UX semantics for pagination and submit-based search.
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-17, GitHub CI and branch governance)
+
+- **Main agent (GitHub Copilot)**
+  - Added `.github/workflows/ci.yml` for fast PR verification (lint/build/test).
+  - Kept fitness workflow as the second quality layer for non-functional constraints.
+  - Added governance runbook `docs/github-governance.md` with required-check and branch-protection recommendations.
+  - Linked governance documentation in `README.md` and recorded rationale/trade-offs in audit files.
+
+- **Subagents used in this phase**
+  - None invoked.

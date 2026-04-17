@@ -108,3 +108,9 @@
 - Added ADRs for API auth resolution order, tenant-boundary invariants, and Docker delivery validation reference.
 - Decision rationale and trade-offs are now explicit for three high-risk areas that previously depended on scattered execution logs.
 - Residual risk: implementation drift remains possible if endpoint-level behavior diverges from ADR-0005/0006 without corresponding ADR updates.
+
+## GitHub Governance Update (2026-04-17)
+
+- Added a fast CI workflow (`CI / verify`) to complement existing fitness checks.
+- Added governance runbook for branch protection and required checks.
+- Residual risk: required-check policy can become noisy if flaky steps are not stabilized before being enforced.
