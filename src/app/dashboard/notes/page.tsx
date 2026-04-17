@@ -34,19 +34,19 @@ function NotesContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalNotes, setTotalNotes] = useState(0);
-  const notesPerPage = 20;
+  const [notesPerPage, setNotesPerPage] = useState(20);
 
   const handleSignOut = async () => {
     await signOut();
   };
 
-  const fetchNotes = async (page = 1, query = '') => {
+  const fetchNotes = async (page = 1, query = '', perPage = notesPerPage) => {
     if (!currentOrg) return;
 
     setLoading(true);
     try {
-      const offset = (page - 1) * notesPerPage;
-      const url = `/api/notes?orgId=${currentOrg.id}&limit=${notesPerPage}&offset=${offset}${query ? `&q=${encodeURIComponent(query)}` : ''}`;
+      const offset = (page - 1) * perPage;
+      const url = `/api/notes?orgId=${currentOrg.id}&limit=${perPage}&offset=${offset}${query ? `&q=${encodeURIComponent(query)}` : ''}`;
       const headers: HeadersInit = {};
       if (session?.access_token) {
         headers.Authorization = `Bearer ${session.access_token}`;
@@ -73,16 +73,17 @@ function NotesContent() {
   };
 
   useEffect(() => {
-    fetchNotes();
-  }, [currentOrg, session?.access_token]);
+    fetchNotes(1, searchQuery, notesPerPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentOrg, session?.access_token, notesPerPage]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchNotes(1, searchQuery);
+    fetchNotes(1, searchQuery, notesPerPage);
   };
 
   const handlePageChange = (page: number) => {
-    fetchNotes(page, searchQuery);
+    fetchNotes(page, searchQuery, notesPerPage);
   };
 
   if (!currentOrg) {
@@ -146,9 +147,9 @@ function NotesContent() {
             </Button>
           </div>
 
-          {/* Search */}
-          <div className="mb-6">
-            <form onSubmit={handleSearch} className="relative">
+          {/* Search e seletor de itens por página */}
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <form onSubmit={handleSearch} className="relative w-full sm:w-1/2">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search notes..."
@@ -157,6 +158,23 @@ function NotesContent() {
                 className="pl-10"
               />
             </form>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="notes-per-page" className="text-sm">Notas por página:</Label>
+              <select
+                id="notes-per-page"
+                className="border rounded px-2 py-1 text-sm"
+                value={notesPerPage}
+                onChange={e => {
+                  setNotesPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
           </div>
 
           {/* Notes grid */}
