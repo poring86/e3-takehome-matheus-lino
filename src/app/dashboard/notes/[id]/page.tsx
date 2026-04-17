@@ -34,7 +34,7 @@ interface Note {
 function NoteContent() {
   const params = useParams();
   const router = useRouter();
-  const { user, currentOrg, userOrgs } = useAuth();
+  const { user, currentOrg, userOrgs, session } = useAuth();
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -43,6 +43,7 @@ function NoteContent() {
   const [saving, setSaving] = useState(false);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       LinkExtension.configure({
@@ -63,14 +64,22 @@ function NoteContent() {
     if (!params.id) return;
 
     try {
-      const response = await fetch(`/api/notes/${params.id}`);
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`/api/notes/${params.id}`, {
+        credentials: 'include',
+        headers,
+      });
       if (response.ok) {
         const data = await response.json();
         setNote(data);
         setTitle(data.title);
         setVisibility(data.visibility);
         editor?.commands.setContent(data.content || '');
-      } else if (response.status === 404) {
+      } else if ([401, 403, 404].includes(response.status)) {
         router.push('/dashboard/notes');
       }
     } catch (error) {
@@ -78,7 +87,7 @@ function NoteContent() {
     } finally {
       setLoading(false);
     }
-  }, [params.id, router, editor]);
+  }, [params.id, router, editor, session?.access_token]);
 
   useEffect(() => {
     fetchNote();
@@ -102,11 +111,18 @@ function NoteContent() {
 
     setSaving(true);
     try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch(`/api/notes/${note.id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers,
         body: JSON.stringify({
           title: title.trim(),
           content: editor?.getHTML() || '',
@@ -135,8 +151,15 @@ function NoteContent() {
     if (!note || !confirm('Are you sure you want to delete this note?')) return;
 
     try {
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch(`/api/notes/${note.id}`, {
         method: 'DELETE',
+        credentials: 'include',
+        headers,
       });
 
       if (response.ok) {
