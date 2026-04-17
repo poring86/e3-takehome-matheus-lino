@@ -1,27 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { db } from "@/lib/db";
 import { notes, noteVersions, orgMembers } from "@/drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { logMutation, logPermissionDenied, logError } from "@/lib/logger";
 
-// GET /api/notes/[id]/versions - Get all versions of a note
-export async function GET(request: NextRequest, context: any) {
-  // Next.js 15+ may pass params as a Promise
-  const params =
-    typeof context.params?.then === "function"
-      ? await context.params
-      : context.params;
-  const noteId = params.id;
+type RouteContext = {
+  params: { id: string } | Promise<{ id: string }>;
+};
 
-  try {
-    const supabase = await createClient();
+async function getAuthenticatedUser(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : null;
+
+  if (bearerToken) {
+    const tokenClient = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+
     const {
       data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+      error,
+    } = await tokenClient.auth.getUser(bearerToken);
 
-    if (authError || !user) {
+    if (!error && user) {
+      return user;
+    }
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return null;
+  }
+
+  return user;
+}
+
+// GET /api/notes/[id]/versions - Get all versions of a note
+export async function GET(request: NextRequest, context: RouteContext) {
+  const { id: noteId } = await Promise.resolve(context.params);
+
+  try {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       logPermissionDenied("get_note_versions", undefined, undefined, noteId, {
         reason: "unauthorized",
       });
