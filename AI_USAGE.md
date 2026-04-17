@@ -275,3 +275,14 @@ Preserved existing UX semantics for pagination and submit-based search.
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-17, ADR baseline setup)
+
+- **Main agent (GitHub Copilot)**
+  - Created ADR baseline structure in `docs/adr/` with index and reusable template.
+  - Authored initial accepted ADR set for modular boundaries, kebab-case naming+fitness, and React Query server-state strategy.
+  - Linked ADR discoverability and workflow expectations in `ARCHITECTURE.md` and `README.md`.
+  - Updated delivery notes/review to keep architecture decision traceability consistent.
+
+- **Subagents used in this phase**
+  - None invoked.

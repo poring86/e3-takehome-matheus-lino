@@ -65,6 +65,21 @@
   - Governance docs aligned (`AGENTS.md`, `ARCHITECTURE.md`, `README.md`).
   - Added guard fitness function `src/fitness/check-file-naming.ts` and integrated it into local runner and CI workflow.
 
+## Documentation Decision Log (2026-04-17) - ADR baseline adoption
+
+- Decision: adopt ADRs for long-lived architecture decisions while keeping `NOTES.md` as operational timeline.
+- Why:
+  - Keep architecture rationale durable and easy to discover.
+  - Prevent loss of decision context across refactors and handoffs.
+  - Reduce review ambiguity by separating strategic decisions from execution logs.
+- Applied in this cycle:
+  - Added ADR index and template under `docs/adr/`.
+  - Added initial ADR set:
+    - `docs/adr/0001-adopt-modular-monolith-boundaries.md`
+    - `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
+    - `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
+  - Linked ADR discoverability in `ARCHITECTURE.md` and `README.md`.
+
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 
 - Decision: migrated production Docker image to multi-stage build with Next standalone runtime.

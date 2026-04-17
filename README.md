@@ -190,6 +190,7 @@ For Railway deployment details, see:
 ## Documentation
 
 - ARCHITECTURE.md: architecture baseline, layering, and conventions
+- docs/adr/README.md: architecture decision records (ADRs) index and accepted decisions
 - src/modules/README.md: component/module decomposition and dependency rules
 - BUGS.md: bug tracking with status and commit references
 - NOTES.md: execution notes and checklist

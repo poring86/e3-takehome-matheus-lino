@@ -90,3 +90,9 @@
 - Updated CI and local orchestrator references (`.github/workflows/fitness.yml` and `scripts/fitness-run.sh`) to prevent path-resolution regressions.
 - Updated supporting documentation (`src/fitness/README.md`, `NOTES.md`) to keep audit/discoverability aligned with executable paths.
 - Added a dedicated naming fitness gate to prevent reintroduction of camelCase/PascalCase filenames in `src/`, `scripts/`, and `tests/`.
+
+## ADR Governance Update (2026-04-17)
+
+- Added ADR baseline under `docs/adr/` with index/template and initial accepted records for architecture, naming policy, and server-state strategy.
+- Linked ADR navigation from architecture and contributor documentation.
+- Residual risk: decision drift can still happen if new architecture-impacting changes are logged only in `NOTES.md` and not promoted to ADR when they become long-lived.

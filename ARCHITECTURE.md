@@ -100,15 +100,26 @@ Use this layering model for new features:
 - Follow atomic commit policy from `AGENTS.md`.
 - Keep `AI_USAGE.md`, `NOTES.md`, `BUGS.md`, and `REVIEW.md` aligned with relevant architectural decisions.
 - Document architecture-impacting decisions in `NOTES.md` as decision logs.
+- Persist long-lived architecture decisions as ADRs in `docs/adr/`.
+
+## ADRs (Architecture Decision Records)
+
+- ADR index: `docs/adr/README.md`
+- Template: `docs/adr/0000-template.md`
+- Current accepted decisions:
+	- `docs/adr/0001-adopt-modular-monolith-boundaries.md`
+	- `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
+	- `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
 
 ## Decision Workflow
 
 When introducing architectural changes:
 
 1. Write a short decision note in `NOTES.md` with rationale.
-2. Update this file if conventions or boundaries changed.
-3. Update README if the change affects contributor or reviewer workflow.
-4. Validate with build + canonical Docker tests.
+2. Create/update an ADR in `docs/adr/` for long-lived decisions.
+3. Update this file if conventions or boundaries changed.
+4. Update README if the change affects contributor or reviewer workflow.
+5. Validate with build + canonical Docker tests.
 
 ## Migration Status (Incremental)
 
