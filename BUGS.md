@@ -26,6 +26,25 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-032 Notes list rendered empty after returning from note detail/new flow
+
+- Date: 2026-04-16
+- Status: Resolved
+- Location: `src/app/dashboard/notes/page.tsx`
+- Symptom:
+	- After creating/opening a note and going back to the list, the notes page showed `No notes` even though notes existed.
+- Cause:
+	- Notes list fetch still relied on cookie-only auth and did not attach bearer token from client session.
+	- In auth propagation race windows, list request could return `401/403` and leave UI in empty-state.
+- Fix:
+	- Added bearer token from auth-context session to notes list request.
+	- Added `credentials: include` and retriggered fetch when `session.access_token` becomes available.
+	- Normalized unauthorized response handling by resetting list state instead of stale loading behavior.
+- Validation:
+	- `npm run build` passed.
+	- User-reported list visibility issue addressed with auth-tokenized list fetch.
+- Commit: 1dd39af
+
 ### B-031 Note detail opened as "Note not found" right after successful create redirect
 
 - Date: 2026-04-16

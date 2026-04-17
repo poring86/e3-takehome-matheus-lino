@@ -105,6 +105,20 @@
 - Validation:
   - `npm run build`: passed.
 
+## Hotfix Log (2026-04-16) - Notes list empty-state due to auth race on list fetch
+
+- Symptom:
+  - Returning to `/dashboard/notes` after opening/creating a note sometimes showed an empty list even when notes existed.
+- Root cause:
+  - List fetch in `src/app/dashboard/notes/page.tsx` did not include bearer token from auth context session.
+  - During cookie propagation race windows, `/api/notes` could return `401/403`, causing false empty-state.
+- Fix:
+  - Added bearer token header from auth-context session to list fetch.
+  - Added `credentials: include` in list fetch and refetch trigger when `session.access_token` is hydrated.
+  - Added explicit unauthorized handling to clear stale list state consistently.
+- Validation:
+  - `npm run build`: passed.
+
 ## Project Completion Checklist (2026-04-16)
 
 ## Requirements Traceability (2026-04-16)

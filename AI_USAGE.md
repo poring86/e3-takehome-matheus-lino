@@ -152,3 +152,18 @@
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-16, notes list empty-state fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed false empty list rendering after returning to notes list from detail/create flows.
+  - Identified list fetch auth inconsistency (cookie-only request path without bearer token).
+  - Updated `/dashboard/notes` list fetch to include bearer token from auth context session.
+  - Added refetch dependency on `session.access_token` hydration and explicit handling for unauthorized list responses.
+  - Revalidated production build after frontend patch.
+
+- **Validation executed by main agent**
+  - `npm run build` (passed).
+
+- **Subagents used in this phase**
+  - None invoked.
