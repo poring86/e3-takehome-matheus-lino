@@ -22,6 +22,8 @@ interface Note {
   id: string;
   title: string;
   visibility: 'public' | 'private';
+  content?: string;
+  updatedAt?: string;
   author: {
     id: string;
     email: string;
@@ -51,6 +53,8 @@ function VersionsContent() {
     }
 
     try {
+      let currentNote: Note | null = null;
+
       const noteResponse = await fetch(`/api/notes/${noteId}`, {
         credentials: 'include',
         headers,
@@ -60,7 +64,8 @@ function VersionsContent() {
         if (!noteData || !noteData.id) {
           throw new Error('Invalid note data received.');
         }
-        setNote(noteData);
+        currentNote = noteData as Note;
+        setNote(currentNote);
       } else if ([401, 403, 404].includes(noteResponse.status)) {
         router.push('/dashboard/notes');
         return;
@@ -79,9 +84,22 @@ function VersionsContent() {
         if (!Array.isArray(versionsData)) {
           throw new Error('Invalid versions data received.');
         }
-        setVersions(versionsData);
-        if (versionsData.length > 0) {
-          setSelectedVersion(versionsData[0]);
+
+        // Include current note state as the latest version shown in the UI.
+        const latestHistoricalVersion = versionsData[0]?.version ?? 0;
+        const currentVersion: NoteVersion = {
+          id: `current-${noteId}`,
+          noteId,
+          version: latestHistoricalVersion + 1,
+          content: currentNote?.content || '',
+          createdAt: currentNote?.updatedAt || new Date().toISOString(),
+        };
+
+        const combinedVersions = [currentVersion, ...versionsData];
+
+        setVersions(combinedVersions);
+        if (combinedVersions.length > 0) {
+          setSelectedVersion(combinedVersions[0]);
         }
       } else {
         console.error(`Failed to fetch versions: ${versionsResponse.status}`);
@@ -187,8 +205,8 @@ function VersionsContent() {
                   <div
                     key={version.id}
                     className={`p-3 rounded-md cursor-pointer border transition-colors ${selectedVersion?.id === version.id
-                        ? 'bg-blue-50 border-blue-200'
-                        : 'bg-white border-gray-200 hover:bg-gray-50'
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-white border-gray-200 hover:bg-gray-50'
                       }`}
                     onClick={() => setSelectedVersion(version)}
                   >
