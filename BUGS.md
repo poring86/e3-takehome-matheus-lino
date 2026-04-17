@@ -32,17 +32,17 @@ Each bug entry follows this structure:
 - Status: Resolved
 - Location: `src/app/dashboard/notes/page.tsx`
 - Symptom:
-	- After creating/opening a note and going back to the list, the notes page showed `No notes` even though notes existed.
+  - After creating/opening a note and going back to the list, the notes page showed `No notes` even though notes existed.
 - Cause:
-	- Notes list fetch still relied on cookie-only auth and did not attach bearer token from client session.
-	- In auth propagation race windows, list request could return `401/403` and leave UI in empty-state.
+  - Notes list fetch still relied on cookie-only auth and did not attach bearer token from client session.
+  - In auth propagation race windows, list request could return `401/403` and leave UI in empty-state.
 - Fix:
-	- Added bearer token from auth-context session to notes list request.
-	- Added `credentials: include` and retriggered fetch when `session.access_token` becomes available.
-	- Normalized unauthorized response handling by resetting list state instead of stale loading behavior.
+  - Added bearer token from auth-context session to notes list request.
+  - Added `credentials: include` and retriggered fetch when `session.access_token` becomes available.
+  - Normalized unauthorized response handling by resetting list state instead of stale loading behavior.
 - Validation:
-	- `npm run build` passed.
-	- User-reported list visibility issue addressed with auth-tokenized list fetch.
+  - `npm run build` passed.
+  - User-reported list visibility issue addressed with auth-tokenized list fetch.
 - Commit: 1dd39af
 
 ### B-031 Note detail opened as "Note not found" right after successful create redirect
@@ -51,16 +51,16 @@ Each bug entry follows this structure:
 - Status: Resolved
 - Location: `src/app/dashboard/notes/[id]/page.tsx`
 - Symptom:
-	- User created a note successfully and was redirected to `/dashboard/notes/:id`, but page rendered `Note not found`.
+  - User created a note successfully and was redirected to `/dashboard/notes/:id`, but page rendered `Note not found`.
 - Cause:
-	- Detail page fetch/update/delete flows depended on cookie auth only.
-	- In cookie propagation race windows, API calls returned `401` even with valid user session, and the UI fell back to not-found state.
+  - Detail page fetch/update/delete flows depended on cookie auth only.
+  - In cookie propagation race windows, API calls returned `401` even with valid user session, and the UI fell back to not-found state.
 - Fix:
-	- Reused auth-context session and attached `Authorization: Bearer <token>` on GET/PUT/DELETE requests in note detail page.
-	- Added `credentials: include` consistently and redirected to notes list on `401/403/404` from note fetch.
+  - Reused auth-context session and attached `Authorization: Bearer <token>` on GET/PUT/DELETE requests in note detail page.
+  - Added `credentials: include` consistently and redirected to notes list on `401/403/404` from note fetch.
 - Validation:
-	- `npm run build` passed after the patch.
-	- User confirmed create flow now redirects, with follow-up fix applied for detail auth race.
+  - `npm run build` passed after the patch.
+  - User confirmed create flow now redirects, with follow-up fix applied for detail auth race.
 - Commit: 5d9abb6
 
 ### B-030 New note UI failed with generic error on save
@@ -69,18 +69,18 @@ Each bug entry follows this structure:
 - Status: Resolved
 - Location: `src/app/dashboard/notes/new/page.tsx`
 - Symptom:
-	- Creating a note from the UI failed and only logged generic message `Failed to create note`.
+  - Creating a note from the UI failed and only logged generic message `Failed to create note`.
 - Cause:
-	- Client save flow depended on implicit cookie auth and did not send bearer token explicitly.
-	- Error handling did not expose backend error payload/status to the user.
+  - Client save flow depended on implicit cookie auth and did not send bearer token explicitly.
+  - Error handling did not expose backend error payload/status to the user.
 - Fix:
-	- Added bearer token retrieval via Supabase session and sent `Authorization: Bearer <token>` on note creation request.
-	- Added UI error banner and detailed response parsing for failed saves.
-	- Added client-side request timeout/abort to prevent indefinite `Saving...` state when backend request hangs.
-	- Removed per-click `supabase.auth.getSession()` call and reused session from auth context to avoid pre-request hangs locking save state.
+  - Added bearer token retrieval via Supabase session and sent `Authorization: Bearer <token>` on note creation request.
+  - Added UI error banner and detailed response parsing for failed saves.
+  - Added client-side request timeout/abort to prevent indefinite `Saving...` state when backend request hangs.
+  - Removed per-click `supabase.auth.getSession()` call and reused session from auth context to avoid pre-request hangs locking save state.
 - Validation:
-	- `npm run build` passed after frontend changes.
-	- API integration and smoke tests remained green in previous validation cycle.
+  - `npm run build` passed after frontend changes.
+  - API integration and smoke tests remained green in previous validation cycle.
 - Commit: 1a9eebb
 
 ### B-029 Notes [id] endpoints returned 401 with bearer auth and 500 on delete
@@ -89,20 +89,20 @@ Each bug entry follows this structure:
 - Status: Resolved
 - Location: `src/app/api/notes/[id]/route.ts`, `tests/api/notes.integration.test.ts`
 - Symptom:
-	- Integration CRUD suite authenticated by bearer token passed create, but read/update/delete returned 401.
-	- Delete path later returned 500 in integration test.
+  - Integration CRUD suite authenticated by bearer token passed create, but read/update/delete returned 401.
+  - Delete path later returned 500 in integration test.
 - Cause:
-	- `/api/notes/[id]` handlers were relying on cookie auth only and did not use bearer-token fallback.
-	- Delete handler assumed FK cascade for children, but runtime DB constraints did not guarantee cascade behavior for all related tables.
+  - `/api/notes/[id]` handlers were relying on cookie auth only and did not use bearer-token fallback.
+  - Delete handler assumed FK cascade for children, but runtime DB constraints did not guarantee cascade behavior for all related tables.
 - Fix:
-	- Added `getAuthenticatedUser` helper with bearer-token-first auth fallback in `/api/notes/[id]` handlers.
-	- Typed route context safely for Next.js params resolution.
-	- Deleted child records (`note_versions`, `note_tags`, `note_shares`) before deleting note.
-	- Aligned integration test update assertion to API response shape.
+  - Added `getAuthenticatedUser` helper with bearer-token-first auth fallback in `/api/notes/[id]` handlers.
+  - Typed route context safely for Next.js params resolution.
+  - Deleted child records (`note_versions`, `note_tags`, `note_shares`) before deleting note.
+  - Aligned integration test update assertion to API response shape.
 - Validation:
-	- `npx vitest run tests/api/notes.integration.test.ts` => 4/4 passed.
-	- `sh scripts/smoke-notes.sh` => passed with HTTP 201.
-	- `npm run build` => passed.
+  - `npx vitest run tests/api/notes.integration.test.ts` => 4/4 passed.
+  - `sh scripts/smoke-notes.sh` => passed with HTTP 201.
+  - `npm run build` => passed.
 - Commit: 0f6d085, 2d0ba17
 
 ### B-028 Notes create 500 due to Supabase pooler password mismatch
@@ -112,14 +112,14 @@ Each bug entry follows this structure:
 - Location: `.env`, runtime container environment, `src/app/api/notes/route.ts`
 - Symptom: `POST /api/notes` returned HTTP 500 after migration to Supabase-only compose.
 - Cause:
-	- `DATABASE_URL` password in runtime was incorrect (missing trailing `.`), resulting in Postgres auth failure (`28P01`).
-	- Intermittent env drift happened when shell-exported vars overrode `.env` during container recreation.
+  - `DATABASE_URL` password in runtime was incorrect (missing trailing `.`), resulting in Postgres auth failure (`28P01`).
+  - Intermittent env drift happened when shell-exported vars overrode `.env` during container recreation.
 - Fix:
-	- Updated `DATABASE_URL` in `.env` with the correct pooler password.
-	- Recreated app container after clearing shell overrides to ensure `.env` values were applied.
+  - Updated `DATABASE_URL` in `.env` with the correct pooler password.
+  - Recreated app container after clearing shell overrides to ensure `.env` values were applied.
 - Validation:
-	- Connection probe from app container succeeded.
-	- `POST /api/notes` returned HTTP 201 with created note payload.
+  - Connection probe from app container succeeded.
+  - `POST /api/notes` returned HTTP 201 with created note payload.
 - Commit: pending
 
 ### B-027 Local Postgres vs Supabase Postgres environment drift
@@ -130,9 +130,9 @@ Each bug entry follows this structure:
 - Symptom: Endpoints backed by Drizzle (`/api/notes`) intermittently failed with database auth errors (`28P01`) due to mismatched runtime `DATABASE_URL` and duplicated database topology.
 - Cause: Hybrid setup kept both local Postgres container and Supabase Postgres in circulation, allowing accidental connection to stale/incorrect DB host and credentials.
 - Fix:
-	- Removed local `db` service from `docker-compose.yml`.
-	- Standardized dev architecture to Supabase-only Postgres.
-	- Updated docs/environment template to require Supabase `DATABASE_URL`.
+  - Removed local `db` service from `docker-compose.yml`.
+  - Standardized dev architecture to Supabase-only Postgres.
+  - Updated docs/environment template to require Supabase `DATABASE_URL`.
 - Validation: Compose now runs only `app`; no local Postgres dependency remains in orchestration.
 - Commit: e70ed9d
 
@@ -143,15 +143,15 @@ Each bug entry follows this structure:
 - Location: `src/lib/auth-context.tsx`, `src/lib/load-user-organizations.ts`, `src/app/api/organizations/route.ts`, `src/app/onboarding/page.tsx`, `src/app/dashboard/page.tsx`
 - Symptom: User could authenticate and create organizations, but dashboard still displayed the empty "create/join organization" state.
 - Cause: Combined issue from policy drift and client boot timing:
-	- `org_members` had rows, but `organizations` visibility was inconsistent in direct user-scoped reads.
-	- First-load auth/session propagation could briefly return unauthorized from org bootstrap calls.
-	- Dashboard relied strictly on `currentOrg` before fallback state was available.
+  - `org_members` had rows, but `organizations` visibility was inconsistent in direct user-scoped reads.
+  - First-load auth/session propagation could briefly return unauthorized from org bootstrap calls.
+  - Dashboard relied strictly on `currentOrg` before fallback state was available.
 - Fix:
-	- Added resilient org loading path with bearer/cookie fallbacks.
-	- Added server endpoint `GET /api/organizations` to normalize membership + organization payload.
-	- Added context-level `refreshOrganizations` and used it after onboarding inserts before redirect.
-	- Added dashboard fallback active organization from `userOrgs[0]` when `currentOrg` is temporarily null.
-	- Added fail-soft behavior for transient bootstrap failures.
+  - Added resilient org loading path with bearer/cookie fallbacks.
+  - Added server endpoint `GET /api/organizations` to normalize membership + organization payload.
+  - Added context-level `refreshOrganizations` and used it after onboarding inserts before redirect.
+  - Added dashboard fallback active organization from `userOrgs[0]` when `currentOrg` is temporarily null.
+  - Added fail-soft behavior for transient bootstrap failures.
 - Validation: Local API `/api/organizations` returned memberships with organization payload (`200`), production build passed, and user confirmed organizations display.
 - Commit: a3922c8
 
@@ -163,10 +163,10 @@ Each bug entry follows this structure:
 - Symptom: `POST /rest/v1/organizations?select=*` returned HTTP 403 with `new row violates row-level security policy` during onboarding.
 - Cause: Effective cloud policy state did not allow onboarding insert path for organization creation and owner membership insertion.
 - Fix: Applied onboarding/policy hotfix sequence and aligned app loading behavior for policy-drift tolerance:
-	- `supabase/migrations/0003_onboarding_org_creation_hotfix.sql`
-	- `supabase/migrations/0004_organizations_insert_policy_reset.sql`
-	- `supabase/migrations/0005_organizations_rls_full_reset.sql`
-	- `supabase/migrations/0006_organizations_select_policy_fix.sql`
+  - `supabase/migrations/0003_onboarding_org_creation_hotfix.sql`
+  - `supabase/migrations/0004_organizations_insert_policy_reset.sql`
+  - `supabase/migrations/0005_organizations_rls_full_reset.sql`
+  - `supabase/migrations/0006_organizations_select_policy_fix.sql`
 - Validation: Organization creation and membership insert flow recovered; dashboard organization visibility stabilized with follow-up app fixes (see B-026).
 - Commit: pending
 

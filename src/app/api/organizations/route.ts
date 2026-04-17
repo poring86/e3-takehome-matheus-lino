@@ -127,7 +127,9 @@ export async function GET(request: Request) {
       organizations = data || [];
     }
 
-    const organizationsById = new Map(organizations.map((org) => [org.id, org]));
+    const organizationsById = new Map(
+      organizations.map((org) => [org.id, org]),
+    );
     const normalized = memberships
       .map((member) => {
         const organization = organizationsById.get(member.org_id);

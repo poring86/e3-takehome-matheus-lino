@@ -23,7 +23,8 @@ beforeAll(async () => {
 
 describe("API Integration: /api/notes/[id] (authenticated)", () => {
   it("should create a note", async () => {
-    if (!accessToken) throw new Error("Missing access token for integration test");
+    if (!accessToken)
+      throw new Error("Missing access token for integration test");
 
     const res = await api
       .post(`/api/notes?orgId=${integrationEnv.testOrgId}`)

@@ -3,7 +3,9 @@ import { supabase } from "./supabase-client";
 async function loadOrganizationsFallback(userId: string) {
   const { data: memberships, error } = await supabase
     .from("org_members")
-    .select("id, org_id, user_id, role, joined_at, organizations(id, name, created_at)")
+    .select(
+      "id, org_id, user_id, role, joined_at, organizations(id, name, created_at)",
+    )
     .eq("user_id", userId);
 
   if (error || !memberships || memberships.length === 0) {
