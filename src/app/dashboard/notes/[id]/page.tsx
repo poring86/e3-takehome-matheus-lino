@@ -4,32 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../../../lib/auth-context';
 import { ProtectedRoute } from '../../../../components/protected-route';
-import { Button } from '../../../../components/ui/button';
-import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../components/ui/select';
-import { Avatar, AvatarFallback } from '../../../../components/ui/avatar';
-import { ArrowLeft, Save, Edit3, Eye, EyeOff, History, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { Card, CardContent, CardHeader } from '../../../../components/ui/card';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
-
-interface Note {
-  id: string;
-  title: string;
-  content?: string;
-  visibility: 'public' | 'private';
-  createdAt: string;
-  updatedAt: string;
-  author: {
-    id: string;
-    email: string;
-    fullName?: string;
-  };
-}
+import { NotePageHeader } from './components/note-page-header';
+import { NoteCardTitle } from './components/note-card-title';
+import { AISummaryPanel } from './components/ai-summary-panel';
+import { NotePageProvider } from './components/note-page-context';
+import type { Note } from './components/types';
 
 function NoteContent() {
   const params = useParams();
@@ -41,6 +26,9 @@ function NoteContent() {
   const [title, setTitle] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [saving, setSaving] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
+  const [updatingSummary, setUpdatingSummary] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -176,6 +164,88 @@ function NoteContent() {
     }
   };
 
+  const handleGenerateSummary = async () => {
+    if (!note || summarizing) return;
+
+    setSummarizing(true);
+    setSummaryError(null);
+
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`/api/notes/${note.id}/summarize`, {
+        method: 'POST',
+        credentials: 'include',
+        headers,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        setSummaryError(errorData?.error || 'Failed to generate summary');
+        return;
+      }
+
+      const data = await response.json();
+      setNote((prev) => prev ? {
+        ...prev,
+        summary: data.summary,
+        summaryStatus: 'pending',
+      } : prev);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      setSummaryError('Error generating summary');
+    } finally {
+      setSummarizing(false);
+    }
+  };
+
+  const handleSummaryDecision = async (action: 'accept' | 'reject') => {
+    if (!note || updatingSummary) return;
+
+    setUpdatingSummary(true);
+    setSummaryError(null);
+
+    try {
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`/api/notes/${note.id}/summarize`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers,
+        body: JSON.stringify({ action }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        setSummaryError(errorData?.error || 'Failed to update summary status');
+        return;
+      }
+
+      const data = await response.json();
+      setNote((prev) => prev ? {
+        ...prev,
+        summaryStatus: data.status,
+      } : prev);
+    } catch (error) {
+      console.error('Error updating summary status:', error);
+      setSummaryError('Error updating summary status');
+    } finally {
+      setUpdatingSummary(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -199,133 +269,57 @@ function NoteContent() {
   const currentOrgMember = userOrgs.find(org => org.org_id === currentOrg?.id);
   const canEdit = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
   const canDelete = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
+  const contextValue = {
+    note,
+    editing,
+    title,
+    visibility,
+    saving,
+    canEdit: !!canEdit,
+    canDelete: !!canDelete,
+    isAuthor: !!isAuthor,
+    summarizing,
+    updatingSummary,
+    summaryError,
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+    onCancel: handleCancel,
+    onSave: handleSave,
+    onVisibilityChange: setVisibility,
+    onTitleChange: setTitle,
+    onGenerateSummary: handleGenerateSummary,
+    onSummaryDecision: handleSummaryDecision,
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild>
-                <Link href="/dashboard/notes">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Notes
-                </Link>
-              </Button>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {editing ? 'Edit Note' : note.title}
-                </h1>
-                {note.visibility === 'public' ? (
-                  <Eye className="h-5 w-5 text-green-600" />
-                ) : (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {canEdit && !editing && (
-                <>
-                  <Button variant="outline" onClick={handleEdit}>
-                    <Edit3 className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link href={`/dashboard/notes/${note.id}/versions`}>
-                      <History className="h-4 w-4 mr-2" />
-                      Versions
-                    </Link>
-                  </Button>
-                  {canDelete && (
-                    <Button variant="outline" onClick={handleDelete}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </Button>
-                  )}
-                </>
-              )}
-              {editing && (
-                <>
-                  <Button variant="outline" onClick={handleCancel} disabled={saving}>
-                    Cancel
-                  </Button>
-                  <Select value={visibility} onValueChange={(value: 'public' | 'private') => setVisibility(value)}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="private">
-                        <div className="flex items-center">
-                          <EyeOff className="h-4 w-4 mr-2" />
-                          Private
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="public">
-                        <div className="flex items-center">
-                          <Eye className="h-4 w-4 mr-2" />
-                          Public
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleSave} disabled={saving || !title.trim()}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {saving ? 'Saving...' : 'Save'}
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+    <NotePageProvider value={contextValue}>
+      <div className="min-h-screen bg-gray-50">
+        <NotePageHeader />
 
-      {/* Main content */}
-      <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <Card>
-            <CardHeader>
-              <div className="space-y-4">
-                {editing ? (
-                  <div>
-                    <Label htmlFor="title">Title</Label>
-                    <Input
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Enter note title..."
-                      className="text-xl font-semibold"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl">{note.title}</CardTitle>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="text-xs">
-                          {note.author?.fullName?.charAt(0) || note.author?.email?.charAt(0).toUpperCase() || 'N'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{note.author?.fullName || note.author?.email || 'Unknown Author'}</span>
-                      <span>•</span>
-                      <span>Updated {new Date(note.updatedAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Label>Content</Label>
-                <div className="border rounded-md">
-                  <EditorContent editor={editor} />
+        {/* Main content */}
+        <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <Card>
+              <CardHeader>
+                <div className="space-y-4">
+                  <NoteCardTitle />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Label>Content</Label>
+                  <div className="border rounded-md">
+                    <EditorContent editor={editor} />
+                  </div>
+
+                  <AISummaryPanel />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    </NotePageProvider>
   );
 }
 
