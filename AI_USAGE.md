@@ -77,3 +77,48 @@
   - **Agent 1 (Main)**: Apply fixes with atomic commits for each change category
 - **Serial Verification**: Main agent reviews all generated code before committing
 - **Atomic Commits**: Each fix is committed separately with clear messages (tracked in git history)
+
+## Agent Activity Log (2026-04-16, Supabase-only migration phase)
+
+- **Main agent (GitHub Copilot)**
+  - Removed local Postgres service from orchestration in `docker-compose.yml`.
+  - Updated developer guidance to Supabase-only runtime in `README.md`.
+  - Updated environment template in `.env.example` to document Supabase Postgres connection format.
+  - Added architectural decision log entry in `NOTES.md` (why local db removal, impact, ops notes).
+  - Added resolved bug entry in `BUGS.md` for local-vs-cloud DB drift (`DATABASE_URL` mismatch class).
+  - Validated compose target service list (`app` only) and cleaned orphan containers.
+
+- **Subagents used in this phase**
+  - None invoked.
+
+- **Outstanding manual input required**
+  - Provide real Supabase Postgres `DATABASE_URL` in `.env` to complete end-to-end note creation validation.
+
+## Agent Activity Log (2026-04-17, notes 500 resolution)
+
+- **Main agent (GitHub Copilot)**
+  - Reproduced `POST /api/notes` failure and captured precise backend error logs.
+  - Isolated runtime DB auth failure (`28P01`) in Drizzle query path at `src/app/api/notes/route.ts`.
+  - Validated container runtime URL parsing and effective DB identity from inside app container.
+  - Determined correct password variant included trailing `.` and updated runtime configuration workflow.
+  - Verified end-to-end success: authenticated request to `POST /api/notes` returned `201` with created note payload.
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, notes integration hardening)
+
+- **Main agent (GitHub Copilot)**
+  - Hardened integration diagnostics with explicit env override preservation in `scripts/diagnose-notes-integration.sh`.
+  - Added smoke guard `scripts/smoke-notes.sh` for fast runtime validation of note creation path.
+  - Implemented bearer-token fallback auth for `/api/notes/[id]` route handlers.
+  - Fixed delete path by removing dependent rows before note deletion.
+  - Updated integration assertions to match API payload shape and revalidated end-to-end.
+
+- **Validation executed by main agent**
+  - `npx vitest run tests/api/notes.integration.test.ts` (passed `4/4`).
+  - `sh scripts/smoke-notes.sh` (passed `201`).
+  - `npm run build` (passed).
+
+- **Subagents used in this phase**
+  - None invoked.

@@ -26,6 +26,59 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-029 Notes [id] endpoints returned 401 with bearer auth and 500 on delete
+
+- Date: 2026-04-17
+- Status: Resolved
+- Location: `src/app/api/notes/[id]/route.ts`, `tests/api/notes.integration.test.ts`
+- Symptom:
+	- Integration CRUD suite authenticated by bearer token passed create, but read/update/delete returned 401.
+	- Delete path later returned 500 in integration test.
+- Cause:
+	- `/api/notes/[id]` handlers were relying on cookie auth only and did not use bearer-token fallback.
+	- Delete handler assumed FK cascade for children, but runtime DB constraints did not guarantee cascade behavior for all related tables.
+- Fix:
+	- Added `getAuthenticatedUser` helper with bearer-token-first auth fallback in `/api/notes/[id]` handlers.
+	- Typed route context safely for Next.js params resolution.
+	- Deleted child records (`note_versions`, `note_tags`, `note_shares`) before deleting note.
+	- Aligned integration test update assertion to API response shape.
+- Validation:
+	- `npx vitest run tests/api/notes.integration.test.ts` => 4/4 passed.
+	- `sh scripts/smoke-notes.sh` => passed with HTTP 201.
+	- `npm run build` => passed.
+- Commit: pending
+
+### B-028 Notes create 500 due to Supabase pooler password mismatch
+
+- Date: 2026-04-17
+- Status: Resolved
+- Location: `.env`, runtime container environment, `src/app/api/notes/route.ts`
+- Symptom: `POST /api/notes` returned HTTP 500 after migration to Supabase-only compose.
+- Cause:
+	- `DATABASE_URL` password in runtime was incorrect (missing trailing `.`), resulting in Postgres auth failure (`28P01`).
+	- Intermittent env drift happened when shell-exported vars overrode `.env` during container recreation.
+- Fix:
+	- Updated `DATABASE_URL` in `.env` with the correct pooler password.
+	- Recreated app container after clearing shell overrides to ensure `.env` values were applied.
+- Validation:
+	- Connection probe from app container succeeded.
+	- `POST /api/notes` returned HTTP 201 with created note payload.
+- Commit: pending
+
+### B-027 Local Postgres vs Supabase Postgres environment drift
+
+- Date: 2026-04-16
+- Status: Resolved
+- Location: `docker-compose.yml`, `.env`, runtime container environment
+- Symptom: Endpoints backed by Drizzle (`/api/notes`) intermittently failed with database auth errors (`28P01`) due to mismatched runtime `DATABASE_URL` and duplicated database topology.
+- Cause: Hybrid setup kept both local Postgres container and Supabase Postgres in circulation, allowing accidental connection to stale/incorrect DB host and credentials.
+- Fix:
+	- Removed local `db` service from `docker-compose.yml`.
+	- Standardized dev architecture to Supabase-only Postgres.
+	- Updated docs/environment template to require Supabase `DATABASE_URL`.
+- Validation: Compose now runs only `app`; no local Postgres dependency remains in orchestration.
+- Commit: pending
+
 ### B-026 Dashboard empty state after successful login/onboarding
 
 - Date: 2026-04-16

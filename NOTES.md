@@ -28,6 +28,54 @@
   - Local `/api/organizations` returned `200` with memberships + organizations.
   - User confirmed dashboard now shows organization correctly.
 
+## Infra Decision Log (2026-04-16) - Remove local Postgres and run Supabase-only
+
+- Decision: Removed `db` service from `docker-compose.yml` and kept only `app` container.
+- Why:
+  - Prevent dual-database drift (`local db` vs `Supabase Postgres`) causing inconsistent runtime behavior.
+  - Eliminate `DATABASE_URL` mismatch scenarios where container env diverges from `.env` expectation.
+  - Align local development with cloud architecture (Supabase as single source of truth).
+- Implemented changes:
+  - `docker-compose.yml`: removed `db` service and `depends_on` for `app`.
+  - `README.md`: updated Docker section to Supabase-only and removed local `DB_PORT` guidance.
+  - `.env.example`: removed `DB_PORT`; documented `DATABASE_URL` in Supabase pooler format.
+- Operational note:
+  - `.env` must provide a valid Supabase Postgres `DATABASE_URL` (pooler/connection string from Supabase project settings).
+  - Without a valid Supabase `DATABASE_URL`, Drizzle-backed endpoints (for example `/api/notes`) will fail.
+
+## Hotfix Log (2026-04-17) - Notes create returning 500 after Supabase migration
+
+- Symptom:
+  - `POST /api/notes` returned `500 {"error":"Internal server error"}` while auth and org lookup were successful.
+- Root cause:
+  - Database password used in runtime `DATABASE_URL` was missing a trailing `.` character.
+  - This caused Drizzle/Postgres auth failure (`28P01`) in `src/app/api/notes/route.ts` membership check query.
+  - Additional runtime drift occurred when shell-exported env values overrode `.env` values during container recreate.
+- Fix:
+  - Updated `.env` with correct Supabase pooler `DATABASE_URL` including trailing `.` in password.
+  - Recreated app container after unsetting shell overrides (`DATABASE_URL`, `APP_PORT`) to force clean `.env` ingestion.
+- Validation:
+  - Runtime connection test from app container succeeded (`select current_user, current_database()`).
+  - End-to-end note creation returned HTTP `201` with persisted note payload.
+
+## Hotfix Log (2026-04-17) - Notes integration 401/500 on /api/notes/[id]
+
+- Symptom:
+  - Integration CRUD test passed note creation but failed read/update/delete with HTTP `401`.
+  - After auth fixes, delete still failed with HTTP `500`.
+- Root cause:
+  - `/api/notes/[id]` route handlers depended on cookie session and did not consistently authenticate bearer-token requests.
+  - Delete path depended on FK cascade assumptions not guaranteed in runtime DB.
+- Fix:
+  - Added bearer-token-first auth fallback for `GET`, `PUT`, and `DELETE` in `src/app/api/notes/[id]/route.ts`.
+  - Added typed route context and normalized async params resolution with `Promise.resolve(context.params)`.
+  - Added explicit child cleanup (`note_versions`, `note_tags`, `note_shares`) before note deletion.
+  - Updated integration test assertion to match update endpoint payload shape.
+- Validation:
+  - `npx vitest run tests/api/notes.integration.test.ts`: passed (`4/4`).
+  - `sh scripts/smoke-notes.sh`: passed (`201`).
+  - `npm run build`: passed.
+
 ## Project Completion Checklist (2026-04-16)
 
 ## Requirements Traceability (2026-04-16)
