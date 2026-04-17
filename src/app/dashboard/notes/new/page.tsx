@@ -47,14 +47,38 @@ function NewNoteContent() {
 
     setSaving(true);
     setErrorMessage('');
-    const controller = new AbortController();
-    const timeoutMs = 20000;
-    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+    const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> => {
+      let timer: number | undefined;
+      try {
+        return await Promise.race([
+          promise,
+          new Promise<T>((_, reject) => {
+            timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+          }),
+        ]);
+      } finally {
+        if (timer) window.clearTimeout(timer);
+      }
+    };
+
+    const requestController = new AbortController();
+    const requestTimeoutMs = 20000;
+    const requestTimeoutId = window.setTimeout(
+      () => requestController.abort(),
+      requestTimeoutMs,
+    );
 
     try {
+      const sessionResult = await withTimeout(
+        supabase.auth.getSession(),
+        8000,
+        'Session lookup timed out. Please refresh and try again.',
+      );
+
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = sessionResult;
 
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -67,7 +91,7 @@ function NewNoteContent() {
       const response = await fetch(`/api/notes?orgId=${currentOrg.id}`, {
         method: 'POST',
         credentials: 'include',
-        signal: controller.signal,
+        signal: requestController.signal,
         headers,
         body: JSON.stringify({
           title: title.trim(),
@@ -90,13 +114,15 @@ function NewNoteContent() {
       console.error('Error creating note:', error);
       if (error instanceof DOMException && error.name === 'AbortError') {
         setErrorMessage(
-          `Request timed out after ${timeoutMs / 1000}s. Please try again.`,
+          `Request timed out after ${requestTimeoutMs / 1000}s. Please try again.`,
         );
+      } else if (error instanceof Error) {
+        setErrorMessage(error.message || 'Unexpected error while creating note');
       } else {
         setErrorMessage('Unexpected error while creating note');
       }
     } finally {
-      window.clearTimeout(timeoutId);
+      window.clearTimeout(requestTimeoutId);
       setSaving(false);
     }
   };
