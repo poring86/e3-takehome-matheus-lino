@@ -1,0 +1,46 @@
+import 'dotenv/config';
+import { db } from "@/lib/db";
+import { supabaseAdmin } from "./supabase-admin";
+import { users, organizations, orgMembers, notes, noteVersions, tags, noteTags, noteShares, files } from "@/drizzle/schema";
+
+async function cleanDatabase() {
+  // Limpa tabelas do banco
+  await db.delete(noteTags);
+  await db.delete(noteShares);
+  await db.delete(noteVersions);
+  await db.delete(notes);
+  await db.delete(files);
+  await db.delete(tags);
+  await db.delete(orgMembers);
+  await db.delete(users);
+  await db.delete(organizations);
+}
+
+async function cleanSupabaseAuth() {
+  // Busca todos os usuários do Supabase Auth
+  let nextPage = null;
+  do {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: nextPage });
+    if (error) {
+      console.error("Erro ao listar usuários do Supabase Auth", error);
+      break;
+    }
+    for (const user of data.users) {
+      await supabaseAdmin.auth.admin.deleteUser(user.id);
+    }
+    nextPage = data.nextPage ?? null;
+  } while (nextPage);
+}
+
+async function main() {
+  console.log("Limpando banco de dados e Supabase Auth...");
+  await cleanDatabase();
+  await cleanSupabaseAuth();
+  console.log("Rodando seed...");
+  await import("./seed");
+}
+
+main().catch((err) => {
+  console.error("Erro ao limpar e rodar seed:", err);
+  process.exit(1);
+});

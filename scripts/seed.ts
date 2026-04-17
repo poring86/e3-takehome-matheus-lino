@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { supabaseAdmin } from "./supabase-admin";
 import {
   organizations,
   users,
@@ -53,6 +54,8 @@ async function seedDatabase() {
   const roles = ["owner", "admin", "member"] as const;
   const visibilities = ["public", "private", "shared"] as const;
 
+  const DEFAULT_PASSWORD = "Temp@12345678";
+
   console.log("Starting database seeding...");
 
   try {
@@ -69,20 +72,33 @@ async function seedDatabase() {
     }
     console.log(`Created ${orgs.length} organizations`);
 
-    // Create sample users
+
+    // Create sample users in Supabase Auth and DB
     const sampleUsers = [];
     for (let i = 1; i <= 20; i++) {
+      const email = `user${i}@example.com`;
+      // Cria usuário no Supabase Auth
+      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password: DEFAULT_PASSWORD,
+        email_confirm: true,
+      });
+      if (authError) {
+        console.error(`Erro ao criar usuário no Supabase Auth: ${email}`, authError);
+        continue;
+      }
+      // Cria usuário na tabela users
       const [user] = await db
         .insert(users)
         .values({
-          id: randomUUID(),
-          email: `user${i}@example.com`,
+          id: authUser.user.id,
+          email,
           fullName: `User ${i}`,
         })
         .returning();
       sampleUsers.push(user);
     }
-    console.log(`Created ${sampleUsers.length} users`);
+    console.log(`Created ${sampleUsers.length} users (Auth + DB)`);
 
     // Add users to organizations with roles
     for (const org of orgs) {
