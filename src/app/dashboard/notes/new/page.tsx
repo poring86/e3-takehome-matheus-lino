@@ -15,10 +15,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
-import { supabase } from '../../../../lib/supabase-client';
 
 function NewNoteContent() {
-  const { currentOrg } = useAuth();
+  const { currentOrg, session } = useAuth();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
@@ -48,20 +47,6 @@ function NewNoteContent() {
     setSaving(true);
     setErrorMessage('');
 
-    const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> => {
-      let timer: number | undefined;
-      try {
-        return await Promise.race([
-          promise,
-          new Promise<T>((_, reject) => {
-            timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
-          }),
-        ]);
-      } finally {
-        if (timer) window.clearTimeout(timer);
-      }
-    };
-
     const requestController = new AbortController();
     const requestTimeoutMs = 20000;
     const requestTimeoutId = window.setTimeout(
@@ -70,20 +55,11 @@ function NewNoteContent() {
     );
 
     try {
-      const sessionResult = await withTimeout(
-        supabase.auth.getSession(),
-        8000,
-        'Session lookup timed out. Please refresh and try again.',
-      );
-
-      const {
-        data: { session },
-      } = sessionResult;
-
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
       };
 
+      // Prefer the already-hydrated auth context session to avoid extra async auth lookups on submit.
       if (session?.access_token) {
         headers.Authorization = `Bearer ${session.access_token}`;
       }
