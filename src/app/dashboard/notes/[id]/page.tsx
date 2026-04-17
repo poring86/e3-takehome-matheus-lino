@@ -78,7 +78,6 @@ function NoteContent() {
         setNote(data);
         setTitle(data.title);
         setVisibility(data.visibility);
-        editor?.commands.setContent(data.content || '');
       } else if ([401, 403, 404].includes(response.status)) {
         router.push('/dashboard/notes');
       }
@@ -87,11 +86,16 @@ function NoteContent() {
     } finally {
       setLoading(false);
     }
-  }, [params.id, router, editor, session?.access_token]);
+  }, [params.id, router, session?.access_token]);
 
   useEffect(() => {
     fetchNote();
   }, [fetchNote]);
+
+  useEffect(() => {
+    if (!editor || !note) return;
+    editor.commands.setContent(note.content || '');
+  }, [editor, note]);
 
   const handleEdit = () => {
     setEditing(true);
