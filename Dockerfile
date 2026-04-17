@@ -1,28 +1,30 @@
-# Use Node.js 20 Alpine for smaller image size
-FROM node:20-alpine
+FROM node:20-alpine AS base
 
-# Set working directory
+FROM base AS deps
 WORKDIR /app
-
-# Install dependencies
 COPY package*.json ./
 RUN npm ci
 
-# Copy source code
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Build the application
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-# Remove devDependencies after build to keep runtime image smaller
-RUN npm prune --omit=dev
-
-# Expose port
-EXPOSE 3000
-
-# Set environment variables
+FROM base AS runner
+WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Start the application
-CMD ["npm", "start"]
+RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+EXPOSE 3000
+ENV PORT=3000
+
+CMD ["node", "server.js"]

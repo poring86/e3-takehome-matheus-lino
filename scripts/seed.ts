@@ -11,6 +11,7 @@ import {
   files,
 } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 
 const SAMPLE_CONTENT = [
   "This is a sample note about project planning. We need to discuss the timeline and assign responsibilities to team members.",
@@ -74,7 +75,7 @@ async function seedDatabase() {
       const [user] = await db
         .insert(users)
         .values({
-          id: `user-${i}`,
+          id: randomUUID(),
           email: `user${i}@example.com`,
           fullName: `User ${i}`,
         })
