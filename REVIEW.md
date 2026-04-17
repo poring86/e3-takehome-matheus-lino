@@ -102,3 +102,9 @@
 - Formalized a hybrid model in ADR (`NOTES.md` for operational timeline + `docs/adr/` for durable decisions).
 - Explicitly documented trade-offs and promotion workflow to reduce ambiguity during future refactors.
 - Residual risk: if promotion cadence is not followed, rationale can fragment between logs and ADRs.
+
+## ADR Expansion Update (2026-04-17)
+
+- Added ADRs for API auth resolution order, tenant-boundary invariants, and Docker delivery validation reference.
+- Decision rationale and trade-offs are now explicit for three high-risk areas that previously depended on scattered execution logs.
+- Residual risk: implementation drift remains possible if endpoint-level behavior diverges from ADR-0005/0006 without corresponding ADR updates.

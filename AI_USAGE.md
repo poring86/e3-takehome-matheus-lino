@@ -287,3 +287,16 @@ Preserved existing UX semantics for pagination and submit-based search.
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-17, ADR expansion for delivery-critical policies)
+
+- **Main agent (GitHub Copilot)**
+  - Authored additional ADRs for delivery-critical concerns:
+    - API auth resolution order (`docs/adr/0005-standardize-api-auth-resolution-order.md`)
+    - Tenant-boundary data access invariants (`docs/adr/0006-enforce-tenant-boundaries-in-data-access.md`)
+    - Docker test flow as delivery reference (`docs/adr/0007-adopt-docker-test-flow-as-delivery-reference.md`)
+  - Updated ADR index and architecture accepted-decision list.
+  - Added motive/trade-off summary in `NOTES.md` and review risk note in `REVIEW.md`.
+
+- **Subagents used in this phase**
+  - None invoked.

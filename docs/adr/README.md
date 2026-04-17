@@ -14,3 +14,6 @@ This folder contains Architecture Decision Records (ADRs) for long-lived technic
 - [0002 - Standardize kebab-case filenames with fitness gate](./0002-standardize-kebab-case-filenames-with-fitness-gate.md)
 - [0003 - Adopt React Query for dashboard server state](./0003-adopt-react-query-for-dashboard-server-state.md)
 - [0004 - Use hybrid Notes + ADR documentation model](./0004-use-hybrid-notes-and-adr-documentation-model.md)
+- [0005 - Standardize API auth resolution order](./0005-standardize-api-auth-resolution-order.md)
+- [0006 - Enforce tenant boundaries in data access](./0006-enforce-tenant-boundaries-in-data-access.md)
+- [0007 - Adopt Docker test flow as delivery reference](./0007-adopt-docker-test-flow-as-delivery-reference.md)

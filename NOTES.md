@@ -92,6 +92,18 @@
 - Dashboard server-state strategy (React Query) -> `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
 - Documentation model decision (operational timeline + durable decisions) -> `docs/adr/0004-use-hybrid-notes-and-adr-documentation-model.md`
 
+## ADR Expansion Log (2026-04-17) - Delivery-critical decisions
+
+- Added `docs/adr/0005-standardize-api-auth-resolution-order.md`
+  - Motive: remove auth inconsistency across bearer/cookie clients and reduce `401/403` regressions.
+  - Trade-offs: requires uniform handler migration discipline to avoid behavior drift.
+- Added `docs/adr/0006-enforce-tenant-boundaries-in-data-access.md`
+  - Motive: formalize tenant isolation as non-negotiable invariant across reads/writes.
+  - Trade-offs: increases migration/plumbing effort on legacy paths.
+- Added `docs/adr/0007-adopt-docker-test-flow-as-delivery-reference.md`
+  - Motive: reduce host/container validation mismatch and improve reproducibility.
+  - Trade-offs: slower full validation path and Docker dependency for release confidence.
+
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 
 - Decision: migrated production Docker image to multi-stage build with Next standalone runtime.

@@ -111,6 +111,9 @@ Use this layering model for new features:
 	- `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
 	- `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
 	- `docs/adr/0004-use-hybrid-notes-and-adr-documentation-model.md`
+	- `docs/adr/0005-standardize-api-auth-resolution-order.md`
+	- `docs/adr/0006-enforce-tenant-boundaries-in-data-access.md`
+	- `docs/adr/0007-adopt-docker-test-flow-as-delivery-reference.md`
 
 ## Decision Workflow
 
