@@ -46,7 +46,7 @@ Each bug entry follows this structure:
 	- `npx vitest run tests/api/notes.integration.test.ts` => 4/4 passed.
 	- `sh scripts/smoke-notes.sh` => passed with HTTP 201.
 	- `npm run build` => passed.
-- Commit: pending
+- Commit: 0f6d085, 2d0ba17
 
 ### B-028 Notes create 500 due to Supabase pooler password mismatch
 
@@ -77,7 +77,7 @@ Each bug entry follows this structure:
 	- Standardized dev architecture to Supabase-only Postgres.
 	- Updated docs/environment template to require Supabase `DATABASE_URL`.
 - Validation: Compose now runs only `app`; no local Postgres dependency remains in orchestration.
-- Commit: pending
+- Commit: e70ed9d
 
 ### B-026 Dashboard empty state after successful login/onboarding
 
