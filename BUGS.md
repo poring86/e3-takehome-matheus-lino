@@ -42,7 +42,7 @@ Each bug entry follows this structure:
 - Validation:
 	- `npm run build` passed after frontend changes.
 	- API integration and smoke tests remained green in previous validation cycle.
-- Commit: pending
+- Commit: 1a9eebb
 
 ### B-029 Notes [id] endpoints returned 401 with bearer auth and 500 on delete
 
