@@ -1,0 +1,34 @@
+name: Fitness Functions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  fitness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build Docker image
+        run: docker build -t e3-takehome-check:latest .
+      - name: Build fitness functions
+        run: bash scripts/fitness-build.sh
+      - name: Check Docker image size
+        run: node dist/fitness/checkDockerImageSize.js
+      - name: Start containers
+        run: docker compose up -d
+      - name: Wait for API
+        run: |
+          for i in {1..20}; do
+            if curl -s http://localhost:3001/api/notes > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          exit 1
+      - name: Check API response time
+        run: node dist/fitness/checkApiResponseTime.js
