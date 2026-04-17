@@ -27,7 +27,7 @@ interface Note {
 }
 
 function NotesContent() {
-  const { user, currentOrg, userOrgs, switchOrg, signOut } = useAuth();
+  const { user, currentOrg, userOrgs, switchOrg, signOut, session } = useAuth();
   const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,12 +47,23 @@ function NotesContent() {
     try {
       const offset = (page - 1) * notesPerPage;
       const url = `/api/notes?orgId=${currentOrg.id}&limit=${notesPerPage}&offset=${offset}${query ? `&q=${encodeURIComponent(query)}` : ''}`;
-      const response = await fetch(url);
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(url, {
+        credentials: 'include',
+        headers,
+      });
       if (response.ok) {
         const data = await response.json();
         setNotes(data.notes);
         setTotalNotes(data.total);
         setCurrentPage(page);
+      } else if (response.status === 401 || response.status === 403) {
+        setNotes([]);
+        setTotalNotes(0);
       }
     } catch (error) {
       console.error('Error fetching notes:', error);
@@ -63,7 +74,7 @@ function NotesContent() {
 
   useEffect(() => {
     fetchNotes();
-  }, [currentOrg]);
+  }, [currentOrg, session?.access_token]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
