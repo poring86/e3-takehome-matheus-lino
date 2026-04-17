@@ -22,7 +22,7 @@ Each bug entry follows this structure:
 - Symptom: The first AI workflow deadlocked waiting on subscription-sync events and hit rate limits during schema generation.
 - Cause: Over-reliance on early automated orchestration during initial setup.
 - Fix: Switched to manual schema definition and changed model strategy to recover delivery speed.
-- Commit: pending
+- Commit: a3922c8
 
 ## Resolved Bugs
 
@@ -43,7 +43,7 @@ Each bug entry follows this structure:
 	- Added dashboard fallback active organization from `userOrgs[0]` when `currentOrg` is temporarily null.
 	- Added fail-soft behavior for transient bootstrap failures.
 - Validation: Local API `/api/organizations` returned memberships with organization payload (`200`), production build passed, and user confirmed organizations display.
-- Commit: pending
+- Commit: a3922c8
 
 ### B-025 Organization creation forbidden by RLS policy mismatch
 
