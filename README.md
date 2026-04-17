@@ -121,8 +121,8 @@ npm run db:seed
 npm run db:reset:seed
 ```
 
-- `db:seed`: popula dados sem limpar o que ja existe.
-- `db:reset:seed`: limpa dados de app e usuarios do Supabase Auth antes de semear novamente.
+- `db:seed`: populates sample data without clearing existing records.
+- `db:reset:seed`: clears app data and Supabase Auth users before reseeding.
 
 ## Validation Commands
 
@@ -231,33 +231,33 @@ The note summary feature depends on a valid and funded OpenAI API key (`OPENAI_A
 - You do NOT need OpenAI credits to run tests, CRUD, authentication, versioning, etc.
 - To test the AI summary, just add a valid key and restart the backend.
 
-## IA: Resumo de Notas (OpenAI ou Gemini)
+## AI: Note Summary (OpenAI or Gemini)
 
-Por padrão, o resumo de notas usa a OpenAI (gpt-3.5-turbo). Você pode alternar para Gemini (Google) se desejar.
+By default, note summaries use OpenAI (gpt-3.5-turbo). You can switch to Gemini (Google) if preferred.
 
-### Como escolher o provedor
+### Provider Selection
 
-No seu `.env`:
+In your `.env`:
 
 ```
-AI_PROVIDER=openai   # ou gemini
+AI_PROVIDER=openai   # or gemini
 ```
 
-- Para OpenAI: defina `OPENAI_API_KEY` normalmente.
-- Para Gemini: defina `GEMINI_API_KEY` com sua chave da API Gemini.
+- For OpenAI: set `OPENAI_API_KEY`.
+- For Gemini: set `GEMINI_API_KEY`.
 
 Exemplo:
 
 ```
 AI_PROVIDER=gemini
-GEMINI_API_KEY=sua_chave_aqui
+GEMINI_API_KEY=your_key_here
 ```
 
-Se não definir `AI_PROVIDER`, o padrão é `openai`.
+If `AI_PROVIDER` is not set, the default is `openai`.
 
-### Observações
+### Notes
 
-- A entrega obrigatória do desafio é com OpenAI funcionando.
-- O suporte a Gemini é opcional e serve como diferencial.
-- O vídeo demonstrativo pode ser gravado com qualquer ferramenta (Gemini, OBS, Loom, etc).
-- Documente no vídeo/README qual provedor está usando.
+- The mandatory challenge delivery must work with OpenAI.
+- Gemini support is optional and considered an extra.
+- The demo video can be recorded with any tool (Gemini, OBS, Loom, etc).
+- Document in the video/README which provider is being used.
