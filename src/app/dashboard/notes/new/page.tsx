@@ -7,7 +7,7 @@ import { ProtectedRoute } from '../../../../components/protected-route';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
 import { Label } from '../../../../components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card';
+import { Card, CardContent, CardHeader } from '../../../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../../components/ui/select';
 import { ArrowLeft, Save, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
@@ -15,6 +15,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
+import { supabase } from '../../../../lib/supabase-client';
 
 function NewNoteContent() {
   const { currentOrg } = useAuth();
@@ -22,8 +23,10 @@ function NewNoteContent() {
   const [title, setTitle] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       LinkExtension.configure({
@@ -43,12 +46,23 @@ function NewNoteContent() {
     if (!title.trim() || !currentOrg) return;
 
     setSaving(true);
+    setErrorMessage('');
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch(`/api/notes?orgId=${currentOrg.id}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           title: title.trim(),
           content: editor?.getHTML() || '',
@@ -60,10 +74,14 @@ function NewNoteContent() {
         const note = await response.json();
         router.push(`/dashboard/notes/${note.id}`);
       } else {
-        console.error('Failed to create note');
+        const payload = await response.json().catch(() => null);
+        const apiError = payload?.error || 'Failed to create note';
+        setErrorMessage(apiError);
+        console.error('Failed to create note:', response.status, payload);
       }
     } catch (error) {
       console.error('Error creating note:', error);
+      setErrorMessage('Unexpected error while creating note');
     } finally {
       setSaving(false);
     }
@@ -127,6 +145,11 @@ function NewNoteContent() {
       {/* Main content */}
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
+          {errorMessage ? (
+            <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {errorMessage}
+            </div>
+          ) : null}
           <Card>
             <CardHeader>
               <div className="space-y-4">
