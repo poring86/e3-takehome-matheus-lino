@@ -14,16 +14,6 @@ Each bug entry follows this structure:
 
 ## Open Bugs
 
-### B-025 Organization creation forbidden by RLS policy mismatch
-
-- Date: 2026-04-16
-- Status: Open
-- Location: Supabase Cloud policies on `organizations` and `org_members`
-- Symptom: `POST /rest/v1/organizations?select=*` returns HTTP 403 with `new row violates row-level security policy` during onboarding.
-- Cause: Effective cloud policy state does not allow onboarding insert path for organization creation and owner membership insertion.
-- Fix: Apply `supabase/migrations/0003_onboarding_org_creation_hotfix.sql` and, if 403 persists, apply `supabase/migrations/0004_organizations_insert_policy_reset.sql` and `supabase/migrations/0005_organizations_rls_full_reset.sql`. If organization creation succeeds but listing remains empty, apply `supabase/migrations/0006_organizations_select_policy_fix.sql`.
-- Commit: pending
-
 ### B-001 Agent orchestration deadlock and rate limit failure
 
 - Date: 2026-04-16
@@ -35,6 +25,40 @@ Each bug entry follows this structure:
 - Commit: pending
 
 ## Resolved Bugs
+
+### B-026 Dashboard empty state after successful login/onboarding
+
+- Date: 2026-04-16
+- Status: Resolved
+- Location: `src/lib/auth-context.tsx`, `src/lib/load-user-organizations.ts`, `src/app/api/organizations/route.ts`, `src/app/onboarding/page.tsx`, `src/app/dashboard/page.tsx`
+- Symptom: User could authenticate and create organizations, but dashboard still displayed the empty "create/join organization" state.
+- Cause: Combined issue from policy drift and client boot timing:
+	- `org_members` had rows, but `organizations` visibility was inconsistent in direct user-scoped reads.
+	- First-load auth/session propagation could briefly return unauthorized from org bootstrap calls.
+	- Dashboard relied strictly on `currentOrg` before fallback state was available.
+- Fix:
+	- Added resilient org loading path with bearer/cookie fallbacks.
+	- Added server endpoint `GET /api/organizations` to normalize membership + organization payload.
+	- Added context-level `refreshOrganizations` and used it after onboarding inserts before redirect.
+	- Added dashboard fallback active organization from `userOrgs[0]` when `currentOrg` is temporarily null.
+	- Added fail-soft behavior for transient bootstrap failures.
+- Validation: Local API `/api/organizations` returned memberships with organization payload (`200`), production build passed, and user confirmed organizations display.
+- Commit: pending
+
+### B-025 Organization creation forbidden by RLS policy mismatch
+
+- Date: 2026-04-16
+- Status: Resolved
+- Location: Supabase Cloud policies on `organizations` and `org_members`
+- Symptom: `POST /rest/v1/organizations?select=*` returned HTTP 403 with `new row violates row-level security policy` during onboarding.
+- Cause: Effective cloud policy state did not allow onboarding insert path for organization creation and owner membership insertion.
+- Fix: Applied onboarding/policy hotfix sequence and aligned app loading behavior for policy-drift tolerance:
+	- `supabase/migrations/0003_onboarding_org_creation_hotfix.sql`
+	- `supabase/migrations/0004_organizations_insert_policy_reset.sql`
+	- `supabase/migrations/0005_organizations_rls_full_reset.sql`
+	- `supabase/migrations/0006_organizations_select_policy_fix.sql`
+- Validation: Organization creation and membership insert flow recovered; dashboard organization visibility stabilized with follow-up app fixes (see B-026).
+- Commit: pending
 
 ### B-024 Password reset flow failed with Supabase lock contention / expired link handling
 

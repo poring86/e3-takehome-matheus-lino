@@ -6,6 +6,28 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
+## Hotfix Log (2026-04-16) - Organization visibility after login/onboarding
+
+- Symptom: After sign-in or org creation, dashboard could render the "Welcome! create or join organization" state even when membership existed.
+- Confirmed backend evidence:
+  - `org_members` returned rows for the authenticated user.
+  - direct user query to `organizations` in Supabase Cloud returned `200 []` under affected policy state.
+  - local app endpoint `/api/organizations` returned memberships with organization payload after fallback API changes.
+- Root causes (combined):
+  - Cloud RLS drift on `organizations` visibility for member reads.
+  - Session timing race on first client load (cookie/token propagation window).
+  - UI dependency on `currentOrg` before fallback state settled.
+- Implemented mitigations:
+  - Added `refreshOrganizations` in auth context and used it in onboarding before redirect.
+  - Replaced fragile client-only org loading with resilient loader and server API fallback.
+  - Added `GET /api/organizations` route with bearer/cookie auth fallback and service-role-assisted organization hydration.
+  - Added dashboard fallback `activeOrg = currentOrg || userOrgs[0]?.organizations || null`.
+  - Added fail-soft behavior for transient org-loading errors to avoid boot crash.
+- Validation:
+  - Production build passed after each iteration.
+  - Local `/api/organizations` returned `200` with memberships + organizations.
+  - User confirmed dashboard now shows organization correctly.
+
 ## Project Completion Checklist (2026-04-16)
 
 ## Requirements Traceability (2026-04-16)
