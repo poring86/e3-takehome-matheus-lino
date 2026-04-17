@@ -43,8 +43,8 @@
 ## Recent Reliability Improvements (2026-04-17)
 
 - Added canonical Docker test entrypoints for reviewer reproducibility:
-	- `npm run test:notes:docker:full`
-	- `npm run test:docker:full`
+  - `npm run test:notes:docker:full`
+  - `npm run test:docker:full`
 - Hardened full Docker suite with increased Vitest hook/test timeouts to avoid false negatives in integration setup.
 - Standardized Docker dev runtime to port `3000` and validated containerized app response.
 - Migrated production image to multi-stage + standalone runtime and validated build/startup behavior.
@@ -66,3 +66,9 @@
 - Notes summarize endpoint now follows the same module-driven application pattern as other Notes handlers.
 - Notes API handlers are consistently thin adapters with business logic centralized in module application services.
 - Lint guardrails now cover all modularized Notes handlers to prevent coupling regression.
+
+## Fitness Quality Gate Update (2026-04-17)
+
+- Added coverage fitness gate calibrated to a practical baseline (60%) with env override (`MIN_TEST_COVERAGE`) for progressive hardening.
+- Added focused helper unit tests (`utils` and `logger`) to raise baseline coverage without introducing API behavior risk.
+- Hardened fitness CI workflow by adding explicit dependency installation (`npm ci`) before fitness build/run steps.

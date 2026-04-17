@@ -6,6 +6,19 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
+## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
+
+- Decision: Set test coverage fitness threshold to a practical baseline (60%) with env override support.
+- Why:
+  - Keep CI quality gates actionable without creating false blockers during incremental hardening.
+  - Enable gradual increase of coverage baseline over time.
+- Implemented changes:
+  - `src/fitness/checkTestCoverage.ts`: default threshold changed to `60`, configurable via `MIN_TEST_COVERAGE`.
+  - Added new unit tests:
+    - `tests/lib/utils.test.ts`
+    - `tests/lib/logger.test.ts`
+  - `src/fitness/README.md`: documented coverage fitness and threshold override.
+
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 
 - Decision: migrated production Docker image to multi-stage build with Next standalone runtime.

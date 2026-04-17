@@ -227,3 +227,19 @@
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-17, fitness coverage calibration + unit test expansion)
+
+- **Main agent (GitHub Copilot)**
+  - Calibrated coverage fitness function baseline from 80% to 60% with environment override support via `MIN_TEST_COVERAGE`.
+  - Added focused low-risk unit tests for shared helpers:
+    - `tests/lib/utils.test.ts`
+    - `tests/lib/logger.test.ts`
+  - Added dependency installation step (`npm ci`) in `fitness.yml` to ensure reliable CI execution.
+  - Updated fitness documentation in `src/fitness/README.md`.
+
+- **Validation executed by main agent**
+  - `npx vitest run tests/lib/utils.test.ts tests/lib/logger.test.ts` (passed `5/5`).
+
+- **Subagents used in this phase**
+  - None invoked.

@@ -1,4 +1,5 @@
 #!/bin/sh
-# Run compiled fitness functions
-node dist/fitness/checkDockerImageSize.js
-node dist/fitness/checkApiResponseTime.js
+# Run TypeScript fitness functions with tsx
+npx tsx src/fitness/checkDockerImageSize.ts
+npx tsx src/fitness/checkApiResponseTime.ts
+npx tsx src/fitness/checkTestCoverage.ts

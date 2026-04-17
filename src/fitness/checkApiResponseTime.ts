@@ -1,32 +1,47 @@
 // Fitness function: fail if main API endpoints are too slow
-import http from 'http';
+import * as http from "node:http";
 
 const ENDPOINTS = [
-  { path: '/api/notes', method: 'GET' },
-  { path: '/api/notes', method: 'POST' },
+  { path: "/api/notes", method: "GET" },
+  { path: "/api/notes", method: "POST" },
 ];
-const HOST = process.env.API_HOST || 'localhost';
+const HOST = process.env.API_HOST || "localhost";
 const PORT = process.env.API_PORT || 3001;
 const MAX_MS = 350;
 
-function testEndpoint({ path, method }: { path: string; method: string; }): Promise<{ path: string; method: string; ms: number; }> {
+function testEndpoint({
+  path,
+  method,
+}: {
+  path: string;
+  method: string;
+}): Promise<{ path: string; method: string; ms: number }> {
   return new Promise((resolve) => {
     const start = Date.now();
-    const req = http.request({
-      hostname: HOST,
-      port: Number(PORT),
-      path,
-      method,
-      headers: method === 'POST' ? { 'Content-Type': 'application/json' } : undefined,
-    }, (res) => {
-      res.on('data', () => {});
-      res.on('end', () => {
-        const ms = Date.now() - start;
-        resolve({ path, method, ms });
-      });
-    });
-    req.on('error', () => resolve({ path, method, ms: -1 }));
-    if (method === 'POST') req.write(JSON.stringify({ title: 'test', content: 'ok', visibility: 'private' }));
+    const req = http.request(
+      {
+        hostname: HOST,
+        port: Number(PORT),
+        path,
+        method,
+        headers:
+          method === "POST"
+            ? { "Content-Type": "application/json" }
+            : undefined,
+      },
+      (res) => {
+        res.on("data", () => {});
+        res.on("end", () => {
+          const ms = Date.now() - start;
+          resolve({ path, method, ms });
+        });
+      },
+    );
+    req.on("error", () => resolve({ path, method, ms: -1 }));
+    if (method === "POST")
+      req.write(
+        JSON.stringify({ title: "test", content: "ok", visibility: "private" }),
+      );
     req.end();
   });
 }
@@ -39,7 +54,9 @@ function testEndpoint({ path, method }: { path: string; method: string; }): Prom
       console.error(`FAIL: ${method} ${path} unreachable`);
       failed = true;
     } else if (ms > MAX_MS) {
-      console.error(`FAIL: ${method} ${path} took ${ms}ms (limit: ${MAX_MS}ms)`);
+      console.error(
+        `FAIL: ${method} ${path} took ${ms}ms (limit: ${MAX_MS}ms)`,
+      );
       failed = true;
     } else {
       console.log(`PASS: ${method} ${path} took ${ms}ms (limit: ${MAX_MS}ms)`);
