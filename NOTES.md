@@ -86,6 +86,7 @@
 - Fix:
   - Added explicit bearer token injection from Supabase session in create-note request.
   - Added user-visible error banner with parsed API error message.
+  - Added fetch timeout + abort handling to avoid infinite `Saving...` when request stalls.
 - Validation:
   - `npm run build`: passed.
 
