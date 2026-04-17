@@ -129,6 +129,7 @@
   - Updated `/dashboard/notes/new` save flow to attach bearer token from Supabase session.
   - Improved frontend error handling to surface backend API errors in-page (instead of generic console-only failure).
   - Added timeout + abort strategy in client save request to prevent indefinite loading state.
+  - Added timeout protection for `supabase.auth.getSession()` to prevent pre-request save deadlocks.
   - Revalidated production build after frontend changes.
 
 - **Validation executed by main agent**
