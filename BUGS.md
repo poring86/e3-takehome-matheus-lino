@@ -40,7 +40,7 @@ Each bug entry follows this structure:
 	- Added bearer token retrieval via Supabase session and sent `Authorization: Bearer <token>` on note creation request.
 	- Added UI error banner and detailed response parsing for failed saves.
 	- Added client-side request timeout/abort to prevent indefinite `Saving...` state when backend request hangs.
-	- Added explicit timeout around `supabase.auth.getSession()` to prevent pre-request hangs from locking the save state.
+	- Removed per-click `supabase.auth.getSession()` call and reused session from auth context to avoid pre-request hangs locking save state.
 - Validation:
 	- `npm run build` passed after frontend changes.
 	- API integration and smoke tests remained green in previous validation cycle.

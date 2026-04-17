@@ -87,7 +87,7 @@
   - Added explicit bearer token injection from Supabase session in create-note request.
   - Added user-visible error banner with parsed API error message.
   - Added fetch timeout + abort handling to avoid infinite `Saving...` when request stalls.
-  - Added timeout guard around `supabase.auth.getSession()` to avoid hangs before request dispatch.
+  - Removed `supabase.auth.getSession()` from submit path and reused session from auth context to avoid hangs before request dispatch.
 - Validation:
   - `npm run build`: passed.
 
