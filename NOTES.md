@@ -120,6 +120,21 @@
   - Kept `.github/workflows/fitness.yml` for architecture/fitness constraints.
   - Added governance runbook: `docs/github-governance.md`.
 
+## PR Governance Log (2026-04-17)
+
+- Decision: standardize pull requests with a repository-level template.
+- Why:
+  - Ensure consistent ADR/risk/validation disclosure in every PR.
+  - Reduce review omissions for tenant/auth/security-sensitive changes.
+  - Keep audit-file alignment explicit before merge.
+- Trade-offs:
+  - Slightly more authoring friction per PR.
+  - Template can become noisy if not maintained.
+  - Requires team discipline to avoid checkbox-only compliance.
+- Applied in this cycle:
+  - Added `.github/pull_request_template.md`.
+  - Linked usage in `docs/github-governance.md` and `README.md`.
+
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 
 - Decision: migrated production Docker image to multi-stage build with Next standalone runtime.

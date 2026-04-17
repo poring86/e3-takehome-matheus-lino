@@ -38,3 +38,12 @@ For a fast UI walkthrough, see `docs/github-branch-protection-checklist.md`.
 - If a check is too slow for developer loop, keep it in fitness and not in fast CI.
 - If a check is flaky, fix or quarantine it before marking as required.
 - Required checks should represent deterministic project policy.
+
+## Pull Request Template
+
+Use `.github/pull_request_template.md` to standardize:
+
+- ADR references for architecture-impacting changes
+- Risk declaration and mitigation notes
+- Validation evidence and required checks
+- Audit file alignment (`NOTES.md`, `REVIEW.md`, `AI_USAGE.md`)

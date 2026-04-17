@@ -311,3 +311,13 @@ Preserved existing UX semantics for pagination and submit-based search.
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-17, PR template governance)
+
+- **Main agent (GitHub Copilot)**
+  - Added repository-level PR template (`.github/pull_request_template.md`) with ADR/risk/validation/audit checklist.
+  - Linked template usage in governance documentation and README.
+  - Recorded rationale and trade-offs in delivery audit files.
+
+- **Subagents used in this phase**
+  - None invoked.

@@ -193,6 +193,7 @@ For Railway deployment details, see:
 - docs/adr/README.md: architecture decision records (ADRs) index and accepted decisions
 - docs/github-governance.md: CI pipelines and branch protection policy
 - docs/github-branch-protection-checklist.md: 2-minute setup checklist for required checks on `main`
+- .github/pull_request_template.md: PR checklist for ADR/risk/validation/audit alignment
 - src/modules/README.md: component/module decomposition and dependency rules
 - BUGS.md: bug tracking with status and commit references
 - NOTES.md: execution notes and checklist
