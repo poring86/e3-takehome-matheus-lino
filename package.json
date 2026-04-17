@@ -7,9 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx vitest run",
-    "test:notes:integration": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; npx vitest run tests/api/notes.integration.test.ts'",
-    "test:env": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; npx vitest run'",
+    "test": "vitest run",
+    "test:notes:integration": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; vitest run tests/api/notes.integration.test.ts'",
+    "test:notes:integration:docker": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; TEST_APP_BASE_URL=${TEST_APP_BASE_URL:-http://127.0.0.1:3000} vitest run tests/api/notes.integration.test.ts'",
+    "test:notes:docker:full": "sh -c 'DOCKER_API_VERSION=${DOCKER_API_VERSION:-1.52} docker compose down --remove-orphans && DOCKER_API_VERSION=${DOCKER_API_VERSION:-1.52} docker compose up -d app && DOCKER_API_VERSION=${DOCKER_API_VERSION:-1.52} docker compose exec app npm run test:notes:integration'",
+    "test:env:docker": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; vitest run --hookTimeout=30000 --testTimeout=30000'",
+    "test:docker:full": "sh -c 'DOCKER_API_VERSION=${DOCKER_API_VERSION:-1.52} docker compose down --remove-orphans && DOCKER_API_VERSION=${DOCKER_API_VERSION:-1.52} docker compose up -d app && DOCKER_API_VERSION=${DOCKER_API_VERSION:-1.52} docker compose exec app npm run test:env:docker'",
+    "test:env": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; vitest run'",
     "test:env:strict": "sh scripts/check-test-env.sh && npm run test:env",
     "smoke:notes": "sh scripts/smoke-notes.sh",
     "db:generate": "drizzle-kit generate",
@@ -17,6 +21,7 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -70,6 +75,7 @@
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.4"
   }
 }

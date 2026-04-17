@@ -1,55 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { db } from "@/lib/db";
-import { notes, orgMembers } from "@/drizzle/schema";
-import { eq, and } from "drizzle-orm";
-import OpenAI from "openai";
+import { logPermissionDenied, logError } from "@/lib/logger";
+import { getAuthenticatedUser } from "@/modules/shared/auth";
 import {
-  logAIRequest,
-  logMutation,
-  logPermissionDenied,
-  logError,
-} from "@/lib/logger";
+  generateNoteSummaryForUser,
+  updateNoteSummaryStatusForAuthor,
+} from "@/modules/notes";
 
 type RouteContext = {
   params: { id: string } | Promise<{ id: string }>;
 };
-
-async function getAuthenticatedUser(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const bearerToken = authHeader?.startsWith("Bearer ")
-    ? authHeader.slice("Bearer ".length)
-    : null;
-
-  if (bearerToken) {
-    const tokenClient = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-
-    const {
-      data: { user },
-      error,
-    } = await tokenClient.auth.getUser(bearerToken);
-
-    if (!error && user) {
-      return user;
-    }
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return null;
-  }
-
-  return user;
-}
 
 // POST /api/notes/[id]/summarize - Generate AI summary for a note
 export async function POST(request: NextRequest, context: RouteContext) {
@@ -65,140 +24,41 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get note
-    const [note] = await db
-      .select()
-      .from(notes)
-      .where(eq(notes.id, noteId))
-      .limit(1);
+    const result = await generateNoteSummaryForUser(user.id, noteId);
 
-    if (!note) {
-      logPermissionDenied("summarize_note", user?.id, undefined, noteId, {
-        reason: "not_found",
-      });
+    if (!result.ok && result.error === "NOT_FOUND") {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
-    // Check permissions
-    const [orgMember] = await db
-      .select()
-      .from(orgMembers)
-      .where(
-        and(eq(orgMembers.orgId, note.orgId), eq(orgMembers.userId, user.id)),
-      )
-      .limit(1);
-
-    if (!orgMember) {
-      logPermissionDenied("summarize_note", user.id, note.orgId, noteId, {
-        reason: "not_org_member",
-      });
+    if (!result.ok && result.error === "ACCESS_DENIED") {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    // Check if user can access private notes
-    if (note.visibility === "private" && note.createdBy !== user.id) {
-      logPermissionDenied("summarize_note", user.id, note.orgId, noteId, {
-        reason: "private_note",
-      });
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
-    }
-
-    if (!note.content || note.content.trim().length < 50) {
-      logPermissionDenied("summarize_note", user.id, note.orgId, noteId, {
-        reason: "content_too_short",
-      });
+    if (!result.ok && result.error === "CONTENT_TOO_SHORT") {
       return NextResponse.json(
         { error: "Note content too short for summary" },
         { status: 400 },
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
-      logError(
-        new Error("OPENAI_API_KEY is not configured"),
-        "POST /api/notes/[id]/summarize",
-        user.id,
-        { noteId },
-      );
+    if (!result.ok && result.error === "AI_QUOTA") {
       return NextResponse.json(
-        { error: "OPENAI_API_KEY is not configured" },
+        {
+          error:
+            "AI provider quota exceeded. Configure a new key or add credits.",
+        },
+        { status: 429 },
+      );
+    }
+
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: result.message || "Failed to generate summary" },
         { status: 500 },
       );
     }
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    logAIRequest("summarize_request", user.id, note.orgId, noteId, {
-      title: note.title,
-    });
-    // Generate summary with OpenAI
-
-    let completion;
-    try {
-      completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a helpful assistant that creates concise, structured summaries of notes. Keep summaries under 200 words and focus on key points, action items, and insights.",
-          },
-          {
-            role: "user",
-            content: `Please summarize this note titled \"${note.title}\":\n\n${note.content}`,
-          },
-        ],
-        max_tokens: 300,
-        temperature: 0.3,
-      });
-    } catch (err: any) {
-      // Tratamento específico para quota excedida
-      if (err?.status === 429 || err?.message?.includes("quota")) {
-        logAIRequest("summarize_failed", user.id, note.orgId, noteId, {
-          reason: "openai_quota_exceeded",
-        });
-        return NextResponse.json(
-          {
-            error:
-              "OpenAI usage limit exceeded. Add credits or configure a new API key to use the AI summary feature.",
-          },
-          { status: 429 },
-        );
-      }
-      logAIRequest("summarize_failed", user.id, note.orgId, noteId, {
-        reason: "openai_error",
-        details: err?.message || String(err),
-      });
-      return NextResponse.json(
-        { error: "Erro ao gerar resumo de IA" },
-        { status: 500 },
-      );
-    }
-
-    const summary = completion.choices[0]?.message?.content?.trim();
-
-    if (!summary) {
-      logAIRequest("summarize_failed", user.id, note.orgId, noteId, {
-        reason: "no_summary",
-      });
-      return NextResponse.json(
-        { error: "Failed to generate summary" },
-        { status: 500 },
-      );
-    }
-
-    // Update note with summary (pending status)
-    await db
-      .update(notes)
-      .set({
-        summary,
-        summaryStatus: "pending",
-        updatedAt: new Date(),
-      })
-      .where(eq(notes.id, noteId));
-
-    logAIRequest("summarize_success", user.id, note.orgId, noteId);
-    logMutation("update", "note_summary", user.id, note.orgId, noteId);
-    return NextResponse.json({ summary });
+    return NextResponse.json(result.data);
   } catch (error) {
     logError(error as Error, "POST /api/notes/[id]/summarize", undefined, {
       noteId,
@@ -227,55 +87,29 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // noteId already set above
-    const { action } = await request.json(); // "accept" or "reject"
+    const { action } = await request.json();
+    const result = await updateNoteSummaryStatusForAuthor(user.id, noteId, action);
 
-    if (!["accept", "reject"].includes(action)) {
+    if (!result.ok && result.error === "INVALID_ACTION") {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
-    // Get note
-    const [note] = await db
-      .select()
-      .from(notes)
-      .where(eq(notes.id, noteId))
-      .limit(1);
-
-    if (!note) {
-      logPermissionDenied(
-        "accept_reject_summary",
-        user?.id,
-        undefined,
-        noteId,
-        { reason: "not_found" },
-      );
+    if (!result.ok && result.error === "NOT_FOUND") {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
-    // Check permissions (only author can accept/reject)
-    if (note.createdBy !== user.id) {
-      logPermissionDenied(
-        "accept_reject_summary",
-        user.id,
-        note.orgId,
-        noteId,
-        { reason: "not_author" },
-      );
+    if (!result.ok && result.error === "ACCESS_DENIED") {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
-    const newStatus = action === "accept" ? "accepted" : "rejected";
-    await db
-      .update(notes)
-      .set({
-        summaryStatus: newStatus,
-        updatedAt: new Date(),
-      })
-      .where(eq(notes.id, noteId));
-    logMutation("update", "note_summary_status", user.id, note.orgId, noteId, {
-      status: newStatus,
-    });
-    return NextResponse.json({ success: true, status: newStatus });
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: "Failed to update summary status" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json(result.data);
   } catch (error) {
     logError(error as Error, "PUT /api/notes/[id]/summarize", undefined, {
       noteId,
