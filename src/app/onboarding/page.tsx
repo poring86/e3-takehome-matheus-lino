@@ -24,7 +24,7 @@ type CreateOrgForm = z.infer<typeof createOrgSchema>;
 function OnboardingContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, refreshOrganizations } = useAuth();
   const router = useRouter();
 
   const {
@@ -73,13 +73,8 @@ function OnboardingContent() {
 
       if (memberError) throw memberError;
 
-      // Força reload das organizações do usuário
-      if (typeof window !== 'undefined' && user) {
-        // Aguarda o contexto atualizar
-        const { loadUserOrganizations } = require('../../lib/auth-context');
-        await loadUserOrganizations(user.id);
-      }
-      router.push('/dashboard');
+      await refreshOrganizations();
+      router.replace('/dashboard');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {

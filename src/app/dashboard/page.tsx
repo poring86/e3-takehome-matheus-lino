@@ -12,6 +12,7 @@ import Link from 'next/link';
 function DashboardContent() {
   const { user, currentOrg, userOrgs, switchOrg, signOut } = useAuth();
   const router = useRouter();
+  const activeOrg = currentOrg || userOrgs[0]?.organizations || null;
 
   const handleSignOut = async () => {
     await signOut();
@@ -25,10 +26,10 @@ function DashboardContent() {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-gray-900">Team Notes</h1>
-              {currentOrg && (
+              {activeOrg && (
                 <div className="flex items-center space-x-2">
                   <Building2 className="h-5 w-5 text-gray-500" />
-                  <span className="text-gray-700">{currentOrg.name}</span>
+                  <span className="text-gray-700">{activeOrg.name}</span>
                 </div>
               )}
             </div>
@@ -50,12 +51,12 @@ function DashboardContent() {
       {/* Main content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          {currentOrg ? (
+          {activeOrg ? (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-medium text-gray-900">Welcome to {currentOrg.name}</h2>
+                <h2 className="text-lg font-medium text-gray-900">Welcome to {activeOrg.name}</h2>
                 <p className="mt-1 text-sm text-gray-600">
-                  Manage your team's notes and collaborate effectively.
+                  Manage your team&apos;s notes and collaborate effectively.
                 </p>
               </div>
 
@@ -73,7 +74,7 @@ function DashboardContent() {
                       {userOrgs.map((orgMember) => (
                         <Button
                           key={orgMember.org_id}
-                          variant={currentOrg.id === orgMember.org_id ? "default" : "outline"}
+                          variant={activeOrg?.id === orgMember.org_id ? "default" : "outline"}
                           onClick={() => switchOrg(orgMember.org_id)}
                           className="justify-start"
                         >
@@ -91,7 +92,7 @@ function DashboardContent() {
                 <CardHeader>
                   <CardTitle>Notes</CardTitle>
                   <CardDescription>
-                    Your team's notes will appear here
+                    Your team&apos;s notes will appear here
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
