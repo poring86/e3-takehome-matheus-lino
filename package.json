@@ -20,7 +20,8 @@
     "smoke:notes": "sh scripts/smoke-notes.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:reset:seed": "tsx scripts/clean-and-seed.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

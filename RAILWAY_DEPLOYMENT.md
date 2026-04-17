@@ -43,6 +43,11 @@ LOG_LEVEL=info
    npm run db:seed
    ```
 
+   If you need a full reset before seeding:
+   ```bash
+   npm run db:reset:seed
+   ```
+
 ## Verification
 
 - App should be accessible at Railway URL

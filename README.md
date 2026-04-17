@@ -31,6 +31,7 @@ Production-style take-home project built with Next.js, Supabase, Drizzle, and Ty
 - src/drizzle: runtime schema definitions
 - drizzle and supabase/migrations: SQL and migration artifacts
 - scripts/seed.ts: seed script for bulk sample data
+- scripts/clean-and-seed.ts: reseta dados atuais e roda seed completo
 
 ## Architecture
 
@@ -117,7 +118,11 @@ npm run start      # start production server
 npm run db:generate
 npm run db:migrate
 npm run db:seed
+npm run db:reset:seed
 ```
+
+- `db:seed`: popula dados sem limpar o que ja existe.
+- `db:reset:seed`: limpa dados de app e usuarios do Supabase Auth antes de semear novamente.
 
 ## Validation Commands
 
