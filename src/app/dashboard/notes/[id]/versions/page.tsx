@@ -32,7 +32,7 @@ interface Note {
 function VersionsContent() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const [note, setNote] = useState<Note | null>(null);
   const [versions, setVersions] = useState<NoteVersion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,34 +40,61 @@ function VersionsContent() {
   const [diffContent, setDiffContent] = useState<string>('');
 
   const fetchNoteAndVersions = useCallback(async () => {
+    if (authLoading) return;
     if (!params.id) return;
 
+    const noteId = Array.isArray(params.id) ? params.id[0] : params.id;
+
+    const headers: HeadersInit = {};
+    if (session?.access_token) {
+      headers.Authorization = `Bearer ${session.access_token}`;
+    }
+
     try {
-      // Fetch note details
-      const noteResponse = await fetch(`/api/notes/${params.id}`);
+      const noteResponse = await fetch(`/api/notes/${noteId}`, {
+        credentials: 'include',
+        headers,
+      });
       if (noteResponse.ok) {
         const noteData = await noteResponse.json();
+        if (!noteData || !noteData.id) {
+          throw new Error('Invalid note data received.');
+        }
         setNote(noteData);
-      } else if (noteResponse.status === 404) {
+      } else if ([401, 403, 404].includes(noteResponse.status)) {
         router.push('/dashboard/notes');
+        return;
+      } else {
+        console.error(`Failed to fetch note: ${noteResponse.status}`);
+        setLoading(false);
         return;
       }
 
-      // Fetch versions
-      const versionsResponse = await fetch(`/api/notes/${params.id}/versions`);
+      const versionsResponse = await fetch(`/api/notes/${noteId}/versions`, {
+        credentials: 'include',
+        headers,
+      });
       if (versionsResponse.ok) {
         const versionsData = await versionsResponse.json();
+        if (!Array.isArray(versionsData)) {
+          throw new Error('Invalid versions data received.');
+        }
         setVersions(versionsData);
         if (versionsData.length > 0) {
           setSelectedVersion(versionsData[0]);
         }
+      } else {
+        console.error(`Failed to fetch versions: ${versionsResponse.status}`);
+        setLoading(false);
+        return;
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      router.push('/dashboard/notes');
     } finally {
       setLoading(false);
     }
-  }, [params.id, router]);
+  }, [authLoading, params.id, router, session?.access_token]);
 
   useEffect(() => {
     fetchNoteAndVersions();

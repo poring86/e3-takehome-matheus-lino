@@ -195,7 +195,7 @@ function NoteContent() {
     );
   }
 
-  const isAuthor = user?.id === note.author.id;
+  const isAuthor = user?.id && note?.author?.id && user.id === note.author.id;
   const currentOrgMember = userOrgs.find(org => org.org_id === currentOrg?.id);
   const canEdit = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
   const canDelete = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
@@ -303,10 +303,10 @@ function NoteContent() {
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <Avatar className="h-6 w-6">
                         <AvatarFallback className="text-xs">
-                          {note.author.fullName?.charAt(0) || note.author.email.charAt(0).toUpperCase()}
+                          {note.author?.fullName?.charAt(0) || note.author?.email?.charAt(0).toUpperCase() || 'N'}
                         </AvatarFallback>
                       </Avatar>
-                      <span>{note.author.fullName || note.author.email}</span>
+                      <span>{note.author?.fullName || note.author?.email || 'Unknown Author'}</span>
                       <span>•</span>
                       <span>Updated {new Date(note.updatedAt).toLocaleDateString()}</span>
                     </div>
