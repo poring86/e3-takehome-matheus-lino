@@ -271,7 +271,7 @@
 
 ### Infra & Data
 
-- [x] Dockerfile & Railway deployment
+- [x] Dockerfile & Railway deployment readiness
 - [x] Seed script with 10k+ notes, multiple orgs/users/tags/versions/files
 
 ### Documentation
@@ -314,7 +314,7 @@
 - Implemented granular commit history with atomic commits for each feature/fix.
 - Prioritized security: RLS policies, permission checks, org isolation, logging of denials.
 - Seeded DB with 10k+ notes, multiple orgs/users/tags/files for realistic scale.
-- Dockerized app and validated Railway deployment.
+- Dockerized app and documented Railway deployment workflow with post-deploy verification steps.
 
 ### Pivots & Interventions
 
@@ -337,3 +337,16 @@
 - All core features and infra are implemented and functional.
 - Documentation and deployment are complete; full cloud schema/policy application and full integration coverage are still pending.
 - For detailed bug history and technical review, see BUGS.md and REVIEW.md.
+
+## Production Deployment Verification Record (Railway)
+
+- Status: Pending explicit production URL evidence in repository docs.
+- Deployment model: Dockerized app deployed via Railway using `Dockerfile`.
+- Required evidence to mark as fully verified:
+  - Railway public URL
+  - Deployment date/time (UTC)
+  - Health check result (`200`) from deployed URL
+  - Post-deploy smoke check result for authenticated note create flow
+- Notes:
+  - Deployment readiness is complete and documented in `RAILWAY_DEPLOYMENT.md`.
+  - Once URL and smoke evidence are captured, this section can be promoted to `Verified`.

@@ -55,3 +55,18 @@ LOG_LEVEL=info
 - Multi-tenant isolation working
 - Search scales to 10k+ notes
 - All features functional
+
+## Deployment Verification Record
+
+Fill this section after production deployment to keep an auditable trail.
+
+- Railway URL: `<set-after-deploy>`
+- Deployment timestamp (UTC): `<set-after-deploy>`
+- Health check:
+   - Command: `curl -I https://<railway-url> | head -n 1`
+   - Expected: `HTTP/2 200` (or `HTTP/1.1 200`)
+   - Result: `<set-after-deploy>`
+- Post-deploy smoke test:
+   - Command: `npm run smoke:notes`
+   - Expected: note create path succeeds (`201`)
+   - Result: `<set-after-deploy>`
