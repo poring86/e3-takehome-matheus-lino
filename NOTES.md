@@ -91,6 +91,20 @@
 - Validation:
   - `npm run build`: passed.
 
+## Hotfix Log (2026-04-16) - Note detail auth race after create redirect
+
+- Symptom:
+  - After successful save on `/dashboard/notes/new`, the app redirected to `/dashboard/notes/:id` but rendered `Note not found`.
+- Root cause:
+  - Detail page (`src/app/dashboard/notes/[id]/page.tsx`) still called note APIs without bearer token.
+  - In cookie propagation race windows, `/api/notes/:id` returned `401` even for valid session users.
+- Fix:
+  - Reused auth-context session in note detail page and attached bearer token on GET/PUT/DELETE.
+  - Added `credentials: include` consistently in detail requests.
+  - Treated `401/403/404` as redirect back to notes list to avoid stale not-found rendering.
+- Validation:
+  - `npm run build`: passed.
+
 ## Project Completion Checklist (2026-04-16)
 
 ## Requirements Traceability (2026-04-16)

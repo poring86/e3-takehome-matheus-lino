@@ -26,6 +26,24 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-031 Note detail opened as "Note not found" right after successful create redirect
+
+- Date: 2026-04-16
+- Status: Resolved
+- Location: `src/app/dashboard/notes/[id]/page.tsx`
+- Symptom:
+	- User created a note successfully and was redirected to `/dashboard/notes/:id`, but page rendered `Note not found`.
+- Cause:
+	- Detail page fetch/update/delete flows depended on cookie auth only.
+	- In cookie propagation race windows, API calls returned `401` even with valid user session, and the UI fell back to not-found state.
+- Fix:
+	- Reused auth-context session and attached `Authorization: Bearer <token>` on GET/PUT/DELETE requests in note detail page.
+	- Added `credentials: include` consistently and redirected to notes list on `401/403/404` from note fetch.
+- Validation:
+	- `npm run build` passed after the patch.
+	- User confirmed create flow now redirects, with follow-up fix applied for detail auth race.
+- Commit: 5d9abb6
+
 ### B-030 New note UI failed with generic error on save
 
 - Date: 2026-04-17

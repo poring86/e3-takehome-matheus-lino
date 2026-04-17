@@ -137,3 +137,18 @@
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-16, note detail post-create redirect fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed note-detail false not-found after successful create redirect.
+  - Identified auth race in note detail page requests relying on cookie-only propagation.
+  - Updated `/dashboard/notes/[id]` fetch/update/delete requests to include bearer token from auth context session.
+  - Added consistent `credentials: include` and redirect handling for `401/403/404` on detail fetch.
+  - Revalidated production build after frontend patch.
+
+- **Validation executed by main agent**
+  - `npm run build` (passed).
+
+- **Subagents used in this phase**
+  - None invoked.
