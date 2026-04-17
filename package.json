@@ -8,8 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "npx vitest run",
-    "test:env": "sh -c 'set -a; [ -f .env.test ] && . ./.env.test; set +a; npx vitest run'",
+    "test:notes:integration": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; npx vitest run tests/api/notes.integration.test.ts'",
+    "test:env": "sh -c 'set -a; [ -f .env ] && . ./.env; [ -f .env.test ] && . ./.env.test; set +a; npx vitest run'",
     "test:env:strict": "sh scripts/check-test-env.sh && npm run test:env",
+    "smoke:notes": "sh scripts/smoke-notes.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed.ts"
