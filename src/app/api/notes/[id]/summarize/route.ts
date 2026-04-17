@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { db } from "@/lib/db";
 import { notes, orgMembers } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
@@ -11,23 +12,53 @@ import {
   logError,
 } from "@/lib/logger";
 
-// POST /api/notes/[id]/summarize - Generate AI summary for a note
-export async function POST(request: NextRequest, context: any) {
-  // Next.js 15+ may pass params as a Promise
-  const params =
-    typeof context.params?.then === "function"
-      ? await context.params
-      : context.params;
-  const noteId = params.id;
+type RouteContext = {
+  params: { id: string } | Promise<{ id: string }>;
+};
 
-  try {
-    const supabase = await createClient();
+async function getAuthenticatedUser(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length)
+    : null;
+
+  if (bearerToken) {
+    const tokenClient = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+
     const {
       data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+      error,
+    } = await tokenClient.auth.getUser(bearerToken);
 
-    if (authError || !user) {
+    if (!error && user) {
+      return user;
+    }
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return null;
+  }
+
+  return user;
+}
+
+// POST /api/notes/[id]/summarize - Generate AI summary for a note
+export async function POST(request: NextRequest, context: RouteContext) {
+  const { id: noteId } = await Promise.resolve(context.params);
+
+  try {
+    const user = await getAuthenticatedUser(request);
+
+    if (!user) {
       logPermissionDenied("summarize_note", undefined, undefined, noteId, {
         reason: "unauthorized",
       });
@@ -100,22 +131,48 @@ export async function POST(request: NextRequest, context: any) {
       title: note.title,
     });
     // Generate summary with OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful assistant that creates concise, structured summaries of notes. Keep summaries under 200 words and focus on key points, action items, and insights.",
-        },
-        {
-          role: "user",
-          content: `Please summarize this note titled \"${note.title}\":\n\n${note.content}`,
-        },
-      ],
-      max_tokens: 300,
-      temperature: 0.3,
-    });
+
+    let completion;
+    try {
+      completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful assistant that creates concise, structured summaries of notes. Keep summaries under 200 words and focus on key points, action items, and insights.",
+          },
+          {
+            role: "user",
+            content: `Please summarize this note titled \"${note.title}\":\n\n${note.content}`,
+          },
+        ],
+        max_tokens: 300,
+        temperature: 0.3,
+      });
+    } catch (err: any) {
+      // Tratamento específico para quota excedida
+      if (err?.status === 429 || err?.message?.includes("quota")) {
+        logAIRequest("summarize_failed", user.id, note.orgId, noteId, {
+          reason: "openai_quota_exceeded",
+        });
+        return NextResponse.json(
+          {
+            error:
+              "OpenAI usage limit exceeded. Add credits or configure a new API key to use the AI summary feature.",
+          },
+          { status: 429 },
+        );
+      }
+      logAIRequest("summarize_failed", user.id, note.orgId, noteId, {
+        reason: "openai_error",
+        details: err?.message || String(err),
+      });
+      return NextResponse.json(
+        { error: "Erro ao gerar resumo de IA" },
+        { status: 500 },
+      );
+    }
 
     const summary = completion.choices[0]?.message?.content?.trim();
 
@@ -154,21 +211,12 @@ export async function POST(request: NextRequest, context: any) {
 }
 
 // PUT /api/notes/[id]/summarize - Accept or reject summary
-export async function PUT(request: NextRequest, context: any) {
-  // Next.js 15+ may pass params as a Promise
-  const params =
-    typeof context.params?.then === "function"
-      ? await context.params
-      : context.params;
-  const noteId = params.id;
+export async function PUT(request: NextRequest, context: RouteContext) {
+  const { id: noteId } = await Promise.resolve(context.params);
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const user = await getAuthenticatedUser(request);
 
-    if (authError || !user) {
+    if (!user) {
       logPermissionDenied(
         "accept_reject_summary",
         undefined,

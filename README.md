@@ -164,3 +164,11 @@ npm run test:env:strict
 - Progress checklist centralized in NOTES.md.
 
 Project ready for delivery and final review.
+
+## AI Summary (OpenAI) Notice
+
+The note summary feature depends on a valid and funded OpenAI API key (`OPENAI_API_KEY`).
+
+- If your OpenAI quota runs out, the system will return a clear message and all other features will keep working normally.
+- You do NOT need OpenAI credits to run tests, CRUD, authentication, versioning, etc.
+- To test the AI summary, just add a valid key and restart the backend.
