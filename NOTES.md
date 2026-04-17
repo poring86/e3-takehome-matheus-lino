@@ -72,13 +72,25 @@
   - Keep architecture rationale durable and easy to discover.
   - Prevent loss of decision context across refactors and handoffs.
   - Reduce review ambiguity by separating strategic decisions from execution logs.
+- Trade-offs:
+  - Requires discipline to promote decisions from `NOTES.md` into ADRs at the right time.
+  - Adds dual-update overhead when links between execution logs and ADRs are not maintained.
+  - Introduces a small documentation cost on each architecture-impacting change.
 - Applied in this cycle:
   - Added ADR index and template under `docs/adr/`.
   - Added initial ADR set:
     - `docs/adr/0001-adopt-modular-monolith-boundaries.md`
     - `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
     - `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
+    - `docs/adr/0004-use-hybrid-notes-and-adr-documentation-model.md`
   - Linked ADR discoverability in `ARCHITECTURE.md` and `README.md`.
+
+## Notes -> ADR Promotion Map
+
+- Architecture baseline and boundaries -> `docs/adr/0001-adopt-modular-monolith-boundaries.md`
+- Kebab-case naming policy and enforcement -> `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
+- Dashboard server-state strategy (React Query) -> `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
+- Documentation model decision (operational timeline + durable decisions) -> `docs/adr/0004-use-hybrid-notes-and-adr-documentation-model.md`
 
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 

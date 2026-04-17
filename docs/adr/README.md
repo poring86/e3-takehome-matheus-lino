@@ -13,3 +13,4 @@ This folder contains Architecture Decision Records (ADRs) for long-lived technic
 - [0001 - Adopt modular monolith boundaries](./0001-adopt-modular-monolith-boundaries.md)
 - [0002 - Standardize kebab-case filenames with fitness gate](./0002-standardize-kebab-case-filenames-with-fitness-gate.md)
 - [0003 - Adopt React Query for dashboard server state](./0003-adopt-react-query-for-dashboard-server-state.md)
+- [0004 - Use hybrid Notes + ADR documentation model](./0004-use-hybrid-notes-and-adr-documentation-model.md)

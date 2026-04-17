@@ -96,3 +96,9 @@
 - Added ADR baseline under `docs/adr/` with index/template and initial accepted records for architecture, naming policy, and server-state strategy.
 - Linked ADR navigation from architecture and contributor documentation.
 - Residual risk: decision drift can still happen if new architecture-impacting changes are logged only in `NOTES.md` and not promoted to ADR when they become long-lived.
+
+## Documentation Model Decision Update (2026-04-17)
+
+- Formalized a hybrid model in ADR (`NOTES.md` for operational timeline + `docs/adr/` for durable decisions).
+- Explicitly documented trade-offs and promotion workflow to reduce ambiguity during future refactors.
+- Residual risk: if promotion cadence is not followed, rationale can fragment between logs and ADRs.

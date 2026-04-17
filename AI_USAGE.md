@@ -283,6 +283,7 @@ Preserved existing UX semantics for pagination and submit-based search.
   - Authored initial accepted ADR set for modular boundaries, kebab-case naming+fitness, and React Query server-state strategy.
   - Linked ADR discoverability and workflow expectations in `ARCHITECTURE.md` and `README.md`.
   - Updated delivery notes/review to keep architecture decision traceability consistent.
+  - Added dedicated ADR for documentation model choice (`NOTES.md` operational log + ADR durable decisions) with explicit rationale and trade-offs.
 
 - **Subagents used in this phase**
   - None invoked.
