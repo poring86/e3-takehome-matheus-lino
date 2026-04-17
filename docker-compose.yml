@@ -13,30 +13,10 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - LOG_LEVEL=info
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - .:/app
       - app_node_modules:/app/node_modules
     command: npm run dev
 
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_DB=e3_notes
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    ports:
-      - "${DB_PORT:-5433}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d e3_notes"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
 volumes:
   app_node_modules:
-  postgres_data:

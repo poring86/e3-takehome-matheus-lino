@@ -71,20 +71,18 @@ docker compose up --build
 This starts:
 
 - `app` on host port `3001` by default (`APP_PORT`)
-- `db` (Postgres) on host port `5433` by default (`DB_PORT`)
 
 If you need different ports, set them in `.env`:
 
 ```bash
 APP_PORT=3001
-DB_PORT=5433
 ```
 
 Important:
 
-- This improves local developer experience and does not conflict with challenge requirements.
-- Official requirements still use Supabase (Auth/Storage/Postgres) and Railway deployment.
-- Keep Supabase environment variables configured for auth, storage, and tenant behavior.
+- This setup uses Supabase for Auth, Storage, and Postgres (no local Postgres container).
+- Ensure `DATABASE_URL` points to your Supabase Postgres connection string.
+- Keep Supabase environment variables configured for tenant behavior.
 
 ## Useful Scripts
 
@@ -102,7 +100,14 @@ npm run db:seed
 ```bash
 npm run build
 npx vitest run tests/auth.test.ts
+npm run test:notes:integration
+npm run smoke:notes
 ```
+
+Notes:
+
+- `test:notes:integration` validates authenticated note CRUD against the running app/API using Supabase auth token flow.
+- `smoke:notes` is a fast runtime guard for the most critical write path (`POST /api/notes`) and fails immediately if database/auth runtime config is broken.
 
 ## Deployment
 
