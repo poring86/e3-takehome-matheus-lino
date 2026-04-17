@@ -72,3 +72,21 @@
 - Added coverage fitness gate calibrated to a practical baseline (60%) with env override (`MIN_TEST_COVERAGE`) for progressive hardening.
 - Added focused helper unit tests (`utils` and `logger`) to raise baseline coverage without introducing API behavior risk.
 - Hardened fitness CI workflow by adding explicit dependency installation (`npm ci`) before fitness build/run steps.
+
+## Frontend Data Layer Update (2026-04-17)
+
+- Adopted React Query for server-state handling in notes flows to reduce imperative fetch orchestration.
+- Added app-level QueryClient provider and migrated:
+  - `/dashboard/notes`
+  - `/dashboard/notes/[id]`
+  - `/dashboard/notes/[id]/versions`
+  - `/dashboard/settings`
+- Preserved submit-based search and pagination behavior while reducing custom loading/error wiring.
+- Residual risk: onboarding and remaining org bootstrap flows still include imperative data orchestration and can diverge from cache strategy until migrated.
+
+## Fitness Naming Consistency Update (2026-04-17)
+
+- Standardized `src/fitness` script filenames to kebab-case to align with repository naming conventions.
+- Updated CI and local orchestrator references (`.github/workflows/fitness.yml` and `scripts/fitness-run.sh`) to prevent path-resolution regressions.
+- Updated supporting documentation (`src/fitness/README.md`, `NOTES.md`) to keep audit/discoverability aligned with executable paths.
+- Added a dedicated naming fitness gate to prevent reintroduction of camelCase/PascalCase filenames in `src/`, `scripts/`, and `tests/`.

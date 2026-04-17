@@ -6,6 +6,39 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
+## Frontend State Decision Log (2026-04-17) - React Query adoption
+
+- Decision: Adopt TanStack React Query for server-state handling in dashboard data flows.
+- Why:
+  - Remove repetitive manual fetch orchestration (`useEffect`, loading toggles, and response state wiring).
+  - Improve consistency and cache behavior for org-scoped paginated notes.
+  - Reduce auth/session race-condition surface in list refresh scenarios.
+- Implemented changes:
+  - Added dependency: `@tanstack/react-query`.
+  - Added global provider: `src/components/providers/query-provider.tsx`.
+  - Wired provider in root layout: `src/app/layout.tsx`.
+  - Migrated notes list fetch to `useQuery`: `src/app/dashboard/notes/page.tsx`.
+  - Migrated note detail fetch to `useQuery`: `src/app/dashboard/notes/[id]/page.tsx`.
+  - Migrated note versions flow to `useQuery`: `src/app/dashboard/notes/[id]/versions/page.tsx`.
+  - Migrated organization members management to React Query (`useQuery` + mutations with invalidation): `src/app/dashboard/settings/page.tsx`.
+  - Migrated onboarding/org bootstrap (create + load) to React Query: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
+  - Preserved UX behavior for search-by-submit and pagination.
+- Scope control note:
+  - React Query is being introduced incrementally to avoid broad refactor risk.
+  - Initial increment covered notes list; second increment covered detail and versions pages.
+  - Third increment covered organization settings member management.
+  - Fourth increment cobriu onboarding/org bootstrap (criação e seleção de organização) com React Query, eliminando fetch imperativo/manual.
+
+## Frontend State Validation Log (2026-04-17) - Onboarding/Org Bootstrap React Query
+
+- Scope: Migrated onboarding/org bootstrap (create + load) to React Query, garantindo consistência e cache global.
+- Files: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
+- Validation:
+  - `npm run build`: passed.
+  - `npx vitest run --coverage`: all unit tests passed, integration tests skipped due to missing env vars (expected).
+  - Dashboard e onboarding agora usam apenas estado cacheado do React Query para organizações.
+  - Nenhum fetch imperativo/manual remanescente para organizações.
+
 ## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
 
 - Decision: Set test coverage fitness threshold to a practical baseline (60%) with env override support.
@@ -13,11 +46,24 @@
   - Keep CI quality gates actionable without creating false blockers during incremental hardening.
   - Enable gradual increase of coverage baseline over time.
 - Implemented changes:
-  - `src/fitness/checkTestCoverage.ts`: default threshold changed to `60`, configurable via `MIN_TEST_COVERAGE`.
+  - `src/fitness/check-test-coverage.ts`: default threshold changed to `60`, configurable via `MIN_TEST_COVERAGE`.
   - Added new unit tests:
     - `tests/lib/utils.test.ts`
     - `tests/lib/logger.test.ts`
   - `src/fitness/README.md`: documented coverage fitness and threshold override.
+
+## Naming Decision Log (2026-04-17) - Kebab-case standardization
+
+- Decision: enforce kebab-case for source and executable script filenames.
+- Why:
+  - Keep naming deterministic across Linux CI and Docker runtime.
+  - Reduce broken references caused by mixed naming conventions.
+  - Improve code search and review ergonomics for modularized code.
+- Applied in this cycle:
+  - Fitness scripts renamed to kebab-case under `src/fitness/`.
+  - References updated in `.github/workflows/fitness.yml`, `scripts/fitness-run.sh`, and `src/fitness/README.md`.
+  - Governance docs aligned (`AGENTS.md`, `ARCHITECTURE.md`, `README.md`).
+  - Added guard fitness function `src/fitness/check-file-naming.ts` and integrated it into local runner and CI workflow.
 
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 

@@ -34,20 +34,24 @@ This follows a component-first decomposition strategy to keep change localized a
 Use this layering model for new features:
 
 1. Interface Layer
+
 - `src/app/**`: pages and API route handlers.
 - Responsibilities: input parsing, auth/session extraction, HTTP response mapping.
 - Must not contain complex business rules.
 
 2. Domain/Application Layer
+
 - `src/modules/**` plus shared kernel in `src/lib/**` when truly cross-cutting.
 - Responsibilities: business rules, permission checks, orchestration.
 - Should be framework-light and testable.
 
 3. Data Layer
+
 - `src/lib/db.ts`, `drizzle/schema.ts`, SQL migrations.
 - Responsibilities: persistence, relational mapping, migration evolution.
 
 4. Infra/Cross-cutting
+
 - `src/lib/logger.ts`, deployment files, scripts.
 - Responsibilities: logging, runtime config, build/deploy/test orchestration.
 
@@ -60,6 +64,7 @@ Use this layering model for new features:
 - Component modules: `src/modules/**`
 - DB schema/migrations: `drizzle/**` and `supabase/migrations/**`
 - Test files: `tests/<domain>*.test.ts`
+- File naming convention: prefer kebab-case for source/script filenames (`check-test-coverage.ts`, `organization-service.ts`).
 
 ## Coupling Rules (Mandatory)
 
