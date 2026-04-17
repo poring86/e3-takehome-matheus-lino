@@ -122,3 +122,16 @@
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-17, new-note UI save hardening)
+
+- **Main agent (GitHub Copilot)**
+  - Updated `/dashboard/notes/new` save flow to attach bearer token from Supabase session.
+  - Improved frontend error handling to surface backend API errors in-page (instead of generic console-only failure).
+  - Revalidated production build after frontend changes.
+
+- **Validation executed by main agent**
+  - `npm run build` (passed).
+
+- **Subagents used in this phase**
+  - None invoked.

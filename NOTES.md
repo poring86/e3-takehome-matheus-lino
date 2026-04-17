@@ -76,6 +76,19 @@
   - `sh scripts/smoke-notes.sh`: passed (`201`).
   - `npm run build`: passed.
 
+## Hotfix Log (2026-04-17) - New note UI save failure visibility/auth hardening
+
+- Symptom:
+  - Creating note from `/dashboard/notes/new` failed with generic frontend error (`Failed to create note`).
+- Root cause:
+  - Frontend request depended on implicit cookie auth only.
+  - Failure path did not parse and show backend error payload.
+- Fix:
+  - Added explicit bearer token injection from Supabase session in create-note request.
+  - Added user-visible error banner with parsed API error message.
+- Validation:
+  - `npm run build`: passed.
+
 ## Project Completion Checklist (2026-04-16)
 
 ## Requirements Traceability (2026-04-16)

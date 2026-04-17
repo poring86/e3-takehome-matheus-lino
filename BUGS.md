@@ -26,6 +26,24 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-030 New note UI failed with generic error on save
+
+- Date: 2026-04-17
+- Status: Resolved
+- Location: `src/app/dashboard/notes/new/page.tsx`
+- Symptom:
+	- Creating a note from the UI failed and only logged generic message `Failed to create note`.
+- Cause:
+	- Client save flow depended on implicit cookie auth and did not send bearer token explicitly.
+	- Error handling did not expose backend error payload/status to the user.
+- Fix:
+	- Added bearer token retrieval via Supabase session and sent `Authorization: Bearer <token>` on note creation request.
+	- Added UI error banner and detailed response parsing for failed saves.
+- Validation:
+	- `npm run build` passed after frontend changes.
+	- API integration and smoke tests remained green in previous validation cycle.
+- Commit: pending
+
 ### B-029 Notes [id] endpoints returned 401 with bearer auth and 500 on delete
 
 - Date: 2026-04-17
