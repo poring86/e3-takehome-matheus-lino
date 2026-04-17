@@ -135,6 +135,22 @@
   - Added `.github/pull_request_template.md`.
   - Linked usage in `docs/github-governance.md` and `README.md`.
 
+  ## Code Ownership Governance Log (2026-04-17)
+
+  - Decision: enforce path-based review ownership with repository-level `CODEOWNERS`.
+  - Why:
+    - Ensure security-sensitive paths always route to accountable reviewers.
+    - Reduce review-routing ambiguity for architecture and governance files.
+    - Pair branch protection with deterministic reviewer assignment.
+  - Trade-offs:
+    - Can increase review wait time in small teams.
+    - Requires ongoing maintenance when code ownership boundaries evolve.
+    - Owner overload risk if all critical paths map to a single reviewer.
+  - Applied in this cycle:
+    - Added `.github/CODEOWNERS`.
+    - Updated `docs/github-governance.md` and `docs/github-branch-protection-checklist.md` to require Code Owner review.
+    - Linked discoverability in `README.md`.
+
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 
 - Decision: migrated production Docker image to multi-stage build with Next standalone runtime.

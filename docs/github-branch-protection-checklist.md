@@ -19,14 +19,15 @@ Use this checklist to protect `main` with required pipelines.
 6. Set minimum approvals to `1`.
 7. Enable `Dismiss stale pull request approvals when new commits are pushed`.
 8. Enable `Require conversation resolution before merging`.
-9. Enable `Require status checks to pass before merging`.
-10. Select required checks:
+9. Enable `Require review from Code Owners`.
+10. Enable `Require status checks to pass before merging`.
+11. Select required checks:
     - `CI / verify`
     - `Fitness Functions / fitness`
-11. Enable `Require branches to be up to date before merging`.
-12. Enable `Do not allow bypassing the above settings` (recommended).
-13. Optionally enable `Include administrators`.
-14. Click `Create` / `Save changes`.
+12. Enable `Require branches to be up to date before merging`.
+13. Enable `Do not allow bypassing the above settings` (recommended).
+14. Optionally enable `Include administrators`.
+15. Click `Create` / `Save changes`.
 
 ## Validation After Setup
 
@@ -49,7 +50,7 @@ If you prefer repository rulesets via API/automation, use this as a baseline pay
     }
   },
   "rules": [
-    { "type": "pull_request", "parameters": { "required_approving_review_count": 1, "dismiss_stale_reviews_on_push": true, "require_code_owner_review": false, "require_last_push_approval": false, "required_review_thread_resolution": true } },
+    { "type": "pull_request", "parameters": { "required_approving_review_count": 1, "dismiss_stale_reviews_on_push": true, "require_code_owner_review": true, "require_last_push_approval": false, "required_review_thread_resolution": true } },
     { "type": "required_status_checks", "parameters": { "strict_required_status_checks_policy": true, "required_status_checks": [ { "context": "CI / verify" }, { "context": "Fitness Functions / fitness" } ] } },
     { "type": "non_fast_forward" },
     { "type": "deletion" }

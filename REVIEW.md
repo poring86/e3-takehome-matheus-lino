@@ -120,3 +120,9 @@
 - Added repository PR template to enforce consistent risk declaration, ADR linkage, and validation evidence.
 - Improved reviewer signal quality by standardizing merge-readiness checklist.
 - Residual risk: checklist fatigue can reduce signal if template is not periodically trimmed.
+
+## Code Ownership Governance Update (2026-04-17)
+
+- Added repository-level `CODEOWNERS` with explicit ownership for API/module/governance-sensitive paths.
+- Branch-protection checklist now includes required Code Owner review.
+- Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.

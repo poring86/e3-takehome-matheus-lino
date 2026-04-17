@@ -278,6 +278,17 @@ Preserved existing UX semantics for pagination and submit-based search.
 
 ## Agent Activity Log (2026-04-17, ADR baseline setup)
 
+## Agent Activity Log (2026-04-17, code ownership governance)
+
+- **Main agent (GitHub Copilot)**
+  - Added repository-level ownership map in `.github/CODEOWNERS`.
+  - Updated governance runbook to include Code Owner review requirement.
+  - Updated branch-protection checklist and JSON baseline with `require_code_owner_review: true`.
+  - Updated README and audit logs (`NOTES.md`, `REVIEW.md`) for decision traceability.
+
+- **Subagents used in this phase**
+  - None invoked.
+
 - **Main agent (GitHub Copilot)**
   - Created ADR baseline structure in `docs/adr/` with index and reusable template.
   - Authored initial accepted ADR set for modular boundaries, kebab-case naming+fitness, and React Query server-state strategy.

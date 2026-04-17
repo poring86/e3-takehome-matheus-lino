@@ -47,3 +47,19 @@ Use `.github/pull_request_template.md` to standardize:
 - Risk declaration and mitigation notes
 - Validation evidence and required checks
 - Audit file alignment (`NOTES.md`, `REVIEW.md`, `AI_USAGE.md`)
+
+## Code Owners
+
+Use `.github/CODEOWNERS` to route review automatically for architecture, API, and governance sensitive paths.
+
+Recommended branch protection alignment:
+
+1. Enable `Require review from Code Owners`
+2. Keep minimum approvals at `1` or more, depending on team size
+3. Keep stale-approval dismissal enabled to ensure owners review latest diffs
+
+Why this helps:
+
+- Reduces review gaps on security/tenant-sensitive paths
+- Improves accountability for governance and architecture changes
+- Makes reviewer assignment deterministic at PR open time

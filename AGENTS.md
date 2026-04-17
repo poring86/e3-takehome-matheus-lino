@@ -53,3 +53,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
   - Improves scanability and grep/search predictability across Linux-based CI and container environments.
   - Reduces naming drift between modules, scripts, and workflow references.
   - Prevents path mismatch regressions caused by mixed naming styles.
+
+### Code Ownership Policy
+
+- Keep `.github/CODEOWNERS` updated for architecture, API, security-sensitive, and governance paths.
+- Branch protection on `main` must require Code Owner review when CODEOWNERS is present.
+- If module boundaries change, update CODEOWNERS in the same delivery cycle.
