@@ -39,3 +39,30 @@
 - **CDN integration:** File delivery optimization, caching strategies
 - **Monitoring setup:** Application metrics, alerting, error tracking
 - **Backup/recovery:** Data durability, disaster recovery procedures
+
+## Recent Reliability Improvements (2026-04-17)
+
+- Added canonical Docker test entrypoints for reviewer reproducibility:
+	- `npm run test:notes:docker:full`
+	- `npm run test:docker:full`
+- Hardened full Docker suite with increased Vitest hook/test timeouts to avoid false negatives in integration setup.
+- Standardized Docker dev runtime to port `3000` and validated containerized app response.
+- Migrated production image to multi-stage + standalone runtime and validated build/startup behavior.
+
+## Architecture Governance Improvement (2026-04-17)
+
+- Added explicit architecture baseline document (`ARCHITECTURE.md`) to reduce organizational drift.
+- Defined layering boundaries and core invariants for tenant-safe behavior.
+- Added decision workflow tying architecture-impacting changes to audit files and README discoverability.
+
+## Modularization Risk Control Update (2026-04-17)
+
+- Notes detail and versions API handlers were converted to thin adapters calling module application services.
+- Lint boundary guards now cover all modularized notes handlers to prevent direct DB coupling regressions.
+- Refactor safety was verified with successful production build after strict TypeScript validation.
+
+## Notes Component Completion Update (2026-04-17)
+
+- Notes summarize endpoint now follows the same module-driven application pattern as other Notes handlers.
+- Notes API handlers are consistently thin adapters with business logic centralized in module application services.
+- Lint guardrails now cover all modularized Notes handlers to prevent coupling regression.

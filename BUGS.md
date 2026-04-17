@@ -26,6 +26,23 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-033 Full Docker test suite failed intermittently due to hook timeout
+
+- Date: 2026-04-17
+- Status: Resolved
+- Location: `package.json`, integration test execution in Docker (`vitest run` via `test:docker:full`)
+- Symptom:
+  - Full test suite in Docker intermittently failed with `Hook timed out in 10000ms` on integration files.
+- Cause:
+  - Default Vitest hook/test timeout was too low for containerized integration flows that acquire auth/token and execute networked setup.
+- Fix:
+  - Added dedicated Docker full-suite script with higher timeout:
+    - `test:env:docker` => `vitest run --hookTimeout=30000 --testTimeout=30000`
+  - Updated `test:docker:full` to call `test:env:docker`.
+- Validation:
+  - `npm run test:docker:full` passed with full suite (`27/27`).
+- Commit: pending
+
 ### B-032 Notes list rendered empty after returning from note detail/new flow
 
 - Date: 2026-04-16

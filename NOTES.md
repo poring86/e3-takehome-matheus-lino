@@ -6,6 +6,87 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
+## Infra Optimization Log (2026-04-17) - Production image size reduction
+
+- Decision: migrated production Docker image to multi-stage build with Next standalone runtime.
+- Why:
+  - Reduce final image size by excluding build-only dependencies and source files from runtime layer.
+  - Improve startup and pull time in deployment environments.
+  - Reduce attack surface in production container.
+- Implemented changes:
+  - `Dockerfile`: split into `deps`, `builder`, and `runner` stages.
+  - `next.config.ts`: enabled `output: "standalone"`.
+  - Runtime now copies only `public`, `.next/static`, and `.next/standalone` artifacts.
+- Validation target:
+  - `docker build -t e3-takehome-check:latest .`
+  - container starts with `node server.js` on port `3000`.
+
+## QA/Infra Log (2026-04-17) - Canonical Docker test workflow
+
+- Decision: established canonical one-command Docker test flows for both notes-only and full-suite execution.
+- Why:
+  - Remove host/container ambiguity during evaluation.
+  - Ensure reproducible validation commands for reviewers.
+  - Reduce flaky failures caused by default integration timeouts.
+- Implemented changes:
+  - `package.json`:
+    - added `test:notes:docker:full`
+    - added `test:env:docker` (`vitest run --hookTimeout=30000 --testTimeout=30000`)
+    - added `test:docker:full` (compose recreate + full suite in container)
+  - `README.md`: documented canonical Docker test commands and their scope.
+- Validation:
+  - `npm run test:notes:docker:full` passed.
+  - `npm run test:docker:full` passed (`27/27`).
+
+## Architecture Decision Log (2026-04-17) - Establish explicit architecture baseline
+
+- Decision: introduced a formal architecture baseline document (`ARCHITECTURE.md`).
+- Why:
+  - Remove ambiguity in project organization and decision-making.
+  - Enforce consistent layering and tenant-safe boundaries as the codebase evolves.
+  - Improve reviewer clarity by documenting architecture expectations explicitly.
+- Implemented changes:
+  - Added `ARCHITECTURE.md` with layering model, invariants, folder conventions, and decision workflow.
+  - Updated `README.md` to expose architecture and governance references.
+- Validation target:
+  - Future changes must reference this baseline and follow the decision workflow.
+
+## Architecture Decision Log (2026-04-17) - Component-based modular decomposition
+
+- Decision: formalized component-based decomposition within a modular monolith, with explicit module APIs and low-coupling rules.
+- Why:
+  - Reduce cross-layer and cross-feature coupling.
+  - Keep modules independently evolvable while preserving single deployable runtime.
+  - Align implementation with clean architecture direction incrementally.
+- Implemented changes:
+  - Added `src/modules/README.md` defining module shape (`application/domain/infrastructure/index.ts`) and dependency rules.
+  - Introduced Notes module public API (`src/modules/notes/index.ts`) and shared auth API (`src/modules/shared/auth/index.ts`).
+  - Routed `src/app/api/notes/route.ts` through module APIs (`@/modules/notes` and `@/modules/shared/auth`).
+  - Added ESLint boundary guard for `src/app/api/notes/route.ts` to prevent direct DB/schema imports in this interface adapter.
+- Migration note:
+  - Remaining notes endpoints are still partially data-access aware and are planned for incremental module-internalization.
+
+## Architecture Progress Log (2026-04-17) - Incremental Notes module internalization
+
+- Scope completed in this increment:
+  - Introduced `src/modules/notes/application/note-detail-service.ts` for note by id, update, delete, and versions use cases.
+  - Refactored `src/app/api/notes/[id]/route.ts` and `src/app/api/notes/[id]/versions/route.ts` into thin interface adapters.
+  - Expanded lint boundary rule to prevent direct DB/schema imports in modularized notes handlers.
+- Why this avoids architecture risk:
+  - Prevents overengineering by migrating one component slice at a time.
+  - Prevents danger zone by enforcing boundaries automatically through lint.
+  - Keeps delivery risk low by preserving API contracts and validating build after each slice.
+
+## Architecture Progress Log (2026-04-17) - Notes module slice completed
+
+- Scope completed in this increment:
+  - Added summarize use cases in `src/modules/notes/application/note-summary-service.ts`.
+  - Refactored `src/app/api/notes/[id]/summarize/route.ts` to thin interface adapter via module API.
+  - Expanded lint boundary guard to include summarize handler.
+- Outcome:
+  - Notes API surface is now consistently modularized through module application services.
+  - Build remains green after completion (`npm run -s build`).
+
 ## Hotfix Log (2026-04-16) - Organization visibility after login/onboarding
 
 - Symptom: After sign-in or org creation, dashboard could render the "Welcome! create or join organization" state even when membership existed.

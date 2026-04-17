@@ -167,3 +167,63 @@
 
 - **Subagents used in this phase**
   - None invoked.
+
+## Agent Activity Log (2026-04-17, Docker test orchestration and production image optimization)
+
+- **Main agent (GitHub Copilot)**
+  - Standardized Docker runtime to host port `3000` and validated live app response.
+  - Added one-command Docker test flows:
+    - `test:notes:docker:full` (notes integration only)
+    - `test:docker:full` (full test suite in Docker)
+  - Hardened Docker full-suite execution by adding dedicated Docker test script with higher Vitest timeouts:
+    - `test:env:docker` using `--hookTimeout=30000 --testTimeout=30000`
+  - Updated README guidance to document canonical Docker test flows and intent.
+  - Migrated production Docker image to multi-stage build with Next standalone runtime.
+  - Enabled `output: "standalone"` in Next config for lean runtime artifact copy.
+
+- **Validation executed by main agent**
+  - `npm run test:notes:docker:full` (passed)
+  - `npm run test:docker:full` (passed, `27/27`)
+  - `npm run build` (passed)
+  - `docker build -t e3-takehome-check:latest .` (passed)
+  - Runtime sanity check of production image (`docker run ...` + HTTP `200`) (passed)
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, architecture standardization)
+
+- **Main agent (GitHub Copilot)**
+  - Introduced `ARCHITECTURE.md` to define explicit architectural style, layering model, invariants, and governance workflow.
+  - Updated `README.md` to reference architecture baseline and operational governance contract.
+  - Logged architecture decision in `NOTES.md` for audit traceability.
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, modularization hardening)
+
+- **Main agent (GitHub Copilot)**
+  - Added Notes application use cases in `src/modules/notes/application/note-detail-service.ts`.
+  - Refactored notes detail and versions handlers to use module APIs as thin HTTP adapters.
+  - Expanded ESLint boundary guards for modularized notes handlers.
+  - Fixed one post-refactor type mismatch detected during build validation.
+
+- **Validation executed by main agent**
+  - `npm run -s build` (failed once on strict type mismatch, then passed after fix)
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, notes summarize modularization)
+
+- **Main agent (GitHub Copilot)**
+  - Added summary application use cases in `src/modules/notes/application/note-summary-service.ts`.
+  - Refactored summarize endpoint to module API driven handler.
+  - Expanded ESLint boundary rules to include summarize handler in modularized guardrail.
+
+- **Validation executed by main agent**
+  - `npm run -s build` (passed)
+
+- **Subagents used in this phase**
+  - None invoked.
