@@ -43,7 +43,7 @@ jobs:
       - name: Check file naming convention
         run: npx tsx src/fitness/check-file-naming.ts
       - name: Limpa pasta .next
-        run: rm -rf .next
+        run: sudo rm -rf .next
       - name: Build frontend
         run: npm run build
       - name: Check frontend bundle size
