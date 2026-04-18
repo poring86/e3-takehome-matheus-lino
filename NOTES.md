@@ -1,5 +1,19 @@
 # NOTES.md — Agent Scratchpad
 
+## Fitness Naming Log (2026-04-18) - Duplicate legacy script removal
+
+- Symptom:
+  - Fitness naming gate failed with non-kebab file `src/fitness/checkTestCoverage.ts`.
+- Root cause:
+  - Legacy camelCase coverage script remained in repo after migration to kebab-case.
+- Decision/Fix:
+  - Removed `src/fitness/checkTestCoverage.ts` and kept canonical script `src/fitness/check-test-coverage.ts`.
+- Validation:
+  - `npx tsx src/fitness/check-file-naming.ts` passed.
+  - `npx vitest run --coverage` passed.
+  - `npm run lint` passed.
+  - `npm run -s build` passed.
+
 ## Test Reliability Log (2026-04-18) - Logger permission event alignment
 
 - Symptom:

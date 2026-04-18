@@ -1,5 +1,18 @@
 # AI_USAGE.md
 
+## Agent Activity Log (2026-04-18, fitness naming gate fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed `check-file-naming` failure caused by duplicate legacy file `src/fitness/checkTestCoverage.ts` (camelCase) coexisting with `src/fitness/check-test-coverage.ts`.
+  - Removed legacy camelCase file to enforce naming policy and avoid duplicate fitness script paths.
+  - Executed full validation sequence requested by user.
+
+- **Validation executed by main agent**
+  - `npx tsx src/fitness/check-file-naming.ts` (pass)
+  - `npx vitest run --coverage` (pass)
+  - `npm run lint` (pass)
+  - `npm run -s build` (pass)
+
 ## Agent Activity Log (2026-04-18, logger test failure fix)
 
 - **Main agent (GitHub Copilot)**

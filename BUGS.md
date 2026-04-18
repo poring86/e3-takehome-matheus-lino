@@ -26,6 +26,24 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-039 Fitness naming check failed due to legacy camelCase script
+
+- Date: 2026-04-18
+- Status: Resolved
+- Location: `src/fitness/checkTestCoverage.ts`
+- Symptom:
+  - CI failed in `npx tsx src/fitness/check-file-naming.ts` with non-kebab filename detection.
+- Cause:
+  - Legacy camelCase fitness script remained in repository after kebab-case migration.
+- Fix:
+  - Removed `src/fitness/checkTestCoverage.ts` and retained canonical `src/fitness/check-test-coverage.ts`.
+- Validation:
+  - `npx tsx src/fitness/check-file-naming.ts` passed.
+  - `npx vitest run --coverage` passed.
+  - `npm run lint` passed.
+  - `npm run -s build` passed.
+- Commit: pending
+
 ### B-038 Logger permission-denied helper mismatch with test contract
 
 - Date: 2026-04-18

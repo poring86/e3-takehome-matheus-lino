@@ -1,5 +1,11 @@
 # REVIEW.md
 
+## Naming Governance Update (2026-04-18)
+
+- Resolved a governance drift where a legacy camelCase fitness script coexisted with the kebab-case canonical file.
+- Removed duplicate legacy file to keep CI naming gate deterministic and avoid path ambiguity in fitness scripts.
+- Residual risk: future file renames can reintroduce stale script duplicates if cleanup is not part of migration checklist.
+
 ## Test Contract Consistency Update (2026-04-18)
 
 - Fixed logger helper/test contract drift for permission-denied events.
@@ -83,6 +89,7 @@
 
 - Adopted React Query for server-state handling in notes flows to reduce imperative fetch orchestration.
 - Added app-level QueryClient provider and migrated:
+
 ## Frontend Data Layer Update (2026-04-17)
 
 - Adopted React Query for server-state handling in notes flows to reduce imperative fetch orchestration.
@@ -135,8 +142,8 @@
 
 - Added repository-level `CODEOWNERS` with explicit ownership for API/module/governance-sensitive paths.
 - Branch-protection checklist now includes required Code Owner review.
-- Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
-=======
+- # Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
+
 ## Build Reliability Update (2026-04-17)
 
 - Reviewed production Docker build failure mode caused by missing `NEXT_PUBLIC_SUPABASE_*` at build time.
@@ -161,4 +168,4 @@
 - Fixed coverage fitness check fragility caused by non-deterministic summary file generation/lookup.
 - Coverage step now enforces JSON summary reporter and reads summary from deterministic absolute path.
 - Result: fitness coverage gate behavior aligned between local and CI execution.
->>>>>>> origin/main
+  > > > > > > > origin/main
