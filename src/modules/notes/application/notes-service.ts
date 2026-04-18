@@ -37,7 +37,9 @@ export async function listNotesForOrg(userId: string, input: ListNotesInput) {
   const [orgMember] = await db
     .select()
     .from(orgMembers)
-    .where(and(eq(orgMembers.orgId, input.orgId), eq(orgMembers.userId, userId)))
+    .where(
+      and(eq(orgMembers.orgId, input.orgId), eq(orgMembers.userId, userId)),
+    )
     .limit(1);
 
   if (!orgMember) {
@@ -125,7 +127,9 @@ export async function createNoteForOrg(
   const [orgMember] = await db
     .select()
     .from(orgMembers)
-    .where(and(eq(orgMembers.orgId, input.orgId), eq(orgMembers.userId, userId)))
+    .where(
+      and(eq(orgMembers.orgId, input.orgId), eq(orgMembers.userId, userId)),
+    )
     .limit(1);
 
   if (!orgMember) {
@@ -156,11 +160,15 @@ export async function createNoteForOrg(
   });
 
   if (input.tags?.length) {
-    for (const tagName of input.tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean)) {
+    for (const tagName of input.tags
+      .map((tag) => tag.trim().toLowerCase())
+      .filter(Boolean)) {
       const [existingTag] = await db
         .select()
         .from(tagSchema)
-        .where(and(eq(tagSchema.orgId, input.orgId), eq(tagSchema.name, tagName)))
+        .where(
+          and(eq(tagSchema.orgId, input.orgId), eq(tagSchema.name, tagName)),
+        )
         .limit(1);
 
       const tagId = existingTag
@@ -188,7 +196,9 @@ export async function createNoteForOrg(
       );
 
     for (const row of validUserIds) {
-      await db.insert(noteShares).values({ noteId: newNote.id, userId: row.userId });
+      await db
+        .insert(noteShares)
+        .values({ noteId: newNote.id, userId: row.userId });
     }
   }
 

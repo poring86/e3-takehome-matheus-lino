@@ -39,11 +39,13 @@ LOG_LEVEL=info
    - Run in Supabase SQL Editor
 
 3. Seed the database:
+
    ```bash
    npm run db:seed
    ```
 
    If you need a full reset before seeding:
+
    ```bash
    npm run db:reset:seed
    ```
@@ -63,10 +65,10 @@ Fill this section after production deployment to keep an auditable trail.
 - Railway URL: `<set-after-deploy>`
 - Deployment timestamp (UTC): `<set-after-deploy>`
 - Health check:
-   - Command: `curl -I https://<railway-url> | head -n 1`
-   - Expected: `HTTP/2 200` (or `HTTP/1.1 200`)
-   - Result: `<set-after-deploy>`
+  - Command: `curl -I https://<railway-url> | head -n 1`
+  - Expected: `HTTP/2 200` (or `HTTP/1.1 200`)
+  - Result: `<set-after-deploy>`
 - Post-deploy smoke test:
-   - Command: `npm run smoke:notes`
-   - Expected: note create path succeeds (`201`)
-   - Result: `<set-after-deploy>`
+  - Command: `npm run smoke:notes`
+  - Expected: note create path succeeds (`201`)
+  - Result: `<set-after-deploy>`

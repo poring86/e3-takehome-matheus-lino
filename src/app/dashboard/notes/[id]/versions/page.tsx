@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '../../../../../lib/auth-context';
+import { useUserSession } from '../../../../../modules/auth';
 import { ProtectedRoute } from '../../../../../components/protected-route';
 import { Button } from '../../../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../../components/ui/card';
 import { ArrowLeft, History, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { diffWords } from 'diff';
+import { useQuery } from '@tanstack/react-query';
 
 interface NoteVersion {
   id: string;
@@ -34,113 +35,116 @@ interface Note {
 function VersionsContent() {
   const params = useParams();
   const router = useRouter();
-  const { session, loading: authLoading } = useAuth();
-  const [note, setNote] = useState<Note | null>(null);
-  const [versions, setVersions] = useState<NoteVersion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedVersion, setSelectedVersion] = useState<NoteVersion | null>(null);
-  const [diffContent, setDiffContent] = useState<string>('');
+  const { session, loading: authLoading } = useUserSession();
+  const noteId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
 
-  const fetchNoteAndVersions = useCallback(async () => {
-    if (authLoading) return;
-    if (!params.id) return;
+  const versionsQuery = useQuery<{ note: Note; versions: NoteVersion[] } | null>({
+    queryKey: ['note-versions', noteId, session?.access_token],
+    enabled: Boolean(noteId) && !authLoading,
+    queryFn: async () => {
+      if (!noteId) return null;
 
-    const noteId = Array.isArray(params.id) ? params.id[0] : params.id;
-
-    const headers: HeadersInit = {};
-    if (session?.access_token) {
-      headers.Authorization = `Bearer ${session.access_token}`;
-    }
-
-    try {
-      let currentNote: Note | null = null;
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
 
       const noteResponse = await fetch(`/api/notes/${noteId}`, {
         credentials: 'include',
         headers,
       });
-      if (noteResponse.ok) {
-        const noteData = await noteResponse.json();
-        if (!noteData || !noteData.id) {
-          throw new Error('Invalid note data received.');
+
+      if (!noteResponse.ok) {
+        if ([401, 403, 404].includes(noteResponse.status)) {
+          return null;
         }
-        currentNote = noteData as Note;
-        setNote(currentNote);
-      } else if ([401, 403, 404].includes(noteResponse.status)) {
-        router.push('/dashboard/notes');
-        return;
-      } else {
-        console.error(`Failed to fetch note: ${noteResponse.status}`);
-        setLoading(false);
-        return;
+        throw new Error(`Failed to fetch note: ${noteResponse.status}`);
+      }
+
+      const currentNote = (await noteResponse.json()) as Note;
+      if (!currentNote || !currentNote.id) {
+        throw new Error('Invalid note data received.');
       }
 
       const versionsResponse = await fetch(`/api/notes/${noteId}/versions`, {
         credentials: 'include',
         headers,
       });
-      if (versionsResponse.ok) {
-        const versionsData = await versionsResponse.json();
-        if (!Array.isArray(versionsData)) {
-          throw new Error('Invalid versions data received.');
-        }
 
-        // Include current note state as the latest version shown in the UI.
-        const latestHistoricalVersion = versionsData[0]?.version ?? 0;
-        const currentVersion: NoteVersion = {
-          id: `current-${noteId}`,
-          noteId,
-          version: latestHistoricalVersion + 1,
-          content: currentNote?.content || '',
-          createdAt: currentNote?.updatedAt || new Date().toISOString(),
-        };
-
-        const combinedVersions = [currentVersion, ...versionsData];
-
-        setVersions(combinedVersions);
-        if (combinedVersions.length > 0) {
-          setSelectedVersion(combinedVersions[0]);
-        }
-      } else {
-        console.error(`Failed to fetch versions: ${versionsResponse.status}`);
-        setLoading(false);
-        return;
+      if (!versionsResponse.ok) {
+        throw new Error(`Failed to fetch versions: ${versionsResponse.status}`);
       }
-    } catch (error) {
-      console.error('Error fetching data:', error);
+
+      const versionsData = await versionsResponse.json();
+      if (!Array.isArray(versionsData)) {
+        throw new Error('Invalid versions data received.');
+      }
+
+      // Include current note state as the latest version shown in the UI.
+      const latestHistoricalVersion = versionsData[0]?.version ?? 0;
+      const currentVersion: NoteVersion = {
+        id: `current-${noteId}`,
+        noteId,
+        version: latestHistoricalVersion + 1,
+        content: currentNote.content || '',
+        createdAt: currentNote.updatedAt || new Date().toISOString(),
+      };
+
+      return {
+        note: currentNote,
+        versions: [currentVersion, ...versionsData],
+      };
+    },
+  });
+
+  const note = versionsQuery.data?.note ?? null;
+  const versions = useMemo(
+    () => versionsQuery.data?.versions ?? [],
+    [versionsQuery.data?.versions],
+  );
+  const loading = authLoading || versionsQuery.isLoading || versionsQuery.isFetching;
+
+  useEffect(() => {
+    if (versionsQuery.isSuccess && versionsQuery.data === null) {
       router.push('/dashboard/notes');
-    } finally {
-      setLoading(false);
     }
-  }, [authLoading, params.id, router, session?.access_token]);
+  }, [router, versionsQuery.data, versionsQuery.isSuccess]);
 
-  useEffect(() => {
-    fetchNoteAndVersions();
-  }, [fetchNoteAndVersions]);
-
-  useEffect(() => {
-    if (selectedVersion && versions.length > 0) {
-      const currentIndex = versions.findIndex(v => v.id === selectedVersion.id);
-      const previousVersion = versions[currentIndex + 1]; // Next in array is previous version
-
-      if (previousVersion) {
-        const diff = diffWords(previousVersion.content || '', selectedVersion.content || '');
-        const diffHtml = diff.map(part => {
-          if (part.added) {
-            return `<span class="bg-green-200 text-green-800">${part.value}</span>`;
-          } else if (part.removed) {
-            return `<span class="bg-red-200 text-red-800 line-through">${part.value}</span>`;
-          } else {
-            return part.value;
-          }
-        }).join('');
-
-        setDiffContent(diffHtml);
-      } else {
-        // First version, no diff
-        setDiffContent(selectedVersion.content || '');
-      }
+  const selectedVersion = useMemo(() => {
+    if (!versions.length) {
+      return null;
     }
+    if (!selectedVersionId) {
+      return versions[0];
+    }
+    return versions.find((version) => version.id === selectedVersionId) ?? versions[0];
+  }, [selectedVersionId, versions]);
+
+  const diffContent = useMemo(() => {
+    if (!selectedVersion || !versions.length) {
+      return '';
+    }
+
+    const currentIndex = versions.findIndex((version) => version.id === selectedVersion.id);
+    const previousVersion = versions[currentIndex + 1];
+
+    if (!previousVersion) {
+      return selectedVersion.content || '';
+    }
+
+    const diff = diffWords(previousVersion.content || '', selectedVersion.content || '');
+    return diff
+      .map((part) => {
+        if (part.added) {
+          return `<span class="bg-green-200 text-green-800">${part.value}</span>`;
+        }
+        if (part.removed) {
+          return `<span class="bg-red-200 text-red-800 line-through">${part.value}</span>`;
+        }
+        return part.value;
+      })
+      .join('');
   }, [selectedVersion, versions]);
 
   if (loading) {
@@ -208,7 +212,7 @@ function VersionsContent() {
                       ? 'bg-blue-50 border-blue-200'
                       : 'bg-white border-gray-200 hover:bg-gray-50'
                       }`}
-                    onClick={() => setSelectedVersion(version)}
+                    onClick={() => setSelectedVersionId(version.id)}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">Version {version.version}</span>

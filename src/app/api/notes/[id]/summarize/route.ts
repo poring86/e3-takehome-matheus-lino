@@ -88,7 +88,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     const { action } = await request.json();
-    const result = await updateNoteSummaryStatusForAuthor(user.id, noteId, action);
+    const result = await updateNoteSummaryStatusForAuthor(
+      user.id,
+      noteId,
+      action,
+    );
 
     if (!result.ok && result.error === "INVALID_ACTION") {
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });

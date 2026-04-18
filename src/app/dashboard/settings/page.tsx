@@ -1,18 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../../lib/auth-context';
+import { useState } from 'react';
+import { useUserSession } from '../../../modules/auth';
+import { useCurrentOrg } from '../../../modules/organization';
 import { ProtectedRoute } from '../../../components/protected-route';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';
-import { Label } from '../../../components/ui/label';
+// import { Label } from '../../../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Avatar, AvatarFallback } from '../../../components/ui/avatar';
 import { Alert, AlertDescription } from '../../../components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
+// import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
 import { supabase } from '../../../lib/supabase-client';
 import { Loader2, UserPlus, Trash2, Crown, Shield, Users } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface OrgMemberWithUser {
   id: string;
@@ -27,24 +29,19 @@ interface OrgMemberWithUser {
 }
 
 function SettingsContent() {
-  const { currentOrg, user } = useAuth();
-  const [members, setMembers] = useState<OrgMemberWithUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { currentOrg } = useCurrentOrg();
+  const { user } = useUserSession();
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviting, setInviting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (currentOrg) {
-      loadMembers();
-    }
-  }, [currentOrg]);
+  const membersQuery = useQuery<OrgMemberWithUser[]>({
+    queryKey: ['org-members', currentOrg?.id],
+    enabled: Boolean(currentOrg?.id),
+    queryFn: async () => {
+      if (!currentOrg) return [];
 
-  const loadMembers = async () => {
-    if (!currentOrg) return;
-
-    try {
       const { data, error } = await supabase
         .from('org_members')
         .select(`
@@ -58,22 +55,21 @@ function SettingsContent() {
         .eq('org_id', currentOrg.id);
 
       if (error) throw error;
-      setMembers(data as OrgMemberWithUser[]);
-    } catch (error) {
-      console.error('Error loading members:', error);
-    } finally {
-      setLoading(false);
-    }
+      return (data as OrgMemberWithUser[]) || [];
+    },
+  });
+
+  const members = membersQuery.data ?? [];
+  const loading = membersQuery.isLoading || membersQuery.isFetching;
+
+  const refreshMembers = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['org-members', currentOrg?.id] });
   };
 
-  const inviteUser = async () => {
-    if (!currentOrg || !inviteEmail.trim()) return;
+  const inviteUserMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentOrg || !inviteEmail.trim()) return;
 
-    setInviting(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
       // Check if user exists
       const { data: existingUser, error: userError } = await supabase
         .from('users')
@@ -83,12 +79,11 @@ function SettingsContent() {
 
       if (userError && userError.code !== 'PGRST116') throw userError;
 
-      let userId = existingUser?.id;
+      const userId = existingUser?.id;
 
       // If user doesn't exist, we can't invite them yet (they need to sign up first)
       if (!userId) {
-        setError('User must sign up first before they can be invited to an organization');
-        return;
+        throw new Error('User must sign up first before they can be invited to an organization');
       }
 
       // Check if already a member
@@ -100,8 +95,7 @@ function SettingsContent() {
         .single();
 
       if (existingMember) {
-        setError('User is already a member of this organization');
-        return;
+        throw new Error('User is already a member of this organization');
       }
 
       // Add as member
@@ -114,47 +108,75 @@ function SettingsContent() {
         });
 
       if (inviteError) throw inviteError;
-
+    },
+    onSuccess: async () => {
       setSuccess('User invited successfully');
       setInviteEmail('');
-      loadMembers();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to invite user');
-    } finally {
-      setInviting(false);
-    }
-  };
+      await refreshMembers();
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : 'Failed to invite user');
+    },
+  });
 
-  const updateRole = async (memberId: string, newRole: 'owner' | 'admin' | 'member') => {
-    try {
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ memberId, newRole }: { memberId: string; newRole: 'owner' | 'admin' | 'member' }) => {
       const { error } = await supabase
         .from('org_members')
         .update({ role: newRole })
         .eq('id', memberId);
 
       if (error) throw error;
-
+    },
+    onSuccess: async () => {
       setSuccess('Role updated successfully');
-      loadMembers();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to update role');
-    }
-  };
+      await refreshMembers();
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : 'Failed to update role');
+    },
+  });
 
-  const removeMember = async (memberId: string) => {
-    try {
+  const removeMemberMutation = useMutation({
+    mutationFn: async (memberId: string) => {
       const { error } = await supabase
         .from('org_members')
         .delete()
         .eq('id', memberId);
 
       if (error) throw error;
-
+    },
+    onSuccess: async () => {
       setSuccess('Member removed successfully');
-      loadMembers();
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to remove member');
+      await refreshMembers();
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : 'Failed to remove member');
+    },
+  });
+
+  const inviteUser = async () => {
+    if (!currentOrg || !inviteEmail.trim() || inviteUserMutation.isPending) return;
+
+    setError(null);
+    setSuccess(null);
+    try {
+      await inviteUserMutation.mutateAsync();
+    } catch {
+      // Error state is handled in mutation onError.
     }
+  };
+
+  const updateRole = async (memberId: string, newRole: 'owner' | 'admin' | 'member') => {
+    setError(null);
+    setSuccess(null);
+    await updateRoleMutation.mutateAsync({ memberId, newRole });
+  };
+
+  const removeMember = async (memberId: string) => {
+    setError(null);
+    setSuccess(null);
+    await removeMemberMutation.mutateAsync(memberId);
   };
 
   const getRoleIcon = (role: string) => {
@@ -282,8 +304,8 @@ function SettingsContent() {
                       onChange={(e) => setInviteEmail(e.target.value)}
                       className="flex-1"
                     />
-                    <Button onClick={inviteUser} disabled={inviting}>
-                      {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button onClick={inviteUser} disabled={inviteUserMutation.isPending}>
+                      {inviteUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       <UserPlus className="h-4 w-4 mr-2" />
                       Invite
                     </Button>

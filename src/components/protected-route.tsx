@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
+import { useUserSession } from '@/modules/auth';
+import { useCurrentOrg } from '@/modules/organization';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -11,7 +12,8 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireOrg = false }: ProtectedRouteProps) {
-  const { user, loading, currentOrg } = useAuth();
+  const { user, loading } = useUserSession();
+  const { currentOrg } = useCurrentOrg();
   const router = useRouter();
 
   useEffect(() => {

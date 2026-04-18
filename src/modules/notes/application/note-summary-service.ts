@@ -1,11 +1,7 @@
 import { db } from "@/lib/db";
 import { notes, orgMembers } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
-import {
-  logAIRequest,
-  logMutation,
-  logPermissionDenied,
-} from "@/lib/logger";
+import { logAIRequest, logMutation, logPermissionDenied } from "@/lib/logger";
 import { generateSummary } from "@/lib/ai-summary";
 
 type SummaryAccessError =
@@ -21,7 +17,11 @@ type SummaryResult<T> =
   | { ok: false; error: SummaryAccessError; message?: string };
 
 async function resolveAccessibleNoteForSummary(userId: string, noteId: string) {
-  const [note] = await db.select().from(notes).where(eq(notes.id, noteId)).limit(1);
+  const [note] = await db
+    .select()
+    .from(notes)
+    .where(eq(notes.id, noteId))
+    .limit(1);
 
   if (!note) {
     logPermissionDenied("summarize_note", userId, undefined, noteId, {
@@ -142,7 +142,11 @@ export async function updateNoteSummaryStatusForAuthor(
     return { ok: false, error: "INVALID_ACTION" };
   }
 
-  const [note] = await db.select().from(notes).where(eq(notes.id, noteId)).limit(1);
+  const [note] = await db
+    .select()
+    .from(notes)
+    .where(eq(notes.id, noteId))
+    .limit(1);
 
   if (!note) {
     logPermissionDenied("accept_reject_summary", userId, undefined, noteId, {

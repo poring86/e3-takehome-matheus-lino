@@ -1,7 +1,17 @@
-import 'dotenv/config';
+import "dotenv/config";
 import { db } from "@/lib/db";
 import { supabaseAdmin } from "./supabase-admin";
-import { users, organizations, orgMembers, notes, noteVersions, tags, noteTags, noteShares, files } from "@/drizzle/schema";
+import {
+  users,
+  organizations,
+  orgMembers,
+  notes,
+  noteVersions,
+  tags,
+  noteTags,
+  noteShares,
+  files,
+} from "@/drizzle/schema";
 
 async function cleanDatabase() {
   // Limpa tabelas do banco
@@ -17,30 +27,32 @@ async function cleanDatabase() {
 }
 
 async function cleanSupabaseAuth() {
-  // Busca todos os usuários do Supabase Auth
-  let nextPage = null;
+  // Fetch all users from Supabase Auth using page-based pagination.
+  let nextPage: number | undefined = 1;
   do {
-    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: nextPage });
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+      page: nextPage,
+    });
     if (error) {
-      console.error("Erro ao listar usuários do Supabase Auth", error);
+      console.error("Failed to list Supabase Auth users", error);
       break;
     }
     for (const user of data.users) {
       await supabaseAdmin.auth.admin.deleteUser(user.id);
     }
-    nextPage = data.nextPage ?? null;
-  } while (nextPage);
+    nextPage = data.nextPage ?? undefined;
+  } while (nextPage !== undefined);
 }
 
 async function main() {
-  console.log("Limpando banco de dados e Supabase Auth...");
+  console.log("Cleaning database and Supabase Auth...");
   await cleanDatabase();
   await cleanSupabaseAuth();
-  console.log("Rodando seed...");
+  console.log("Running seed...");
   await import("./seed");
 }
 
 main().catch((err) => {
-  console.error("Erro ao limpar e rodar seed:", err);
+  console.error("Failed to clean and seed:", err);
   process.exit(1);
 });

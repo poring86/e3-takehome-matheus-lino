@@ -1,6 +1,7 @@
 'use client';
 
-import { useAuth } from '../../lib/auth-context';
+import { useUserSession, useSignOut } from '../../modules/auth';
+import { useCurrentOrg, useSwitchOrg } from '../../modules/organization';
 import { ProtectedRoute } from '../../components/protected-route';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
@@ -9,8 +10,13 @@ import { LogOut, Building2, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+
+
 function DashboardContent() {
-  const { user, currentOrg, userOrgs, switchOrg, signOut } = useAuth();
+  const { user } = useUserSession();
+  const { currentOrg, userOrgs } = useCurrentOrg();
+  const switchOrg = useSwitchOrg();
+  const signOut = useSignOut;
   const router = useRouter();
   const activeOrg = currentOrg || userOrgs[0]?.organizations || null;
 
@@ -71,7 +77,7 @@ function DashboardContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {userOrgs.map((orgMember) => (
+                      {userOrgs.map((orgMember: { id: string; org_id: string; user_id: string; role: string; joined_at: string; organizations: { id: string; name: string; created_at: string } }) => (
                         <Button
                           key={orgMember.org_id}
                           variant={activeOrg?.id === orgMember.org_id ? "default" : "outline"}
