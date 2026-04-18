@@ -6,6 +6,43 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
+## Security/Build Log (2026-04-17) - Safe Docker build without runtime secret injection
+
+- Decision:
+  - Do not inject real `DATABASE_URL` in Docker build stages.
+  - Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), and use a build-only non-secret placeholder for `DATABASE_URL` validation path.
+- Why:
+  - Avoid leaking runtime DB credentials into image layers/history.
+  - Preserve successful `next build` in CI where server env modules are evaluated during compilation.
+- Implemented changes:
+  - `Dockerfile`: restored builder `ARG`/`ENV` for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` only.
+  - `src/lib/env.ts`: added build-phase-only placeholder fallback for `DATABASE_URL` when `NEXT_PHASE=phase-production-build`.
+  - `README.md`: clarified that `DATABASE_URL` remains runtime-required and should not be injected as a real build secret.
+
+## Security/Build Log (2026-04-17) - Standard lazy validation refactor
+
+- Decision:
+  - Replace build-phase fake server env fallback with a standard lazy runtime validation approach.
+- Why:
+  - Avoid non-standard fake-server-env behavior while keeping build independent from runtime secrets.
+  - Enforce strict runtime validation without import-time side effects during `next build`.
+- Implemented changes:
+  - `src/lib/env.ts`: introduced cached lazy getters/proxies (`getClientEnv`, `getServerEnv`) and removed build-only `DATABASE_URL` fallback.
+  - `src/lib/db.ts`: switched DB initialization to lazy singleton via `getDb()` and proxy export to preserve existing call sites.
+
+## Security Incident Log (2026-04-17) - Secret exposure in commit history (remediated)
+
+- Incident:
+  - A temporary change injected sensitive server env handling in a way that was not acceptable for security review.
+  - A related commit (`fe78067a0c7eb45646977049f0280e70bd100fca`) became visible in branch history.
+- Remediation performed:
+  - Rewrote branch history to remove the offending commit from active refs.
+  - Force-pushed updated branch state and verified no local/remote refs contain the removed commit.
+  - Expired reflog and pruned local objects (`git reflog expire` + `git gc --prune=now --aggressive`).
+  - Implemented standard lazy env/db initialization approach to avoid repeating build-time secret handling mistakes.
+- Mandatory operational follow-up:
+  - Rotate any credential that may have been exposed during the incident window.
+
 ## Infra Hotfix Log (2026-04-17) - Docker production build env validation
 
 - Decision: inject `NEXT_PUBLIC_SUPABASE_*` into Docker builder stage via `ARG`/`ENV` to prevent build-time env validation failure.

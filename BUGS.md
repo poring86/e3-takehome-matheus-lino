@@ -26,6 +26,42 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-036 Sensitive env handling incident in git history (remediated)
+
+- Date: 2026-04-17
+- Status: Resolved
+- Location: Branch history (`feat/app-hardening-from-origin-main`)
+- Symptom:
+  - A security-sensitive Docker/env handling change was committed and became visible in branch history (`fe78067a0c7eb45646977049f0280e70bd100fca`).
+- Cause:
+  - Incorrect interim fix path while addressing build-time env validation failure.
+- Fix:
+  - Rewrote history to remove offending commit from active refs.
+  - Force-pushed branch rewrite and validated absence from local/remote refs.
+  - Performed local object cleanup (`reflog expire` + `git gc --prune=now --aggressive`).
+  - Replaced interim approach with standard lazy env/db initialization pattern.
+- Validation:
+  - No local object for removed commit.
+  - No matching remote heads/tags/PR refs for removed commit hash.
+- Commit: N/A (history rewrite + follow-up hardening)
+
+### B-035 Production Docker build failed on missing DATABASE_URL during compile-time env evaluation
+
+- Date: 2026-04-17
+- Status: Resolved
+- Location: `src/lib/env.ts`, `Dockerfile` builder stage
+- Symptom:
+  - `docker build` failed during `next build` with `Invalid server environment variables: DATABASE_URL ... undefined`.
+- Cause:
+  - Build pipeline evaluated server env validation while `DATABASE_URL` was intentionally not injected in builder environment.
+- Fix:
+  - Refactored env handling to lazy runtime validation in `src/lib/env.ts`.
+  - Refactored DB initialization to lazy singleton in `src/lib/db.ts` to avoid import-time `DATABASE_URL` access during build.
+  - Kept builder-stage env injection restricted to non-secret `NEXT_PUBLIC_SUPABASE_*` values only.
+- Validation:
+  - `docker build -t e3-takehome-check:latest .` (pass expected)
+- Commit: pending
+
 ### B-034 Production Docker build failed on missing NEXT_PUBLIC env vars
 
 - Date: 2026-04-17

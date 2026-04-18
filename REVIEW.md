@@ -78,3 +78,16 @@
 - Reviewed production Docker build failure mode caused by missing `NEXT_PUBLIC_SUPABASE_*` at build time.
 - Added builder-stage env injection in `Dockerfile` so Next.js env validation does not fail during route/page data collection.
 - Documented explicit `--build-arg` usage in README for CI/CD parity across environments.
+
+## Security Hardening Update (2026-04-17)
+
+- Verified safer handling of server secrets during image build by avoiding real `DATABASE_URL` injection in builder stage.
+- Replaced build-phase fallback behavior with a standard lazy runtime env/db initialization approach.
+- Preserved runtime requirement for real `DATABASE_URL` so production behavior/security expectations remain intact.
+
+## Incident Remediation Note (2026-04-17)
+
+- A security-sensitive interim commit became visible in branch history during Docker build stabilization work.
+- Branch history was rewritten to remove the offending commit from active refs and force-pushed.
+- Local repository artifacts were pruned after rewrite.
+- Residual platform cache risk was acknowledged; credential rotation remains mandatory operational guidance.
