@@ -1,4 +1,4 @@
-name: Fitness Functions
+name: CI/CD Pipeline
 
 on:
   push:
