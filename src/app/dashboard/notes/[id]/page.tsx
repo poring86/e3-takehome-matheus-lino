@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '../../../../lib/auth-context';
+import { useUserSession } from '../../../../modules/auth';
+import { useCurrentOrg } from '../../../../modules/organization';
 import { ProtectedRoute } from '../../../../components/protected-route';
 import { Label } from '../../../../components/ui/label';
 import { Card, CardContent, CardHeader } from '../../../../components/ui/card';
@@ -15,13 +16,15 @@ import { NoteCardTitle } from './components/note-card-title';
 import { AISummaryPanel } from './components/ai-summary-panel';
 import { NotePageProvider } from './components/note-page-context';
 import type { Note } from './components/types';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 function NoteContent() {
   const params = useParams();
   const router = useRouter();
-  const { user, currentOrg, userOrgs, session } = useAuth();
-  const [note, setNote] = useState<Note | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, session } = useUserSession();
+  const { currentOrg, userOrgs } = useCurrentOrg();
+  const queryClient = useQueryClient();
+  const noteId = Array.isArray(params.id) ? params.id[0] : params.id;
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
@@ -29,6 +32,37 @@ function NoteContent() {
   const [summarizing, setSummarizing] = useState(false);
   const [updatingSummary, setUpdatingSummary] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  const noteQuery = useQuery<Note | null>({
+    queryKey: ['note', noteId, session?.access_token],
+    enabled: Boolean(noteId),
+    queryFn: async () => {
+      if (!noteId) return null;
+
+      const headers: HeadersInit = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`/api/notes/${noteId}`, {
+        credentials: 'include',
+        headers,
+      });
+
+      if (response.ok) {
+        return (await response.json()) as Note;
+      }
+
+      if ([401, 403, 404].includes(response.status)) {
+        return null;
+      }
+
+      throw new Error('Failed to fetch note');
+    },
+  });
+
+  const note = noteQuery.data ?? null;
+  const loading = noteQuery.isLoading || noteQuery.isFetching;
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -48,37 +82,17 @@ function NoteContent() {
     },
   });
 
-  const fetchNote = useCallback(async () => {
-    if (!params.id) return;
-
-    try {
-      const headers: HeadersInit = {};
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      }
-
-      const response = await fetch(`/api/notes/${params.id}`, {
-        credentials: 'include',
-        headers,
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setNote(data);
-        setTitle(data.title);
-        setVisibility(data.visibility);
-      } else if ([401, 403, 404].includes(response.status)) {
-        router.push('/dashboard/notes');
-      }
-    } catch (error) {
-      console.error('Error fetching note:', error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (noteQuery.isSuccess && note === null) {
+      router.push('/dashboard/notes');
     }
-  }, [params.id, router, session?.access_token]);
+  }, [note, noteQuery.isSuccess, router]);
 
   useEffect(() => {
-    fetchNote();
-  }, [fetchNote]);
+    if (!note) return;
+    setTitle(note.title);
+    setVisibility(note.visibility);
+  }, [note]);
 
   useEffect(() => {
     if (!editor || !note) return;
@@ -124,11 +138,10 @@ function NoteContent() {
 
       if (response.ok) {
         const updatedNote = await response.json();
-        setNote(updatedNote);
+        queryClient.setQueryData(['note', note.id, session?.access_token], updatedNote);
+        queryClient.invalidateQueries({ queryKey: ['notes'] });
         setEditing(false);
         editor?.setEditable(false);
-        // Refresh to get updated timestamp
-        fetchNote();
       } else {
         console.error('Failed to update note');
       }
@@ -192,11 +205,11 @@ function NoteContent() {
       }
 
       const data = await response.json();
-      setNote((prev) => prev ? {
-        ...prev,
+      queryClient.setQueryData(['note', note.id, session?.access_token], {
+        ...note,
         summary: data.summary,
         summaryStatus: 'pending',
-      } : prev);
+      });
     } catch (error) {
       console.error('Error generating summary:', error);
       setSummaryError('Error generating summary');
@@ -234,10 +247,10 @@ function NoteContent() {
       }
 
       const data = await response.json();
-      setNote((prev) => prev ? {
-        ...prev,
+      queryClient.setQueryData(['note', note.id, session?.access_token], {
+        ...note,
         summaryStatus: data.status,
-      } : prev);
+      });
     } catch (error) {
       console.error('Error updating summary status:', error);
       setSummaryError('Error updating summary status');
@@ -266,7 +279,7 @@ function NoteContent() {
   }
 
   const isAuthor = user?.id && note?.author?.id && user.id === note.author.id;
-  const currentOrgMember = userOrgs.find(org => org.org_id === currentOrg?.id);
+  const currentOrgMember = userOrgs.find((org: { org_id: string }) => org.org_id === currentOrg?.id);
   const canEdit = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
   const canDelete = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
   const contextValue = {

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '../../lib/supabase-client';
-import { useAuth } from '../../lib/auth-context';
+import { useUserSession } from '../../modules/auth';
 import { ProtectedRoute } from '../../components/protected-route';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -22,10 +23,10 @@ const createOrgSchema = z.object({
 type CreateOrgForm = z.infer<typeof createOrgSchema>;
 
 function OnboardingContent() {
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, refreshOrganizations } = useAuth();
+  const { user } = useUserSession();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -35,20 +36,15 @@ function OnboardingContent() {
     resolver: zodResolver(createOrgSchema),
   });
 
-  const onSubmit = async (data: CreateOrgForm) => {
-    if (!user) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
+  const createOrgMutation = useMutation<void, Error, CreateOrgForm>({
+    mutationFn: async (data: CreateOrgForm) => {
+      if (!user) throw new Error('User not authenticated');
       const orgId = crypto.randomUUID();
 
       // Create organization
       const { error: orgError } = await supabase
         .from('organizations')
         .insert({ id: orgId, name: data.name });
-
       if (orgError) throw orgError;
 
       // Ensure user profile exists before creating membership (FK users.id)
@@ -59,7 +55,6 @@ function OnboardingContent() {
           email: user.email!,
           full_name: user.user_metadata?.full_name || user.email,
         });
-
       if (profileError) throw profileError;
 
       // Add user as owner
@@ -70,16 +65,20 @@ function OnboardingContent() {
           user_id: user.id,
           role: 'owner',
         });
-
       if (memberError) throw memberError;
-
-      await refreshOrganizations();
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['organizations'] });
       router.replace('/dashboard');
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
+    },
+    onError: (error) => {
+      setError(error?.message || 'An error occurred');
+    },
+  });
+
+  const onSubmit = (data: CreateOrgForm) => {
+    setError(null);
+    createOrgMutation.mutate(data);
   };
 
   return (
@@ -115,8 +114,8 @@ function OnboardingContent() {
               </Alert>
             )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" className="w-full" disabled={createOrgMutation.isPending}>
+              {createOrgMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Organization
             </Button>
           </form>

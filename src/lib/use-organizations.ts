@@ -1,0 +1,28 @@
+import { useQuery } from "@tanstack/react-query";
+
+export function useOrganizations(userId?: string) {
+  return useQuery({
+    queryKey: ["organizations", userId],
+    queryFn: async () => {
+      if (!userId) return { orgs: [], currentOrg: null };
+      const res = await fetch("/api/organizations", {
+        method: "GET",
+        cache: "no-store",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to load organizations");
+      const data = await res.json();
+      const memberships = (data.memberships || []).filter(
+        (m: any) => m.user_id === userId,
+      );
+      if (!memberships.length) return { orgs: [], currentOrg: null };
+      const lastOrgId = localStorage.getItem("currentOrgId");
+      const current =
+        memberships.find((m: any) => m.org_id === lastOrgId) || memberships[0];
+      localStorage.setItem("currentOrgId", current.org_id);
+      return { orgs: memberships, currentOrg: current.organizations };
+    },
+    enabled: !!userId,
+    staleTime: 30_000,
+  });
+}

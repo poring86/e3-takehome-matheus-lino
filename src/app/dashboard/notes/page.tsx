@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '../../../lib/auth-context';
+import { useState } from 'react';
+import { useUserSession, useSignOut } from '../../../modules/auth';
+import { useCurrentOrg } from '../../../modules/organization';
 import { ProtectedRoute } from '../../../components/protected-route';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
@@ -9,8 +10,9 @@ import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
 import { Avatar, AvatarFallback } from '../../../components/ui/avatar';
 import { LogOut, Building2, Plus, Search, FileText, Eye, EyeOff } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 
 interface Note {
   id: string;
@@ -27,26 +29,28 @@ interface Note {
 }
 
 function NotesContent() {
-  const { user, currentOrg, userOrgs, switchOrg, signOut, session } = useAuth();
-  const router = useRouter();
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, session } = useUserSession();
+  const { currentOrg } = useCurrentOrg();
+  const signOut = useSignOut;
   const [searchQuery, setSearchQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalNotes, setTotalNotes] = useState(0);
   const [notesPerPage, setNotesPerPage] = useState(20);
 
   const handleSignOut = async () => {
     await signOut();
   };
 
-  const fetchNotes = async (page = 1, query = '', perPage = notesPerPage) => {
-    if (!currentOrg) return;
+  const notesQuery = useQuery<{ notes: Note[]; total: number }>({
+    queryKey: ['notes', currentOrg?.id, currentPage, notesPerPage, appliedQuery, session?.access_token],
+    enabled: Boolean(currentOrg),
+    queryFn: async () => {
+      if (!currentOrg) {
+        return { notes: [], total: 0 };
+      }
 
-    setLoading(true);
-    try {
-      const offset = (page - 1) * perPage;
-      const url = `/api/notes?orgId=${currentOrg.id}&limit=${perPage}&offset=${offset}${query ? `&q=${encodeURIComponent(query)}` : ''}`;
+      const offset = (currentPage - 1) * notesPerPage;
+      const url = `/api/notes?orgId=${currentOrg.id}&limit=${notesPerPage}&offset=${offset}${appliedQuery ? `&q=${encodeURIComponent(appliedQuery)}` : ''}`;
       const headers: HeadersInit = {};
       if (session?.access_token) {
         headers.Authorization = `Bearer ${session.access_token}`;
@@ -56,34 +60,31 @@ function NotesContent() {
         credentials: 'include',
         headers,
       });
-      if (response.ok) {
-        const data = await response.json();
-        setNotes(data.notes);
-        setTotalNotes(data.total);
-        setCurrentPage(page);
-      } else if (response.status === 401 || response.status === 403) {
-        setNotes([]);
-        setTotalNotes(0);
-      }
-    } catch (error) {
-      console.error('Error fetching notes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchNotes(1, searchQuery, notesPerPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentOrg, session?.access_token, notesPerPage]);
+      if (response.ok) {
+        return (await response.json()) as { notes: Note[]; total: number };
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        return { notes: [], total: 0 };
+      }
+
+      throw new Error('Failed to fetch notes');
+    },
+  });
+
+  const notes = notesQuery.data?.notes ?? [];
+  const totalNotes = notesQuery.data?.total ?? 0;
+  const loading = notesQuery.isLoading || notesQuery.isFetching;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    fetchNotes(1, searchQuery, notesPerPage);
+    setCurrentPage(1);
+    setAppliedQuery(searchQuery);
   };
 
   const handlePageChange = (page: number) => {
-    fetchNotes(page, searchQuery, notesPerPage);
+    setCurrentPage(page);
   };
 
   if (!currentOrg) {
@@ -136,7 +137,7 @@ function NotesContent() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Notes</h1>
               <p className="mt-1 text-sm text-gray-600">
-                Manage your team's notes and collaborate effectively.
+                Manage your team&apos;s notes and collaborate effectively.
               </p>
             </div>
             <Button asChild>
@@ -188,9 +189,9 @@ function NotesContent() {
               <FileText className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No notes</h3>
               <p className="mt-1 text-sm text-gray-600">
-                {searchQuery ? 'No notes match your search.' : 'Get started by creating a new note.'}
+                {appliedQuery ? 'No notes match your search.' : 'Get started by creating a new note.'}
               </p>
-              {!searchQuery && (
+              {!appliedQuery && (
                 <div className="mt-6">
                   <Button asChild>
                     <Link href="/dashboard/notes/new">
