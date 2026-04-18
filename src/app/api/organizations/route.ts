@@ -38,7 +38,14 @@ export async function GET(request: Request) {
       user = cookieUser;
     }
 
-    let memberships: any[] = [];
+    type Membership = {
+      id: string;
+      org_id: string;
+      user_id: string;
+      role: string;
+      joined_at: string;
+    };
+    let memberships: Membership[] = [];
 
     if (bearerToken) {
       const membershipClient = createSupabaseClient(
@@ -62,7 +69,7 @@ export async function GET(request: Request) {
       if (error) {
         console.error("Error loading org memberships with bearer:", error);
       } else {
-        memberships = data || [];
+        memberships = (data as Membership[]) || [];
       }
     }
 
@@ -77,7 +84,7 @@ export async function GET(request: Request) {
       if (error) {
         console.error("Error loading org memberships with cookie:", error);
       } else {
-        memberships = data || [];
+        memberships = (data as Membership[]) || [];
       }
     }
 
@@ -87,7 +94,8 @@ export async function GET(request: Request) {
 
     const orgIds = Array.from(new Set(memberships.map((m) => m.org_id)));
 
-    let organizations: any[] = [];
+    type Organization = { id: string; name: string; created_at: string };
+    let organizations: Organization[] = [];
     if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
       const serviceClient = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -102,7 +110,7 @@ export async function GET(request: Request) {
       if (error) {
         console.error("Error loading organizations with service role:", error);
       } else {
-        organizations = data || [];
+        organizations = (data as Organization[]) || [];
       }
     }
 

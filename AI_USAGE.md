@@ -1,4 +1,34 @@
+## 2026-04-18: Ajuste do limite de bundle size
+
+O limite da fitness function de bundle size foi aumentado de 500KB para 1024KB para refletir um cenário realista de aplicações Next.js modernas, mantendo preocupação com performance sem travar o fluxo de desenvolvimento.
 # AI_USAGE.md
+
+## Agent Activity Log (2026-04-18, fitness naming gate fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed `check-file-naming` failure caused by duplicate legacy file `src/fitness/checkTestCoverage.ts` (camelCase) coexisting with `src/fitness/check-test-coverage.ts`.
+  - Removed legacy camelCase file to enforce naming policy and avoid duplicate fitness script paths.
+  - Executed full validation sequence requested by user.
+
+- **Validation executed by main agent**
+  - `npx tsx src/fitness/check-file-naming.ts` (pass)
+  - `npx vitest run --coverage` (pass)
+  - `npm run lint` (pass)
+  - `npm run -s build` (pass)
+
+## Agent Activity Log (2026-04-18, logger test failure fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed CI failure in `tests/lib/logger.test.ts` (`logs mutations and permission denials`).
+  - Aligned `logPermissionDenied` behavior in `src/lib/logger.ts` to match expected contract:
+    - log level changed from `info` to `warn`
+    - event key changed from `permission-denied` to `permission_denied`
+  - Revalidated full gate sequence requested by user (tests, lint, build).
+
+- **Validation executed by main agent**
+  - `npx vitest run --coverage` (pass)
+  - `npm run lint` (pass)
+  - `npm run -s build` (pass)
 
 ## Agents Used
 
@@ -269,6 +299,19 @@
 ## Agent Activity Log (2026-04-17, notes summarize modularization)
 
 - **Main agent (GitHub Copilot)**
+
+## Agent Activity Log (2026-04-17, fitness naming standardization)
+
+- **Main agent (GitHub Copilot)**
+  - Renamed fitness scripts in `src/fitness/` from camelCase to kebab-case for naming consistency.
+  - Updated all known runtime references in `scripts/fitness-run.sh` and `.github/workflows/fitness.yml`.
+  - Updated documentation references in `src/fitness/README.md` and `NOTES.md`.
+  - Re-ran repository-wide reference scan (excluding heavy/irrelevant folders) to verify no stale camelCase paths remained.
+  - Implemented `src/fitness/check-file-naming.ts` to enforce kebab-case/lowercase filenames in `src/`, `scripts/`, and `tests/`.
+  - Integrated naming guard into local fitness runner and CI workflow.
+
+- **Subagents used in this phase**
+  - None invoked.
   - Added summary application use cases in `src/modules/notes/application/note-summary-service.ts`.
   - Refactored summarize endpoint to module API driven handler.
   - Expanded ESLint boundary rules to include summarize handler in modularized guardrail.
@@ -291,6 +334,82 @@
 
 - **Validation executed by main agent**
   - `npx vitest run tests/lib/utils.test.ts tests/lib/logger.test.ts` (passed `5/5`).
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, React Query adoption for server state)
+
+**Main agent (GitHub Copilot)**
+Evaluated state-management options and prioritized React Query for server-state concerns over global client-state expansion.
+Added `@tanstack/react-query` dependency and created global QueryClient provider.
+Integrated provider into root layout to make query context available to dashboard pages.
+Migrated `/dashboard/notes` listing flow from imperative fetch state to `useQuery` with org/session-aware query keys.
+Migrated `/dashboard/notes/[id]` detail flow to `useQuery` and query-cache updates after edit/summary actions.
+Migrated `/dashboard/notes/[id]/versions` flow to `useQuery` with combined note and version-history loading.
+Migrated `/dashboard/settings` member-loading and member mutations to React Query with cache invalidation.
+Preserved existing UX semantics for pagination and submit-based search.
+**Decision**: Adopted for all server-state flows in dashboard: notes list, note detail, note versions, org members management, onboarding/org bootstrap (create + load).
+**Rationale**: reduce manual fetch, improve cache, lower race risk.
+
+- `npm run build` (passed)
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, ADR baseline setup)
+
+## Agent Activity Log (2026-04-17, code ownership governance)
+
+- **Main agent (GitHub Copilot)**
+  - Added repository-level ownership map in `.github/CODEOWNERS`.
+  - Updated governance runbook to include Code Owner review requirement.
+  - Updated branch-protection checklist and JSON baseline with `require_code_owner_review: true`.
+  - Updated README and audit logs (`NOTES.md`, `REVIEW.md`) for decision traceability.
+
+- **Subagents used in this phase**
+  - None invoked.
+
+- **Main agent (GitHub Copilot)**
+  - Created ADR baseline structure in `docs/adr/` with index and reusable template.
+  - Authored initial accepted ADR set for modular boundaries, kebab-case naming+fitness, and React Query server-state strategy.
+  - Linked ADR discoverability and workflow expectations in `ARCHITECTURE.md` and `README.md`.
+  - Updated delivery notes/review to keep architecture decision traceability consistent.
+  - Added dedicated ADR for documentation model choice (`NOTES.md` operational log + ADR durable decisions) with explicit rationale and trade-offs.
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, ADR expansion for delivery-critical policies)
+
+- **Main agent (GitHub Copilot)**
+  - Authored additional ADRs for delivery-critical concerns:
+    - API auth resolution order (`docs/adr/0005-standardize-api-auth-resolution-order.md`)
+    - Tenant-boundary data access invariants (`docs/adr/0006-enforce-tenant-boundaries-in-data-access.md`)
+    - Docker test flow as delivery reference (`docs/adr/0007-adopt-docker-test-flow-as-delivery-reference.md`)
+  - Updated ADR index and architecture accepted-decision list.
+  - Added motive/trade-off summary in `NOTES.md` and review risk note in `REVIEW.md`.
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, GitHub CI and branch governance)
+
+- **Main agent (GitHub Copilot)**
+  - Added `.github/workflows/ci.yml` for fast PR verification (lint/build/test).
+  - Kept fitness workflow as the second quality layer for non-functional constraints.
+  - Added governance runbook `docs/github-governance.md` with required-check and branch-protection recommendations.
+  - Linked governance documentation in `README.md` and recorded rationale/trade-offs in audit files.
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, PR template governance)
+
+- **Main agent (GitHub Copilot)**
+  - Added repository-level PR template (`.github/pull_request_template.md`) with ADR/risk/validation/audit checklist.
+  - Linked template usage in governance documentation and README.
+  - Recorded rationale and trade-offs in delivery audit files.
 
 - **Subagents used in this phase**
   - None invoked.

@@ -1,7 +1,9 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
 <!-- END:nextjs-agent-rules -->
 
 ## Audit Note (2026-04-17)
@@ -21,11 +23,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ### Audit Files Watch Policy
 
 - Keep these files continuously aligned with every relevant change:
-	- `AGENTS.md`
-	- `AI_USAGE.md`
-	- `NOTES.md`
-	- `BUGS.md`
-	- `REVIEW.md`
+  - `AGENTS.md`
+  - `AI_USAGE.md`
+  - `NOTES.md`
+  - `BUGS.md`
+  - `REVIEW.md`
 - Any infra, security, test orchestration, or production behavior change must be reflected in audit docs in the same delivery cycle.
 
 ### Pre-Completion Checklist (Required Before Declaring Done)
@@ -42,3 +44,18 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Avoid deep imports into another module's internal folders.
 - Keep route handlers (`src/app/api/**`) thin and focused on interface concerns.
 - Migrate business logic from handlers to module application/domain layers incrementally.
+
+### Naming Convention Policy
+
+- Use kebab-case for file names in TypeScript/JavaScript source and executable scripts (examples: `use-user-session.ts`, `check-test-coverage.ts`).
+- Keep directory naming aligned with existing module structure and framework constraints.
+- Why this is mandatory:
+  - Improves scanability and grep/search predictability across Linux-based CI and container environments.
+  - Reduces naming drift between modules, scripts, and workflow references.
+  - Prevents path mismatch regressions caused by mixed naming styles.
+
+### Code Ownership Policy
+
+- Keep `.github/CODEOWNERS` updated for architecture, API, security-sensitive, and governance paths.
+- Branch protection on `main` must require Code Owner review when CODEOWNERS is present.
+- If module boundaries change, update CODEOWNERS in the same delivery cycle.

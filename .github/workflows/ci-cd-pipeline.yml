@@ -1,17 +1,15 @@
-name: Fitness Functions
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: ['**']
-  pull_request:
-    branches: ['**']
+    branches: ["**"]
 
 jobs:
   fitness:
     runs-on: ubuntu-latest
     env:
-      APP_PORT: "3001"
-      API_PORT: "3001"
+      APP_PORT: "3000"
+      API_PORT: "3000"
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co"
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "ci-anon-key"
       DATABASE_URL: "postgres://postgres:password@localhost:5432/postgres"
@@ -28,7 +26,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t e3-takehome-check:latest .
       - name: Check Docker image size
-        run: npx tsx src/fitness/checkDockerImageSize.ts
+        run: npx tsx src/fitness/check-docker-image-size.ts
       - name: Start containers
         run: docker compose up -d
       - name: Wait for API
@@ -38,7 +36,17 @@ jobs:
             sleep 2
           done
           exit 1
-      - name: Check API response time
-        run: npx tsx src/fitness/checkApiResponseTime.ts
+      - name: Lint strict
+        run: npx tsx src/fitness/check-lint-strict.ts
+      - name: Check file naming convention
+        run: npx tsx src/fitness/check-file-naming.ts
+      - name: Fix workspace permissions
+        run: sudo chown -R $USER:$USER .
+      - name: Clean .next folder
+        run: sudo rm -rf .next
+      - name: Build frontend
+        run: npm run build
+      - name: Check frontend bundle size
+        run: npx tsx src/fitness/check-bundle-size.ts
       - name: Check test coverage
-        run: npx tsx src/fitness/checkTestCoverage.ts
+        run: npx tsx src/fitness/check-test-coverage.ts

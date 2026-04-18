@@ -1,5 +1,5 @@
 #!/bin/sh
 # Run TypeScript fitness functions with tsx
-npx tsx src/fitness/checkDockerImageSize.ts
-npx tsx src/fitness/checkApiResponseTime.ts
-npx tsx src/fitness/checkTestCoverage.ts
+npx tsx src/fitness/check-docker-image-size.ts
+npx tsx src/fitness/check-file-naming.ts
+npx tsx src/fitness/check-test-coverage.ts

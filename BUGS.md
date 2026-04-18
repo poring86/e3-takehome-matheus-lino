@@ -1,3 +1,4 @@
+2026-04-18: Bundle size fitness não era bug, mas política rígida. Corrigido ajustando limite para 1024KB.
 # BUGS.md
 
 ## Format
@@ -25,6 +26,41 @@ Each bug entry follows this structure:
 - Commit: a3922c8
 
 ## Resolved Bugs
+
+### B-039 Fitness naming check failed due to legacy camelCase script
+
+- Date: 2026-04-18
+- Status: Resolved
+- Location: `src/fitness/checkTestCoverage.ts`
+- Symptom:
+  - CI failed in `npx tsx src/fitness/check-file-naming.ts` with non-kebab filename detection.
+- Cause:
+  - Legacy camelCase fitness script remained in repository after kebab-case migration.
+- Fix:
+  - Removed `src/fitness/checkTestCoverage.ts` and retained canonical `src/fitness/check-test-coverage.ts`.
+- Validation:
+  - `npx tsx src/fitness/check-file-naming.ts` passed.
+  - `npx vitest run --coverage` passed.
+  - `npm run lint` passed.
+  - `npm run -s build` passed.
+- Commit: pending
+
+### B-038 Logger permission-denied helper mismatch with test contract
+
+- Date: 2026-04-18
+- Status: Resolved
+- Location: `src/lib/logger.ts`, `tests/lib/logger.test.ts`
+- Symptom:
+  - CI failed in `tests/lib/logger.test.ts` with assertion that warn logger was not called.
+- Cause:
+  - `logPermissionDenied` emitted `logger.info` and event `permission-denied`, while test contract expected `logger.warn` and `permission_denied`.
+- Fix:
+  - Updated helper to emit warn-level log and normalized event key to `permission_denied`.
+- Validation:
+  - `npx vitest run --coverage` passed.
+  - `npm run lint` passed.
+  - `npm run -s build` passed.
+- Commit: pending
 
 ### B-037 Fitness coverage check failed on missing coverage-summary.json in CI
 

@@ -34,20 +34,24 @@ This follows a component-first decomposition strategy to keep change localized a
 Use this layering model for new features:
 
 1. Interface Layer
+
 - `src/app/**`: pages and API route handlers.
 - Responsibilities: input parsing, auth/session extraction, HTTP response mapping.
 - Must not contain complex business rules.
 
 2. Domain/Application Layer
+
 - `src/modules/**` plus shared kernel in `src/lib/**` when truly cross-cutting.
 - Responsibilities: business rules, permission checks, orchestration.
 - Should be framework-light and testable.
 
 3. Data Layer
+
 - `src/lib/db.ts`, `drizzle/schema.ts`, SQL migrations.
 - Responsibilities: persistence, relational mapping, migration evolution.
 
 4. Infra/Cross-cutting
+
 - `src/lib/logger.ts`, deployment files, scripts.
 - Responsibilities: logging, runtime config, build/deploy/test orchestration.
 
@@ -60,6 +64,7 @@ Use this layering model for new features:
 - Component modules: `src/modules/**`
 - DB schema/migrations: `drizzle/**` and `supabase/migrations/**`
 - Test files: `tests/<domain>*.test.ts`
+- File naming convention: prefer kebab-case for source/script filenames (`check-test-coverage.ts`, `organization-service.ts`).
 
 ## Coupling Rules (Mandatory)
 
@@ -95,15 +100,30 @@ Use this layering model for new features:
 - Follow atomic commit policy from `AGENTS.md`.
 - Keep `AI_USAGE.md`, `NOTES.md`, `BUGS.md`, and `REVIEW.md` aligned with relevant architectural decisions.
 - Document architecture-impacting decisions in `NOTES.md` as decision logs.
+- Persist long-lived architecture decisions as ADRs in `docs/adr/`.
+
+## ADRs (Architecture Decision Records)
+
+- ADR index: `docs/adr/README.md`
+- Template: `docs/adr/0000-template.md`
+- Current accepted decisions:
+	- `docs/adr/0001-adopt-modular-monolith-boundaries.md`
+	- `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
+	- `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
+	- `docs/adr/0004-use-hybrid-notes-and-adr-documentation-model.md`
+	- `docs/adr/0005-standardize-api-auth-resolution-order.md`
+	- `docs/adr/0006-enforce-tenant-boundaries-in-data-access.md`
+	- `docs/adr/0007-adopt-docker-test-flow-as-delivery-reference.md`
 
 ## Decision Workflow
 
 When introducing architectural changes:
 
 1. Write a short decision note in `NOTES.md` with rationale.
-2. Update this file if conventions or boundaries changed.
-3. Update README if the change affects contributor or reviewer workflow.
-4. Validate with build + canonical Docker tests.
+2. Create/update an ADR in `docs/adr/` for long-lived decisions.
+3. Update this file if conventions or boundaries changed.
+4. Update README if the change affects contributor or reviewer workflow.
+5. Validate with build + canonical Docker tests.
 
 ## Migration Status (Incremental)
 
