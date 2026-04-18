@@ -24,7 +24,6 @@ function getBundleStats() {
 }
 
 try {
-  execSync("npm run build", { stdio: "ignore" });
   const bundleSizeKB = getBundleStats();
   if (bundleSizeKB > MAX_BUNDLE_KB) {
     console.error(
