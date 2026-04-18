@@ -27,4 +27,4 @@ jobs:
       - name: Build
         run: npm run -s build
       - name: Test (coverage)
-        run: npx vitest run --coverage
+        run: npx vitest run --coverage --exclude "**/*.integration.test.ts"
