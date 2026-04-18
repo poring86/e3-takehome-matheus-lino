@@ -72,19 +72,22 @@ async function seedDatabase() {
     }
     console.log(`Created ${orgs.length} organizations`);
 
-
     // Create sample users in Supabase Auth and DB
     const sampleUsers = [];
     for (let i = 1; i <= 20; i++) {
       const email = `user${i}@example.com`;
       // Cria usuário no Supabase Auth
-      const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password: DEFAULT_PASSWORD,
-        email_confirm: true,
-      });
+      const { data: authUser, error: authError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email,
+          password: DEFAULT_PASSWORD,
+          email_confirm: true,
+        });
       if (authError) {
-        console.error(`Erro ao criar usuário no Supabase Auth: ${email}`, authError);
+        console.error(
+          `Erro ao criar usuário no Supabase Auth: ${email}`,
+          authError,
+        );
         continue;
       }
       // Cria usuário na tabela users

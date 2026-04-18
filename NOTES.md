@@ -6,38 +6,109 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
+<<<<<<< HEAD
 ## Frontend State Decision Log (2026-04-17) - React Query adoption
 
 - Decision: Adopt TanStack React Query for server-state handling in dashboard data flows.
+## Security/Build Log (2026-04-17) - Safe Docker build without runtime secret injection
+
+- Decision:
+  - Do not inject real `DATABASE_URL` in Docker build stages.
+  - Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), and use a build-only non-secret placeholder for `DATABASE_URL` validation path.
 - Why:
-  - Remove repetitive manual fetch orchestration (`useEffect`, loading toggles, and response state wiring).
-  - Improve consistency and cache behavior for org-scoped paginated notes.
-  - Reduce auth/session race-condition surface in list refresh scenarios.
+  - Avoid leaking runtime DB credentials into image layers/history.
+  - Preserve successful `next build` in CI where server env modules are evaluated during compilation.
 - Implemented changes:
-  - Added dependency: `@tanstack/react-query`.
-  - Added global provider: `src/components/providers/query-provider.tsx`.
-  - Wired provider in root layout: `src/app/layout.tsx`.
-  - Migrated notes list fetch to `useQuery`: `src/app/dashboard/notes/page.tsx`.
-  - Migrated note detail fetch to `useQuery`: `src/app/dashboard/notes/[id]/page.tsx`.
-  - Migrated note versions flow to `useQuery`: `src/app/dashboard/notes/[id]/versions/page.tsx`.
-  - Migrated organization members management to React Query (`useQuery` + mutations with invalidation): `src/app/dashboard/settings/page.tsx`.
-  - Migrated onboarding/org bootstrap (create + load) to React Query: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
-  - Preserved UX behavior for search-by-submit and pagination.
-- Scope control note:
-  - React Query is being introduced incrementally to avoid broad refactor risk.
-  - Initial increment covered notes list; second increment covered detail and versions pages.
-  - Third increment covered organization settings member management.
-  - Fourth increment cobriu onboarding/org bootstrap (criação e seleção de organização) com React Query, eliminando fetch imperativo/manual.
+  - `Dockerfile`: restored builder `ARG`/`ENV` for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` only.
+  - `src/lib/env.ts`: added build-phase-only placeholder fallback for `DATABASE_URL` when `NEXT_PHASE=phase-production-build`.
+  - `README.md`: clarified that `DATABASE_URL` remains runtime-required and should not be injected as a real build secret.
 
-## Frontend State Validation Log (2026-04-17) - Onboarding/Org Bootstrap React Query
+## Security/Build Log (2026-04-17) - Standard lazy validation refactor
 
-- Scope: Migrated onboarding/org bootstrap (create + load) to React Query, garantindo consistência e cache global.
-- Files: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
+- Decision:
+  - Replace build-phase fake server env fallback with a standard lazy runtime validation approach.
+- Why:
+  - Avoid non-standard fake-server-env behavior while keeping build independent from runtime secrets.
+  - Enforce strict runtime validation without import-time side effects during `next build`.
+- Implemented changes:
+  - `src/lib/env.ts`: introduced cached lazy getters/proxies (`getClientEnv`, `getServerEnv`) and removed build-only `DATABASE_URL` fallback.
+  - `src/lib/db.ts`: switched DB initialization to lazy singleton via `getDb()` and proxy export to preserve existing call sites.
+
+## Security Incident Log (2026-04-17) - Secret exposure in commit history (remediated)
+
+- Incident:
+  - A temporary change injected sensitive server env handling in a way that was not acceptable for security review.
+  - A related commit (`fe78067a0c7eb45646977049f0280e70bd100fca`) became visible in branch history.
+- Remediation performed:
+  - Rewrote branch history to remove the offending commit from active refs.
+  - Force-pushed updated branch state and verified no local/remote refs contain the removed commit.
+  - Expired reflog and pruned local objects (`git reflog expire` + `git gc --prune=now --aggressive`).
+  - Implemented standard lazy env/db initialization approach to avoid repeating build-time secret handling mistakes.
+- Mandatory operational follow-up:
+  - Rotate any credential that may have been exposed during the incident window.
+
+## CI Reliability Log (2026-04-18) - Coverage summary generation in fitness check
+  - Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), and use a build-only non-secret placeholder for `DATABASE_URL` validation path.
+- Why:
+  - Avoid leaking runtime DB credentials into image layers/history.
+  - Preserve successful `next build` in CI where server env modules are evaluated during compilation.
+- Implemented changes:
+  - `Dockerfile`: restored builder `ARG`/`ENV` for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` only.
+  - `src/lib/env.ts`: added build-phase-only placeholder fallback for `DATABASE_URL` when `NEXT_PHASE=phase-production-build`.
+  - `README.md`: clarified that `DATABASE_URL` remains runtime-required and should not be injected as a real build secret.
+
+## Security/Build Log (2026-04-17) - Standard lazy validation refactor
+
+- Decision:
+  - Replace build-phase fake server env fallback with a standard lazy runtime validation approach.
+- Why:
+  - Avoid non-standard fake-server-env behavior while keeping build independent from runtime secrets.
+  - Enforce strict runtime validation without import-time side effects during `next build`.
+- Implemented changes:
+  - `src/lib/env.ts`: introduced cached lazy getters/proxies (`getClientEnv`, `getServerEnv`) and removed build-only `DATABASE_URL` fallback.
+  - `src/lib/db.ts`: switched DB initialization to lazy singleton via `getDb()` and proxy export to preserve existing call sites.
+
+## Security Incident Log (2026-04-17) - Secret exposure in commit history (remediated)
+
+- Incident:
+  - A temporary change injected sensitive server env handling in a way that was not acceptable for security review.
+  - A related commit (`fe78067a0c7eb45646977049f0280e70bd100fca`) became visible in branch history.
+- Remediation performed:
+  - Rewrote branch history to remove the offending commit from active refs.
+  - Force-pushed updated branch state and verified no local/remote refs contain the removed commit.
+  - Expired reflog and pruned local objects (`git reflog expire` + `git gc --prune=now --aggressive`).
+  - Implemented standard lazy env/db initialization approach to avoid repeating build-time secret handling mistakes.
+- Mandatory operational follow-up:
+  - Rotate any credential that may have been exposed during the incident window.
+
+## CI Reliability Log (2026-04-18) - Coverage summary generation in fitness check
+
+- Symptom:
+  - Fitness step `checkTestCoverage.ts` failed in CI with `Cannot find module '../../coverage/coverage-summary.json'`.
+- Root cause:
+  - Script assumed a relative `require(...)` path and default Vitest reporter output that was not deterministic in CI.
+- Fix:
+  - Forced coverage reporters in command execution: `json-summary` + `text`.
+  - Switched to deterministic file read using `process.cwd()/coverage/coverage-summary.json`.
+  - Replaced `require(...)` with typed JSON parsing and robust error handling.
 - Validation:
-  - `npm run build`: passed.
-  - `npx vitest run --coverage`: all unit tests passed, integration tests skipped due to missing env vars (expected).
-  - Dashboard e onboarding agora usam apenas estado cacheado do React Query para organizações.
-  - Nenhum fetch imperativo/manual remanescente para organizações.
+  - `npx tsx src/fitness/checkTestCoverage.ts` passed locally.
+
+## Infra Hotfix Log (2026-04-17) - Docker production build env validation
+
+- Decision: inject `NEXT_PUBLIC_SUPABASE_*` into Docker builder stage via `ARG`/`ENV` to prevent build-time env validation failure.
+- Why:
+  - Next.js build imports env-validated modules during route compilation.
+  - Without these variables in the builder stage, `npm run build` fails with `Invalid client environment variables`.
+- Implemented changes:
+  - `Dockerfile`: added builder-stage args/envs:
+    - `ARG NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`
+    - `ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=build-time-anon-key`
+    - mapped to `ENV` before `RUN npm run build`
+  - `README.md`: documented production build args for CI/CD.
+- Validation target:
+  - `docker build -t e3-takehome-check:latest .`
+>>>>>>> origin/main
 
 ## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
 

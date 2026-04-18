@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../../lib/auth-context';
+import { useUserSession } from '../../../../modules/auth';
+import { useCurrentOrg } from '../../../../modules/organization';
 import { ProtectedRoute } from '../../../../components/protected-route';
 import { Button } from '../../../../components/ui/button';
 import { Input } from '../../../../components/ui/input';
@@ -17,7 +18,8 @@ import LinkExtension from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
 
 function NewNoteContent() {
-  const { currentOrg, session } = useAuth();
+  const { currentOrg } = useCurrentOrg();
+  const { session } = useUserSession();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');

@@ -61,7 +61,9 @@ describe("logger helpers", () => {
     const errorSpy = vi.spyOn(logger, "error").mockImplementation(() => logger);
     const err = new Error("boom");
 
-    logAIRequest("summarize", "user-1", "org-1", "note-1", { provider: "openai" });
+    logAIRequest("summarize", "user-1", "org-1", "note-1", {
+      provider: "openai",
+    });
     logError(err, "summarize_note", "user-1", { noteId: "note-1" });
 
     expect(infoSpy).toHaveBeenCalledWith(

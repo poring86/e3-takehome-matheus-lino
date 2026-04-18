@@ -78,6 +78,57 @@
 - **Serial Verification**: Main agent reviews all generated code before committing
 - **Atomic Commits**: Each fix is committed separately with clear messages (tracked in git history)
 
+## Agent Activity Log (2026-04-17, Docker build env validation fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed production image build failure caused by missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` during Next.js build.
+  - Patched `Dockerfile` builder stage to inject build-time values via `ARG` and `ENV` before `npm run build`.
+  - Updated `README.md` with explicit `docker build --build-arg ...` guidance for CI/CD environments.
+
+- **Validation executed by main agent**
+  - `docker build -t e3-takehome-check:latest .` (target: pass after fix)
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Activity Log (2026-04-17, secure build secret handling)
+
+- **Main agent (GitHub Copilot)**
+  - Reworked Docker/validation strategy to avoid runtime secret injection in builder image layers.
+  - Kept build-time public vars (`NEXT_PUBLIC_SUPABASE_*`) in Docker builder stage.
+  - Replaced build-phase placeholder approach with standard lazy runtime env/db initialization (`src/lib/env.ts`, `src/lib/db.ts`).
+  - Updated `README.md` to document runtime-vs-build env expectations.
+
+- **Validation target**
+  - `docker build -t e3-takehome-check:latest .`
+
+- **Subagents used in this phase**
+  - None invoked.
+
+## Agent Incident Trace (2026-04-17)
+
+- A security-sensitive interim commit was introduced during build-fix iteration and later identified as unacceptable.
+- Mitigation actions executed:
+  - history rewrite to remove commit from active refs,
+  - force-push synchronization,
+  - local reflog/object cleanup,
+  - replacement with standard lazy env/db design.
+- Residual risk handling:
+  - documented requirement to rotate potentially exposed credentials.
+
+## Agent Activity Log (2026-04-18, CI coverage fitness fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed CI failure in `src/fitness/checkTestCoverage.ts` due to missing `coverage-summary.json` resolution.
+  - Updated fitness script to enforce deterministic Vitest coverage reporters.
+  - Replaced fragile relative `require(...)` with typed JSON file read from absolute coverage path.
+
+- **Validation executed by main agent**
+  - `npx tsx src/fitness/checkTestCoverage.ts` (passed)
+
+- **Subagents used in this phase**
+  - None invoked.
+
 ## Agent Activity Log (2026-04-16, Supabase-only migration phase)
 
 - **Main agent (GitHub Copilot)**

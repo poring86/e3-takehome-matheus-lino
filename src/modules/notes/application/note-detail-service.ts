@@ -12,7 +12,9 @@ import { logMutation, logPermissionDenied } from "@/lib/logger";
 
 type AccessError = "NOT_FOUND" | "ACCESS_DENIED";
 
-type AccessResult<T> = { ok: true; data: T } | { ok: false; error: AccessError };
+type AccessResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: AccessError };
 
 type UpdateNoteInput = {
   title?: string;
@@ -21,7 +23,11 @@ type UpdateNoteInput = {
 };
 
 async function resolveAccessibleNote(userId: string, noteId: string) {
-  const [note] = await db.select().from(notes).where(eq(notes.id, noteId)).limit(1);
+  const [note] = await db
+    .select()
+    .from(notes)
+    .where(eq(notes.id, noteId))
+    .limit(1);
 
   if (!note) {
     logPermissionDenied("note_access", userId, undefined, noteId, {
@@ -56,23 +62,23 @@ async function resolveAccessibleNote(userId: string, noteId: string) {
 export async function getNoteByIdForUser(
   userId: string,
   noteId: string,
-): Promise<AccessResult<{
-  id: string;
-  orgId: string;
-  title: string;
-  content: string | null;
-  visibility: "public" | "private" | "shared";
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-  author:
-    | {
-        id: string;
-        email: string;
-        fullName: string | null;
-      }
-    | null;
-}>> {
+): Promise<
+  AccessResult<{
+    id: string;
+    orgId: string;
+    title: string;
+    content: string | null;
+    visibility: "public" | "private" | "shared";
+    createdBy: string;
+    createdAt: Date;
+    updatedAt: Date;
+    author: {
+      id: string;
+      email: string;
+      fullName: string | null;
+    } | null;
+  }>
+> {
   const access = await resolveAccessibleNote(userId, noteId);
   if (!access.ok) {
     return access;
@@ -141,7 +147,8 @@ export async function updateNoteByIdForUser(
 
   const { note, orgMember } = access.data;
   const isAuthor = note.createdBy === userId;
-  const canEdit = isAuthor || orgMember.role === "admin" || orgMember.role === "owner";
+  const canEdit =
+    isAuthor || orgMember.role === "admin" || orgMember.role === "owner";
 
   if (!canEdit) {
     logPermissionDenied("update_note", userId, note.orgId, noteId, {
@@ -200,7 +207,8 @@ export async function deleteNoteByIdForUser(
 
   const { note, orgMember } = access.data;
   const isAuthor = note.createdBy === userId;
-  const canDelete = isAuthor || orgMember.role === "admin" || orgMember.role === "owner";
+  const canDelete =
+    isAuthor || orgMember.role === "admin" || orgMember.role === "owner";
 
   if (!canDelete) {
     logPermissionDenied("delete_note", userId, note.orgId, noteId, {
