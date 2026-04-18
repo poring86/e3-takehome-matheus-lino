@@ -58,7 +58,8 @@ try {
   }
 
   console.log("PASS: File naming convention check passed (kebab-case/lowercase).\nChecked: src/, scripts/, tests/");
-} catch (error: any) {
-  console.error("Could not check file naming convention:", error?.message || error);
+} catch (error: unknown) {
+  const msg = error instanceof Error ? error.message : String(error);
+  console.error("Could not check file naming convention:", msg);
   process.exit(2);
 }

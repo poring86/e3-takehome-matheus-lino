@@ -36,7 +36,8 @@ try {
       `PASS: Frontend bundle size is ${bundleSizeKB.toFixed(1)}KB gzipped (limit: ${MAX_BUNDLE_KB}KB)`,
     );
   }
-} catch (err: any) {
-  console.error("Could not check bundle size:", err.message);
+} catch (err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error("Could not check bundle size:", msg);
   process.exit(2);
 }

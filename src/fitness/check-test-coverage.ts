@@ -46,7 +46,8 @@ try {
       `PASS: Test coverage OK (statements: ${statements}%, branches: ${branches}%, functions: ${functions}%, lines: ${lines}%)`,
     );
   }
-} catch (err: any) {
-  console.error("Could not check test coverage:", err?.message || err);
+} catch (err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error("Could not check test coverage:", msg);
   process.exit(2);
 }
