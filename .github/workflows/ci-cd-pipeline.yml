@@ -1,4 +1,4 @@
-name: Fitness Functions
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: ["**"]
 
 jobs:
-  fitness:
+  ci-cd-pipeline:
     runs-on: ubuntu-latest
     env:
       APP_PORT: "3000"
