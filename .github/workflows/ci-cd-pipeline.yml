@@ -40,9 +40,9 @@ jobs:
         run: npx tsx src/fitness/check-lint-strict.ts
       - name: Check file naming convention
         run: npx tsx src/fitness/check-file-naming.ts
-      - name: Corrige permissões do workspace
+      - name: Fix workspace permissions
         run: sudo chown -R $USER:$USER .
-      - name: Limpa pasta .next
+      - name: Clean .next folder
         run: sudo rm -rf .next
       - name: Build frontend
         run: npm run build
