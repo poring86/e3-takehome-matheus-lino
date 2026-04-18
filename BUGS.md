@@ -26,6 +26,27 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-034 Production Docker build failed on missing NEXT_PUBLIC env vars
+
+- Date: 2026-04-17
+- Status: Resolved
+- Location: `Dockerfile` builder stage, `src/lib/env.ts` validation path
+- Symptom:
+  - `docker build` failed at `RUN npm run build` with:
+    - `Invalid client environment variables: NEXT_PUBLIC_SUPABASE_URL must be a valid URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY: expected string, received undefined`
+- Cause:
+  - Builder stage did not provide required `NEXT_PUBLIC_SUPABASE_*` variables.
+  - Next.js collected route/page data during build and evaluated modules that validate env vars eagerly.
+- Fix:
+  - Added builder-stage `ARG` + `ENV` for:
+    - `NEXT_PUBLIC_SUPABASE_URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - Added README guidance for passing these values as Docker build args in CI/CD.
+- Validation:
+  - `docker build -t e3-takehome-check:latest .` (pass expected after patch)
+- Commit: pending
+
 ### B-033 Full Docker test suite failed intermittently due to hook timeout
 
 - Date: 2026-04-17

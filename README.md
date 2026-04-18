@@ -109,6 +109,20 @@ Expected impact:
 - Reduced attack surface in runtime container.
 - Cleaner separation between build-time and runtime concerns.
 
+Build-time note:
+
+- The production `Dockerfile` validates client env variables during `npm run build`.
+- If your CI/CD does not inject `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`, pass them as build args.
+
+Example:
+
+```bash
+docker build \
+	--build-arg NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co \
+	--build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key \
+	-t e3-takehome-check:latest .
+```
+
 ## Useful Scripts
 
 ```bash

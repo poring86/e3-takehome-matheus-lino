@@ -6,6 +6,21 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
+## Infra Hotfix Log (2026-04-17) - Docker production build env validation
+
+- Decision: inject `NEXT_PUBLIC_SUPABASE_*` into Docker builder stage via `ARG`/`ENV` to prevent build-time env validation failure.
+- Why:
+  - Next.js build imports env-validated modules during route compilation.
+  - Without these variables in the builder stage, `npm run build` fails with `Invalid client environment variables`.
+- Implemented changes:
+  - `Dockerfile`: added builder-stage args/envs:
+    - `ARG NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`
+    - `ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=build-time-anon-key`
+    - mapped to `ENV` before `RUN npm run build`
+  - `README.md`: documented production build args for CI/CD.
+- Validation target:
+  - `docker build -t e3-takehome-check:latest .`
+
 ## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
 
 - Decision: Set test coverage fitness threshold to a practical baseline (60%) with env override support.

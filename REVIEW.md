@@ -72,3 +72,9 @@
 - Added coverage fitness gate calibrated to a practical baseline (60%) with env override (`MIN_TEST_COVERAGE`) for progressive hardening.
 - Added focused helper unit tests (`utils` and `logger`) to raise baseline coverage without introducing API behavior risk.
 - Hardened fitness CI workflow by adding explicit dependency installation (`npm ci`) before fitness build/run steps.
+
+## Build Reliability Update (2026-04-17)
+
+- Reviewed production Docker build failure mode caused by missing `NEXT_PUBLIC_SUPABASE_*` at build time.
+- Added builder-stage env injection in `Dockerfile` so Next.js env validation does not fail during route/page data collection.
+- Documented explicit `--build-arg` usage in README for CI/CD parity across environments.

@@ -78,6 +78,19 @@
 - **Serial Verification**: Main agent reviews all generated code before committing
 - **Atomic Commits**: Each fix is committed separately with clear messages (tracked in git history)
 
+## Agent Activity Log (2026-04-17, Docker build env validation fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed production image build failure caused by missing `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` during Next.js build.
+  - Patched `Dockerfile` builder stage to inject build-time values via `ARG` and `ENV` before `npm run build`.
+  - Updated `README.md` with explicit `docker build --build-arg ...` guidance for CI/CD environments.
+
+- **Validation executed by main agent**
+  - `docker build -t e3-takehome-check:latest .` (target: pass after fix)
+
+- **Subagents used in this phase**
+  - None invoked.
+
 ## Agent Activity Log (2026-04-16, Supabase-only migration phase)
 
 - **Main agent (GitHub Copilot)**
