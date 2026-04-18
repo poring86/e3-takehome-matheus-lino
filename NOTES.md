@@ -1,6 +1,7 @@
 ### 2026-04-18: Bundle size fitness
 
 O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas de otimização. Ajustado para 1024KB, documentando que o foco do desafio é engenharia e governança, não performance extrema. Futuramente, pode-se reavaliar e otimizar o bundle.
+
 # NOTES.md — Agent Scratchpad
 
 ## Fitness Naming Log (2026-04-18) - Duplicate legacy script removal
@@ -36,10 +37,10 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
-
 ## Frontend State Decision Log (2026-04-17) - React Query adoption
 
 - Decision: Adopt TanStack React Query for server-state handling in dashboard data flows.
+
 ## Security/Build Log (2026-04-17) - Safe Docker build without runtime secret injection
 
 - Decision:
@@ -78,7 +79,8 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
   - Rotate any credential that may have been exposed during the incident window.
 
 ## CI Reliability Log (2026-04-18) - Coverage summary generation in fitness check
-  - Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), and use a build-only non-secret placeholder for `DATABASE_URL` validation path.
+
+- Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), and use a build-only non-secret placeholder for `DATABASE_URL` validation path.
 - Why:
   - Avoid leaking runtime DB credentials into image layers/history.
   - Preserve successful `next build` in CI where server env modules are evaluated during compilation.
@@ -138,7 +140,6 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
   - `README.md`: documented production build args for CI/CD.
 - Validation target:
   - `docker build -t e3-takehome-check:latest .`
-
 
 ## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
 
@@ -237,7 +238,6 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
   - Linked usage in `docs/github-governance.md` and `README.md`.
 
   ## Code Ownership Governance Log (2026-04-17)
-
   - Decision: enforce path-based review ownership with repository-level `CODEOWNERS`.
   - Why:
     - Ensure security-sensitive paths always route to accountable reviewers.

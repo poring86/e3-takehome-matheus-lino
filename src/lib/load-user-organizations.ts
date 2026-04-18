@@ -1,4 +1,3 @@
-
 import { supabase } from "./supabase-client";
 
 export type Membership = {
@@ -13,7 +12,9 @@ export type Membership = {
 async function loadOrganizationsFallback(userId: string) {
   const { data: memberships, error } = await supabase
     .from("org_members")
-    .select("id, org_id, user_id, role, joined_at, organizations(id, name, created_at)")
+    .select(
+      "id, org_id, user_id, role, joined_at, organizations(id, name, created_at)",
+    )
     .eq("user_id", userId);
 
   if (error || !memberships || memberships.length === 0) {
@@ -49,21 +50,21 @@ async function loadOrganizationsFallback(userId: string) {
     );
   }
 
-  const orgs: Membership[] = (memberships as unknown[])
-    .flatMap((member) => {
-      if (!isMembership(member)) return [];
-      type OrgRaw = { id: string | number; name: string; created_at: string };
-      type MemberRaw = {
-        id: string | number;
-        org_id: string | number;
-        user_id: string | number;
-        role: string;
-        joined_at: string;
-        organizations?: OrgRaw;
-      };
-      const m = member as MemberRaw;
-      if (!m.organizations) return [];
-      return [{
+  const orgs: Membership[] = (memberships as unknown[]).flatMap((member) => {
+    if (!isMembership(member)) return [];
+    type OrgRaw = { id: string | number; name: string; created_at: string };
+    type MemberRaw = {
+      id: string | number;
+      org_id: string | number;
+      user_id: string | number;
+      role: string;
+      joined_at: string;
+      organizations?: OrgRaw;
+    };
+    const m = member as MemberRaw;
+    if (!m.organizations) return [];
+    return [
+      {
         id: String(m.id),
         org_id: String(m.org_id),
         user_id: String(m.user_id),
@@ -74,8 +75,9 @@ async function loadOrganizationsFallback(userId: string) {
           name: m.organizations.name,
           created_at: m.organizations.created_at,
         },
-      }];
-    });
+      },
+    ];
+  });
 
   if (orgs.length === 0) {
     return { orgs: [], currentOrg: null };
@@ -121,9 +123,9 @@ export async function loadUserOrganizations(userId: string) {
     return loadOrganizationsFallback(userId);
   }
 
-  const memberships: Membership[] = ((data.memberships || []) as Membership[]).filter(
-    (member) => member.user_id === userId,
-  );
+  const memberships: Membership[] = (
+    (data.memberships || []) as Membership[]
+  ).filter((member) => member.user_id === userId);
 
   if (!memberships || memberships.length === 0) {
     return { orgs: [], currentOrg: null };
