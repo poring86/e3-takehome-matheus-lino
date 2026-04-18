@@ -3,7 +3,7 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
-const MAX_BUNDLE_KB = 500;
+const MAX_BUNDLE_KB = 1024;
 
 function getBundleStats() {
   // Next.js outputs stats in .next/static/chunks

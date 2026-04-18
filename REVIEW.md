@@ -1,3 +1,4 @@
+2026-04-18: Limite de bundle size ajustado para 1024KB. Todos os testes, lint, build e fitness functions passam. Decisão documentada para manter rastreabilidade.
 # REVIEW.md
 
 ## Naming Governance Update (2026-04-18)
@@ -168,4 +169,4 @@
 - Fixed coverage fitness check fragility caused by non-deterministic summary file generation/lookup.
 - Coverage step now enforces JSON summary reporter and reads summary from deterministic absolute path.
 - Result: fitness coverage gate behavior aligned between local and CI execution.
-  > > > > > > > origin/main
+

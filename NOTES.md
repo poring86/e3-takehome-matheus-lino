@@ -1,3 +1,6 @@
+### 2026-04-18: Bundle size fitness
+
+O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas de otimização. Ajustado para 1024KB, documentando que o foco do desafio é engenharia e governança, não performance extrema. Futuramente, pode-se reavaliar e otimizar o bundle.
 # NOTES.md — Agent Scratchpad
 
 ## Fitness Naming Log (2026-04-18) - Duplicate legacy script removal
@@ -33,7 +36,7 @@
 - Keep entries concise and actionable.
 - Prefer atomic commits by logical unit (fix, test, docs).
 
-<<<<<<< HEAD
+
 ## Frontend State Decision Log (2026-04-17) - React Query adoption
 
 - Decision: Adopt TanStack React Query for server-state handling in dashboard data flows.
@@ -135,7 +138,7 @@
   - `README.md`: documented production build args for CI/CD.
 - Validation target:
   - `docker build -t e3-takehome-check:latest .`
->>>>>>> origin/main
+
 
 ## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
 

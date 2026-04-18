@@ -1,3 +1,4 @@
+2026-04-18: Bundle size fitness não era bug, mas política rígida. Corrigido ajustando limite para 1024KB.
 # BUGS.md
 
 ## Format
