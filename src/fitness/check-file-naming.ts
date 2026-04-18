@@ -3,7 +3,14 @@ import fs from "fs";
 import path from "path";
 
 const CHECKED_DIRECTORIES = ["src/", "scripts/", "tests/"];
-const CHECKED_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".mjs", ".cjs", ".sh"]);
+const CHECKED_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".mjs",
+  ".cjs",
+  ".sh",
+]);
 const ALLOWED_NAME_PATTERN =
   /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\.[a-z0-9]+(?:-[a-z0-9]+)*)*$/;
 
@@ -49,16 +56,23 @@ try {
   const violations = findViolations(trackedFiles);
 
   if (violations.length > 0) {
-    console.error("FAIL: Non-kebab-case filenames detected in source/script scope.");
-    console.error("Rename these files to lowercase/kebab-case (camelCase and PascalCase are not allowed):");
+    console.error(
+      "FAIL: Non-kebab-case filenames detected in source/script scope.",
+    );
+    console.error(
+      "Rename these files to lowercase/kebab-case (camelCase and PascalCase are not allowed):",
+    );
     for (const file of violations) {
       console.error(`- ${file}`);
     }
     process.exit(1);
   }
 
-  console.log("PASS: File naming convention check passed (kebab-case/lowercase).\nChecked: src/, scripts/, tests/");
-} catch (error: any) {
-  console.error("Could not check file naming convention:", error?.message || error);
+  console.log(
+    "PASS: File naming convention check passed (kebab-case/lowercase).\nChecked: src/, scripts/, tests/",
+  );
+} catch (error: unknown) {
+  const msg = error instanceof Error ? error.message : String(error);
+  console.error("Could not check file naming convention:", msg);
   process.exit(2);
 }

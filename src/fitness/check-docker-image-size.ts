@@ -20,7 +20,8 @@ try {
       `PASS: Docker image ${IMAGE} is ${sizeMB.toFixed(1)}MB (limit: ${MAX_SIZE_MB}MB)`,
     );
   }
-} catch (err: any) {
-  console.error("Could not inspect Docker image:", err.message);
+} catch (err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error("Could not inspect Docker image:", msg);
   process.exit(2);
 }

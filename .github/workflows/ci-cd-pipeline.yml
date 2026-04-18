@@ -2,20 +2,20 @@ name: CI/CD Pipeline
 
 on:
   push:
+<<<<<<< HEAD
     branches-ignore:
       - main
+=======
+    branches: ["**"]
+>>>>>>> origin/main
 
 jobs:
         push:
           branches-ignore:
             - main
     env:
-      APP_PORT: "3000"
-      API_PORT: "3000"
-      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co"
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "ci-anon-key"
-      DATABASE_URL: "postgres://postgres:password@localhost:5432/postgres"
-    steps:
+        branches-ignore:
+          - main
       - uses: actions/checkout@v4
       - name: Set up Node.js
         uses: actions/setup-node@v4

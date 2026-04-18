@@ -15,9 +15,12 @@ dotenv.config({ path: ".env.test", override: true });
 
 try {
   // Run coverage with explicit reporters so summary JSON is always produced.
-  execSync("npx vitest run --coverage --coverage.reporter=text --coverage.reporter=json-summary", {
-    stdio: "inherit",
-  });
+  execSync(
+    "npx vitest run --coverage --coverage.reporter=text --coverage.reporter=json-summary",
+    {
+      stdio: "inherit",
+    },
+  );
 
   if (!fs.existsSync(coverageSummaryPath)) {
     console.error(
@@ -46,7 +49,8 @@ try {
       `PASS: Test coverage OK (statements: ${statements}%, branches: ${branches}%, functions: ${functions}%, lines: ${lines}%)`,
     );
   }
-} catch (err: any) {
-  console.error("Could not check test coverage:", err?.message || err);
+} catch (err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error("Could not check test coverage:", msg);
   process.exit(2);
 }

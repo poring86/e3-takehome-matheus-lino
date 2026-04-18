@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import supertest from "supertest";
-import fs from "fs";
-import path from "path";
+// import fs from "fs"; // Removido: não utilizado
+// import path from "path"; // Removido: não utilizado
 
 const api = supertest("http://localhost:3000");
 
