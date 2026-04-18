@@ -18,23 +18,24 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
   - `npm run -s build` passed.
 
   - `README.md`: documented production build args for CI/CD.
+
   ## Frontend State Decision Log (2026-04-17) - React Query adoption
-    - Remove repetitive manual fetch orchestration (`useEffect`, loading toggles, and response state wiring).
-    - Improve consistency and cache behavior for org-scoped paginated notes.
-    - Reduce auth/session race-condition surface in list refresh scenarios.
-    - Added dependency: `@tanstack/react-query`.
-    - Added global provider: `src/components/providers/query-provider.tsx`.
-    - Wired provider in root layout: `src/app/layout.tsx`.
-    - Migrated notes list fetch to `useQuery`: `src/app/dashboard/notes/page.tsx`.
-    - Migrated note detail fetch to `useQuery`: `src/app/dashboard/notes/[id]/page.tsx`.
-    - Migrated note versions flow to `useQuery`: `src/app/dashboard/notes/[id]/versions/page.tsx`.
-    - Migrated organization members management to React Query (`useQuery` + mutations with invalidation): `src/app/dashboard/settings/page.tsx`.
-    - Migrated onboarding/org bootstrap (create + load) to React Query: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
-    - Preserved UX behavior for search-by-submit and pagination.
-    - React Query is being introduced incrementally to avoid broad refactor risk.
-    - Initial increment covered notes list; second increment covered detail and versions pages.
-    - Third increment covered organization settings member management.
-    - Fourth increment cobriu onboarding/org bootstrap (criação e seleção de organização) com React Query, eliminando fetch imperativo/manual.
+  - Remove repetitive manual fetch orchestration (`useEffect`, loading toggles, and response state wiring).
+  - Improve consistency and cache behavior for org-scoped paginated notes.
+  - Reduce auth/session race-condition surface in list refresh scenarios.
+  - Added dependency: `@tanstack/react-query`.
+  - Added global provider: `src/components/providers/query-provider.tsx`.
+  - Wired provider in root layout: `src/app/layout.tsx`.
+  - Migrated notes list fetch to `useQuery`: `src/app/dashboard/notes/page.tsx`.
+  - Migrated note detail fetch to `useQuery`: `src/app/dashboard/notes/[id]/page.tsx`.
+  - Migrated note versions flow to `useQuery`: `src/app/dashboard/notes/[id]/versions/page.tsx`.
+  - Migrated organization members management to React Query (`useQuery` + mutations with invalidation): `src/app/dashboard/settings/page.tsx`.
+  - Migrated onboarding/org bootstrap (create + load) to React Query: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
+  - Preserved UX behavior for search-by-submit and pagination.
+  - React Query is being introduced incrementally to avoid broad refactor risk.
+  - Initial increment covered notes list; second increment covered detail and versions pages.
+  - Third increment covered organization settings member management.
+  - Fourth increment cobriu onboarding/org bootstrap (criação e seleção de organização) com React Query, eliminando fetch imperativo/manual.
 
   ## Frontend State Validation Log (2026-04-17) - Onboarding/Org Bootstrap React Query
   - Scope: Migrated onboarding/org bootstrap (create + load) to React Query, garantindo consistência e cache global.
@@ -46,39 +47,39 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
     - Nenhum fetch imperativo/manual remanescente para organizações.
 
   ## Security/Build Log (2026-04-17) - Safe Docker build without runtime secret injection
-    - Do not inject real `DATABASE_URL` in Docker build stages.
-    - Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), e use um placeholder não-secreto para `DATABASE_URL` apenas para validação de build.
-    - Avoid leaking runtime DB credentials into image layers/history.
-    - Preserve successful `next build` em CI onde módulos de env do servidor são avaliados na compilação.
-    - `Dockerfile`: restaurado builder `ARG`/`ENV` para `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` apenas.
-    - `src/lib/env.ts`: adicionado fallback de placeholder para `DATABASE_URL` apenas na build-phase quando `NEXT_PHASE=phase-production-build`.
-    - `README.md`: esclarecido que `DATABASE_URL` segue obrigatório em runtime e não deve ser injetado como segredo real na build.
+  - Do not inject real `DATABASE_URL` in Docker build stages.
+  - Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), e use um placeholder não-secreto para `DATABASE_URL` apenas para validação de build.
+  - Avoid leaking runtime DB credentials into image layers/history.
+  - Preserve successful `next build` em CI onde módulos de env do servidor são avaliados na compilação.
+  - `Dockerfile`: restaurado builder `ARG`/`ENV` para `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` apenas.
+  - `src/lib/env.ts`: adicionado fallback de placeholder para `DATABASE_URL` apenas na build-phase quando `NEXT_PHASE=phase-production-build`.
+  - `README.md`: esclarecido que `DATABASE_URL` segue obrigatório em runtime e não deve ser injetado como segredo real na build.
 
   ## Security/Build Log (2026-04-17) - Standard lazy validation refactor
-    - Replace build-phase fake server env fallback com lazy runtime validation padrão.
-    - Evita comportamento não padrão de fake-server-env mantendo build independente de segredos de runtime.
-    - Enforce validação estrita em runtime sem efeitos colaterais de import durante `next build`.
-    - `src/lib/env.ts`: introduzido getters/proxies lazy cacheados (`getClientEnv`, `getServerEnv`) e removido fallback de build-only para `DATABASE_URL`.
-    - `src/lib/db.ts`: inicialização do DB agora é singleton lazy via `getDb()` e export proxy para preservar call sites existentes.
+  - Replace build-phase fake server env fallback com lazy runtime validation padrão.
+  - Evita comportamento não padrão de fake-server-env mantendo build independente de segredos de runtime.
+  - Enforce validação estrita em runtime sem efeitos colaterais de import durante `next build`.
+  - `src/lib/env.ts`: introduzido getters/proxies lazy cacheados (`getClientEnv`, `getServerEnv`) e removido fallback de build-only para `DATABASE_URL`.
+  - `src/lib/db.ts`: inicialização do DB agora é singleton lazy via `getDb()` e export proxy para preservar call sites existentes.
 
   ## Security Incident Log (2026-04-17) - Secret exposure in commit history (remediated)
-    - Uma alteração temporária injetou manipulação sensível de env do servidor de forma não aceitável para revisão de segurança.
-    - Um commit relacionado (`fe78067a0c7eb45646977049f0280e70bd100fca`) ficou visível no histórico da branch.
-    - Histórico da branch foi reescrito para remover o commit ofensivo dos refs ativos.
-    - Force-push realizado e verificado que nenhum ref local/remoto contém o commit removido.
-    - Reflog expirado e objetos locais podados (`git reflog expire` + `git gc --prune=now --aggressive`).
-    - Implementado padrão lazy env/db initialization para evitar repetição do erro de build-time secret handling.
-    - Rotacionar qualquer credencial que possa ter sido exposta no período do incidente.
+  - Uma alteração temporária injetou manipulação sensível de env do servidor de forma não aceitável para revisão de segurança.
+  - Um commit relacionado (`fe78067a0c7eb45646977049f0280e70bd100fca`) ficou visível no histórico da branch.
+  - Histórico da branch foi reescrito para remover o commit ofensivo dos refs ativos.
+  - Force-push realizado e verificado que nenhum ref local/remoto contém o commit removido.
+  - Reflog expirado e objetos locais podados (`git reflog expire` + `git gc --prune=now --aggressive`).
+  - Implementado padrão lazy env/db initialization para evitar repetição do erro de build-time secret handling.
+  - Rotacionar qualquer credencial que possa ter sido exposta no período do incidente.
 
   ## Infra Hotfix Log (2026-04-17) - Docker production build env validation
-    - Next.js build importa módulos validados por env durante a compilação das rotas.
-    - Sem essas variáveis no builder, `npm run build` falha com `Invalid client environment variables`.
-    - `Dockerfile`: adicionado args/envs no builder:
-      - `ARG NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`
-      - `ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=build-time-anon-key`
-      - mapeados para `ENV` antes do `RUN npm run build`
-    - `README.md`: documentado uso de build args para produção no CI/CD.
-    - `docker build -t e3-takehome-check:latest .`
+  - Next.js build importa módulos validados por env durante a compilação das rotas.
+  - Sem essas variáveis no builder, `npm run build` falha com `Invalid client environment variables`.
+  - `Dockerfile`: adicionado args/envs no builder:
+    - `ARG NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`
+    - `ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=build-time-anon-key`
+    - mapeados para `ENV` antes do `RUN npm run build`
+  - `README.md`: documentado uso de build args para produção no CI/CD.
+  - `docker build -t e3-takehome-check:latest .`
   - Wired provider in root layout: `src/app/layout.tsx`.
   - Migrated notes list fetch to `useQuery`: `src/app/dashboard/notes/page.tsx`.
   - Migrated note detail fetch to `useQuery`: `src/app/dashboard/notes/[id]/page.tsx`.
@@ -100,8 +101,8 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
   - `npx vitest run --coverage`: all unit tests passed, integration tests skipped due to missing env vars (expected).
   - Dashboard e onboarding agora usam apenas estado cacheado do React Query para organizações.
   - Nenhum fetch imperativo/manual remanescente para organizações.
->>>>>>> main
-=======
+    > > > > > > > # main
+
 ## Frontend State Decision Log (2026-04-17) - React Query adoption
 
 - Decision: Adopt TanStack React Query for server-state handling in dashboard data flows.
@@ -205,7 +206,7 @@ O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas 
   - `README.md`: documented production build args for CI/CD.
 - Validation target:
   - `docker build -t e3-takehome-check:latest .`
->>>>>>> origin/main
+    > > > > > > > origin/main
 
 ## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
 

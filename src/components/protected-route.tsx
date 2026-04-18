@@ -13,11 +13,11 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, requireOrg = false }: ProtectedRouteProps) {
   const { user, loading } = useUserSession();
-  const { currentOrg } = useCurrentOrg();
+  const { currentOrg, loading: orgLoading } = useCurrentOrg();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !orgLoading) {
       if (!user) {
         router.push('/auth/signin');
         return;
@@ -28,9 +28,9 @@ export function ProtectedRoute({ children, requireOrg = false }: ProtectedRouteP
         return;
       }
     }
-  }, [user, loading, currentOrg, requireOrg, router]);
+  }, [user, loading, orgLoading, currentOrg, requireOrg, router]);
 
-  if (loading) {
+  if (loading || orgLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

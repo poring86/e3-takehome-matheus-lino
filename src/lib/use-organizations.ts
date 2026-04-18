@@ -1,17 +1,25 @@
+
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "./supabase-client";
 
 export function useOrganizations(userId?: string) {
   return useQuery({
     queryKey: ["organizations", userId],
     queryFn: async () => {
       if (!userId) return { orgs: [], currentOrg: null };
+      // Recupera o access_token do Supabase
+      const { data } = await supabase.auth.getSession();
+      const access_token = data?.session?.access_token;
       const res = await fetch("/api/organizations", {
         method: "GET",
         cache: "no-store",
         credentials: "include",
+        headers: {
+          ...(access_token ? { Authorization: `Bearer ${access_token}` } : {}),
+        },
       });
       if (!res.ok) throw new Error("Failed to load organizations");
-      const data = await res.json();
+      const dataJson = await res.json();
       type Membership = {
         id: string;
         org_id: string;
@@ -21,7 +29,7 @@ export function useOrganizations(userId?: string) {
         organizations?: { id: string; name: string; created_at: string };
       };
       const memberships: Membership[] = (
-        (data.memberships || []) as Membership[]
+        (dataJson.memberships || []) as Membership[]
       ).filter((m) => m.user_id === userId);
       if (!memberships.length) return { orgs: [], currentOrg: null };
       const lastOrgId = localStorage.getItem("currentOrgId");
