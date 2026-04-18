@@ -2,16 +2,16 @@ name: Fitness Functions
 
 on:
   push:
-    branches: ['**']
+    branches: ["**"]
   pull_request:
-    branches: ['**']
+    branches: ["**"]
 
 jobs:
   fitness:
     runs-on: ubuntu-latest
     env:
-      APP_PORT: "3001"
-      API_PORT: "3001"
+      APP_PORT: "3000"
+      API_PORT: "3000"
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co"
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "ci-anon-key"
       DATABASE_URL: "postgres://postgres:password@localhost:5432/postgres"
