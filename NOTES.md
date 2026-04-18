@@ -1,5 +1,18 @@
 # NOTES.md — Agent Scratchpad
 
+## Test Reliability Log (2026-04-18) - Logger permission event alignment
+
+- Symptom:
+  - `tests/lib/logger.test.ts` failed on `logs mutations and permission denials` expecting warn-level call and `permission_denied` event.
+- Root cause:
+  - `logPermissionDenied` was emitting `info` with event value `permission-denied`.
+- Decision/Fix:
+  - Standardized logger helper to emit `warn` and event `permission_denied` to align helper contract and tests.
+- Validation:
+  - `npx vitest run --coverage` passed.
+  - `npm run lint` passed.
+  - `npm run -s build` passed.
+
 ## Documentation Guardrails
 
 - Keep all code, comments, and documentation in English only.

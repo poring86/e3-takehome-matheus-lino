@@ -1,5 +1,19 @@
 # AI_USAGE.md
 
+## Agent Activity Log (2026-04-18, logger test failure fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed CI failure in `tests/lib/logger.test.ts` (`logs mutations and permission denials`).
+  - Aligned `logPermissionDenied` behavior in `src/lib/logger.ts` to match expected contract:
+    - log level changed from `info` to `warn`
+    - event key changed from `permission-denied` to `permission_denied`
+  - Revalidated full gate sequence requested by user (tests, lint, build).
+
+- **Validation executed by main agent**
+  - `npx vitest run --coverage` (pass)
+  - `npm run lint` (pass)
+  - `npm run -s build` (pass)
+
 ## Agents Used
 
 - Main agent: GitHub Copilot - overall coordination, planning, and review

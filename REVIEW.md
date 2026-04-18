@@ -1,5 +1,11 @@
 # REVIEW.md
 
+## Test Contract Consistency Update (2026-04-18)
+
+- Fixed logger helper/test contract drift for permission-denied events.
+- `logPermissionDenied` now uses warn level with `permission_denied` event naming, matching assertions and intended severity.
+- Residual risk: future event-name/level changes in logger helpers should be accompanied by synchronized test updates to avoid silent contract drift.
+
 ## What Was Reviewed Deeply
 
 - **Multi-tenant isolation:** orgId enforcement across all queries, role-based permissions (owner/admin/member)

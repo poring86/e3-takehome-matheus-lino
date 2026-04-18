@@ -26,6 +26,23 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-038 Logger permission-denied helper mismatch with test contract
+
+- Date: 2026-04-18
+- Status: Resolved
+- Location: `src/lib/logger.ts`, `tests/lib/logger.test.ts`
+- Symptom:
+  - CI failed in `tests/lib/logger.test.ts` with assertion that warn logger was not called.
+- Cause:
+  - `logPermissionDenied` emitted `logger.info` and event `permission-denied`, while test contract expected `logger.warn` and `permission_denied`.
+- Fix:
+  - Updated helper to emit warn-level log and normalized event key to `permission_denied`.
+- Validation:
+  - `npx vitest run --coverage` passed.
+  - `npm run lint` passed.
+  - `npm run -s build` passed.
+- Commit: pending
+
 ### B-037 Fitness coverage check failed on missing coverage-summary.json in CI
 
 - Date: 2026-04-18
