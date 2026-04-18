@@ -12,7 +12,8 @@ try {
     "stdout" in err &&
     typeof (err as { stdout?: unknown }).stdout === "object" &&
     (err as { stdout?: unknown }).stdout &&
-    typeof (err as { stdout: { toString: () => string } }).stdout.toString === "function"
+    typeof (err as { stdout: { toString: () => string } }).stdout.toString ===
+      "function"
   ) {
     output = (err as { stdout: { toString: () => string } }).stdout.toString();
   } else if (err instanceof Error) {

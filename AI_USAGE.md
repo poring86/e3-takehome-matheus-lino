@@ -1,6 +1,7 @@
 ## 2026-04-18: Ajuste do limite de bundle size
 
 O limite da fitness function de bundle size foi aumentado de 500KB para 1024KB para refletir um cenário realista de aplicações Next.js modernas, mantendo preocupação com performance sem travar o fluxo de desenvolvimento.
+
 # AI_USAGE.md
 
 ## Agent Activity Log (2026-04-18, fitness naming gate fix)
