@@ -6,8 +6,15 @@ try {
   console.log("PASS: Lint passed with no errors or warnings.");
 } catch (err: unknown) {
   let output = "";
-  if (err && typeof err === "object" && "stdout" in err && typeof (err as any).stdout?.toString === "function") {
-    output = (err as any).stdout.toString();
+  if (
+    err &&
+    typeof err === "object" &&
+    "stdout" in err &&
+    typeof (err as { stdout?: unknown }).stdout === "object" &&
+    (err as { stdout?: unknown }).stdout &&
+    typeof (err as { stdout: { toString: () => string } }).stdout.toString === "function"
+  ) {
+    output = (err as { stdout: { toString: () => string } }).stdout.toString();
   } else if (err instanceof Error) {
     output = err.message;
   } else {

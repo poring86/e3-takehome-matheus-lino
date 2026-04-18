@@ -95,7 +95,7 @@ export const logError = (
   error: Error,
   context: string,
   userId?: string,
-  details?: any,
+  details?: Record<string, unknown>,
 ) => {
   logger.error(
     {
