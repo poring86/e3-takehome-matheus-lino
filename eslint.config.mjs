@@ -6,12 +6,7 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    files: [
-      "src/app/api/notes/route.ts",
-      "src/app/api/notes/[id]/route.ts",
-      "src/app/api/notes/[id]/versions/route.ts",
-      "src/app/api/notes/[id]/summarize/route.ts",
-    ],
+    files: ["src/app/api/**/route.ts"],
     rules: {
       // API handlers should call application services instead of querying DB directly.
       "no-restricted-imports": [
@@ -31,6 +26,13 @@ const eslintConfig = defineConfig([
           ],
         },
       ],
+    },
+  },
+  {
+    // Temporary exception while files API is not yet modularized.
+    files: ["src/app/api/files/route.ts"],
+    rules: {
+      "no-restricted-imports": "off",
     },
   },
   // Override default ignores of eslint-config-next.

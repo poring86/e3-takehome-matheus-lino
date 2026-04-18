@@ -1,5 +1,7 @@
 import pino from "pino";
 
+type LogDetails = Record<string, unknown>;
+
 export const logger = pino({
   level: process.env.LOG_LEVEL || "info",
   formatters: {
@@ -15,7 +17,7 @@ export const logAuthEvent = (
   event: string,
   userId?: string,
   orgId?: string,
-  details?: any,
+  details?: LogDetails,
 ) => {
   logger.info(
     {
@@ -35,7 +37,7 @@ export const logMutation = (
   userId: string,
   orgId: string,
   resourceId?: string,
-  details?: any,
+  details?: LogDetails,
 ) => {
   logger.info(
     {
@@ -56,7 +58,7 @@ export const logAIRequest = (
   userId: string,
   orgId: string,
   noteId?: string,
-  details?: any,
+  details?: LogDetails,
 ) => {
   logger.info(
     {
@@ -76,7 +78,7 @@ export const logPermissionDenied = (
   userId?: string,
   orgId?: string,
   resource?: string,
-  details?: any,
+  details?: LogDetails,
 ) => {
   logger.warn(
     {
@@ -95,7 +97,7 @@ export const logError = (
   error: Error,
   context: string,
   userId?: string,
-  details?: any,
+  details?: LogDetails,
 ) => {
   logger.error(
     {
