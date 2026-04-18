@@ -19,21 +19,64 @@ async function loadOrganizationsFallback(userId: string) {
     organizations?: { id: string; name: string; created_at: string };
   };
 
-  // Mapear os campos para garantir tipagem correta
-  const orgs: Membership[] = (memberships as unknown[]).map((member) => ({
-    id: String((member as any).id),
-    org_id: String((member as any).org_id),
-    user_id: String((member as any).user_id),
-    role: String((member as any).role),
-    joined_at: String((member as any).joined_at),
-    organizations: (member as any).organizations
-      ? {
-          id: String((member as any).organizations.id),
-          name: String((member as any).organizations.name),
-          created_at: String((member as any).organizations.created_at),
-        }
-      : undefined,
-  })).filter((member) => member.organizations);
+  // Type guard para validar o shape do objeto
+  function isMembership(obj: unknown): obj is Membership {
+    if (!obj || typeof obj !== "object") return false;
+    const m = obj as {
+      id?: unknown;
+      org_id?: unknown;
+      user_id?: unknown;
+      role?: unknown;
+      joined_at?: unknown;
+      organizations?: unknown;
+    };
+    const org = m.organizations as
+      | { id?: unknown; name?: unknown; created_at?: unknown }
+      | undefined;
+    return (
+      (typeof m.id === "string" || typeof m.id === "number") &&
+      (typeof m.org_id === "string" || typeof m.org_id === "number") &&
+      (typeof m.user_id === "string" || typeof m.user_id === "number") &&
+      typeof m.role === "string" &&
+      typeof m.joined_at === "string" &&
+      (!org ||
+        ((typeof org.id === "string" || typeof org.id === "number") &&
+          typeof org.name === "string" &&
+          typeof org.created_at === "string"))
+    );
+  }
+
+  const orgs: Membership[] = (memberships as unknown[])
+    .map((member) => {
+      if (!isMembership(member)) return undefined;
+      // Narrowing seguro sem 'any'
+      type OrgRaw = { id: string | number; name: string; created_at: string };
+      type MemberRaw = {
+        id: string | number;
+        org_id: string | number;
+        user_id: string | number;
+        role: string;
+        joined_at: string;
+        organizations?: OrgRaw;
+      };
+      const m = member as MemberRaw;
+      const org = m.organizations
+        ? {
+            id: String(m.organizations.id),
+            name: m.organizations.name,
+            created_at: m.organizations.created_at,
+          }
+        : undefined;
+      return {
+        id: String(m.id),
+        org_id: String(m.org_id),
+        user_id: String(m.user_id),
+        role: m.role,
+        joined_at: m.joined_at,
+        organizations: org,
+      };
+    })
+    .filter((member): member is Membership => !!member && !!member.organizations);
 
   if (orgs.length === 0) {
     return { orgs: [], currentOrg: null };
