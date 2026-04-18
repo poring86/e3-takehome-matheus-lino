@@ -47,9 +47,8 @@ async function loadOrganizationsFallback(userId: string) {
   }
 
   const orgs: Membership[] = (memberships as unknown[])
-    .map((member) => {
-      if (!isMembership(member)) return undefined;
-      // Narrowing seguro sem 'any'
+    .flatMap((member) => {
+      if (!isMembership(member)) return [];
       type OrgRaw = { id: string | number; name: string; created_at: string };
       type MemberRaw = {
         id: string | number;
@@ -60,23 +59,20 @@ async function loadOrganizationsFallback(userId: string) {
         organizations?: OrgRaw;
       };
       const m = member as MemberRaw;
-      const org = m.organizations
-        ? {
-            id: String(m.organizations.id),
-            name: m.organizations.name,
-            created_at: m.organizations.created_at,
-          }
-        : undefined;
-      return {
+      if (!m.organizations) return [];
+      return [{
         id: String(m.id),
         org_id: String(m.org_id),
         user_id: String(m.user_id),
         role: m.role,
         joined_at: m.joined_at,
-        organizations: org,
-      };
-    })
-    .filter((member): member is Membership => !!member && !!member.organizations);
+        organizations: {
+          id: String(m.organizations.id),
+          name: m.organizations.name,
+          created_at: m.organizations.created_at,
+        },
+      }];
+    });
 
   if (orgs.length === 0) {
     return { orgs: [], currentOrg: null };
