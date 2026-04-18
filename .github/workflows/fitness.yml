@@ -42,6 +42,8 @@ jobs:
         run: npx tsx src/fitness/check-lint-strict.ts
       - name: Check file naming convention
         run: npx tsx src/fitness/check-file-naming.ts
+      - name: Limpa pasta .next
+        run: rm -rf .next
       - name: Build frontend
         run: npm run build
       - name: Check frontend bundle size
