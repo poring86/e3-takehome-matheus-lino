@@ -116,6 +116,19 @@
 - Residual risk handling:
   - documented requirement to rotate potentially exposed credentials.
 
+## Agent Activity Log (2026-04-18, CI coverage fitness fix)
+
+- **Main agent (GitHub Copilot)**
+  - Diagnosed CI failure in `src/fitness/checkTestCoverage.ts` due to missing `coverage-summary.json` resolution.
+  - Updated fitness script to enforce deterministic Vitest coverage reporters.
+  - Replaced fragile relative `require(...)` with typed JSON file read from absolute coverage path.
+
+- **Validation executed by main agent**
+  - `npx tsx src/fitness/checkTestCoverage.ts` (passed)
+
+- **Subagents used in this phase**
+  - None invoked.
+
 ## Agent Activity Log (2026-04-16, Supabase-only migration phase)
 
 - **Main agent (GitHub Copilot)**

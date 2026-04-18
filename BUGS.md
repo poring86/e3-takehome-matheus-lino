@@ -26,6 +26,23 @@ Each bug entry follows this structure:
 
 ## Resolved Bugs
 
+### B-037 Fitness coverage check failed on missing coverage-summary.json in CI
+
+- Date: 2026-04-18
+- Status: Resolved
+- Location: `src/fitness/checkTestCoverage.ts`
+- Symptom:
+  - CI failed with: `Cannot find module '../../coverage/coverage-summary.json'`.
+- Cause:
+  - Non-deterministic assumption about coverage reporter output path + brittle relative `require(...)`.
+- Fix:
+  - Enforced Vitest reporters for coverage check (`json-summary`, `text`).
+  - Read `coverage/coverage-summary.json` via absolute path from `process.cwd()`.
+  - Added typed JSON parsing and robust unknown-error handling.
+- Validation:
+  - `npx tsx src/fitness/checkTestCoverage.ts` passed.
+- Commit: pending
+
 ### B-036 Sensitive env handling incident in git history (remediated)
 
 - Date: 2026-04-17

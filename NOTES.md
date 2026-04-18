@@ -43,6 +43,19 @@
 - Mandatory operational follow-up:
   - Rotate any credential that may have been exposed during the incident window.
 
+## CI Reliability Log (2026-04-18) - Coverage summary generation in fitness check
+
+- Symptom:
+  - Fitness step `checkTestCoverage.ts` failed in CI with `Cannot find module '../../coverage/coverage-summary.json'`.
+- Root cause:
+  - Script assumed a relative `require(...)` path and default Vitest reporter output that was not deterministic in CI.
+- Fix:
+  - Forced coverage reporters in command execution: `json-summary` + `text`.
+  - Switched to deterministic file read using `process.cwd()/coverage/coverage-summary.json`.
+  - Replaced `require(...)` with typed JSON parsing and robust error handling.
+- Validation:
+  - `npx tsx src/fitness/checkTestCoverage.ts` passed locally.
+
 ## Infra Hotfix Log (2026-04-17) - Docker production build env validation
 
 - Decision: inject `NEXT_PUBLIC_SUPABASE_*` into Docker builder stage via `ARG`/`ENV` to prevent build-time env validation failure.

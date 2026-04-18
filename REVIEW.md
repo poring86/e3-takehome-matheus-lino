@@ -91,3 +91,9 @@
 - Branch history was rewritten to remove the offending commit from active refs and force-pushed.
 - Local repository artifacts were pruned after rewrite.
 - Residual platform cache risk was acknowledged; credential rotation remains mandatory operational guidance.
+
+## CI Stability Update (2026-04-18)
+
+- Fixed coverage fitness check fragility caused by non-deterministic summary file generation/lookup.
+- Coverage step now enforces JSON summary reporter and reads summary from deterministic absolute path.
+- Result: fitness coverage gate behavior aligned between local and CI execution.
