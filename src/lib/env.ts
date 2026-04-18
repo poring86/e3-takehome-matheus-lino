@@ -19,6 +19,12 @@ const serverEnvSchema = z.object({
   APP_PORT: z.string().optional(),
 });
 
+type ClientEnv = z.infer<typeof clientEnvSchema>;
+type ServerEnv = z.infer<typeof serverEnvSchema>;
+
+let clientEnvCache: ClientEnv | undefined;
+let serverEnvCache: ServerEnv | undefined;
+
 function formatZodError(scope: string, error: z.ZodError): Error {
   const details = error.issues
     .map((issue) => `${issue.path.join(".")}: ${issue.message}`)
@@ -57,5 +63,38 @@ function parseServerEnv() {
   return parsed.data;
 }
 
-export const clientEnv = parseClientEnv();
-export const serverEnv = parseServerEnv();
+export function getClientEnv(): ClientEnv {
+  if (!clientEnvCache) {
+    clientEnvCache = parseClientEnv();
+  }
+
+  return clientEnvCache;
+}
+
+export function getServerEnv(): ServerEnv {
+  if (!serverEnvCache) {
+    serverEnvCache = parseServerEnv();
+  }
+
+  return serverEnvCache;
+}
+
+function createLazyEnvProxy<T extends object>(loader: () => T): T {
+  return new Proxy({} as T, {
+    get(_target, prop, receiver) {
+      return Reflect.get(loader(), prop, receiver);
+    },
+    has(_target, prop) {
+      return Reflect.has(loader(), prop);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(loader());
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+      return Reflect.getOwnPropertyDescriptor(loader(), prop);
+    },
+  });
+}
+
+export const clientEnv = createLazyEnvProxy(getClientEnv);
+export const serverEnv = createLazyEnvProxy(getServerEnv);
