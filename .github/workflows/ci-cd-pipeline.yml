@@ -2,10 +2,11 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: ["**"]
+    branches-ignore:
+      - main
 
 jobs:
-  fitness:
+  build:
     runs-on: ubuntu-latest
     env:
       APP_PORT: "3000"
