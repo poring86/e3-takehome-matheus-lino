@@ -77,7 +77,7 @@ function DashboardContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {userOrgs.map((orgMember: { id: string; org_id: string; user_id: string; role: string; joined_at: string; organizations: { id: string; name: string; created_at: string } }) => (
+                      {userOrgs.map((orgMember) => (
                         <Button
                           key={orgMember.org_id}
                           variant={activeOrg?.id === orgMember.org_id ? "default" : "outline"}
@@ -85,7 +85,7 @@ function DashboardContent() {
                           className="justify-start"
                         >
                           <Building2 className="h-4 w-4 mr-2" />
-                          {orgMember.organizations.name}
+                          {orgMember.organizations?.name ?? "Organization"}
                         </Button>
                       ))}
                     </div>

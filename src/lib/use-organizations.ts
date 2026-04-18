@@ -20,8 +20,8 @@ export function useOrganizations(userId?: string) {
         joined_at: string;
         organizations?: { id: string; name: string; created_at: string };
       };
-      const memberships = (data.memberships || []).filter(
-        (m: Membership) => m.user_id === userId,
+      const memberships: Membership[] = ((data.memberships || []) as Membership[]).filter(
+        (m) => m.user_id === userId,
       );
       if (!memberships.length) return { orgs: [], currentOrg: null };
       const lastOrgId = localStorage.getItem("currentOrgId");

@@ -121,8 +121,8 @@ export async function loadUserOrganizations(userId: string) {
     return loadOrganizationsFallback(userId);
   }
 
-  const memberships = (data.memberships || []).filter(
-    (member: Membership) => member.user_id === userId,
+  const memberships: Membership[] = ((data.memberships || []) as Membership[]).filter(
+    (member) => member.user_id === userId,
   );
 
   if (!memberships || memberships.length === 0) {
