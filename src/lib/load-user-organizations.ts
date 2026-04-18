@@ -1,4 +1,14 @@
+
 import { supabase } from "./supabase-client";
+
+export type Membership = {
+  id: string;
+  org_id: string;
+  user_id: string;
+  role: string;
+  joined_at: string;
+  organizations?: { id: string; name: string; created_at: string };
+};
 
 async function loadOrganizationsFallback(userId: string) {
   const { data: memberships, error } = await supabase
@@ -10,14 +20,7 @@ async function loadOrganizationsFallback(userId: string) {
     return { orgs: [], currentOrg: null };
   }
 
-  type Membership = {
-    id: string;
-    org_id: string;
-    user_id: string;
-    role: string;
-    joined_at: string;
-    organizations?: { id: string; name: string; created_at: string };
-  };
+  // ...tipo Membership agora está no topo do arquivo...
 
   // Type guard para validar o shape do objeto
   function isMembership(obj: unknown): obj is Membership {
