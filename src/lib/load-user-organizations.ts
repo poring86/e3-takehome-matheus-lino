@@ -12,13 +12,21 @@ async function loadOrganizationsFallback(userId: string) {
     return { orgs: [], currentOrg: null };
   }
 
-  const orgs = memberships.filter((member: any) => member.organizations);
+  type Membership = {
+    id: string;
+    org_id: string;
+    user_id: string;
+    role: string;
+    joined_at: string;
+    organizations?: { id: string; name: string; created_at: string };
+  };
+  const orgs = (memberships as Membership[]).filter((member) => member.organizations);
   if (orgs.length === 0) {
     return { orgs: [], currentOrg: null };
   }
 
   const lastOrgId = localStorage.getItem("currentOrgId");
-  const current = orgs.find((m: any) => m.org_id === lastOrgId) || orgs[0];
+  const current = orgs.find((m) => m.org_id === lastOrgId) || orgs[0];
   localStorage.setItem("currentOrgId", current.org_id);
 
   return {
@@ -58,7 +66,7 @@ export async function loadUserOrganizations(userId: string) {
   }
 
   const memberships = (data.memberships || []).filter(
-    (member: any) => member.user_id === userId,
+    (member: Membership) => member.user_id === userId,
   );
 
   if (!memberships || memberships.length === 0) {
@@ -69,7 +77,7 @@ export async function loadUserOrganizations(userId: string) {
 
   // Seleciona a org atual
   const lastOrgId = localStorage.getItem("currentOrgId");
-  const current = orgs.find((m: any) => m.org_id === lastOrgId) || orgs[0];
+  const current = orgs.find((m) => m.org_id === lastOrgId) || orgs[0];
   localStorage.setItem("currentOrgId", current.org_id);
 
   return {

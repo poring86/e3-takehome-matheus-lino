@@ -38,7 +38,14 @@ export async function GET(request: Request) {
       user = cookieUser;
     }
 
-    let memberships: any[] = [];
+    type Membership = {
+      id: string;
+      org_id: string;
+      user_id: string;
+      role: string;
+      joined_at: string;
+    };
+    let memberships: Membership[] = [];
 
     if (bearerToken) {
       const membershipClient = createSupabaseClient(
@@ -62,7 +69,7 @@ export async function GET(request: Request) {
       if (error) {
         console.error("Error loading org memberships with bearer:", error);
       } else {
-        memberships = data || [];
+        memberships = (data as Membership[]) || [];
       }
     }
 
@@ -77,7 +84,7 @@ export async function GET(request: Request) {
       if (error) {
         console.error("Error loading org memberships with cookie:", error);
       } else {
-        memberships = data || [];
+        memberships = (data as Membership[]) || [];
       }
     }
 
