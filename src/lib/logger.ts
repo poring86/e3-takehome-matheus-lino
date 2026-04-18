@@ -78,9 +78,9 @@ export const logPermissionDenied = (
   resource?: string,
   details?: Record<string, unknown>,
 ) => {
-  logger.info(
+  logger.warn(
     {
-      event: "permission-denied",
+      event: "permission_denied",
       action,
       userId,
       orgId,
