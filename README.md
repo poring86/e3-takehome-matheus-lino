@@ -18,20 +18,24 @@ Production-style take-home project built with Next.js, Supabase, Drizzle, and Ty
 
 - Next.js 16
 - TypeScript
-- Supabase (Auth + Storage + Postgres)
-- Drizzle ORM
-- Zod
-- Vitest
 
-## Project Structure
+## Autenticação e Organização: Arquitetura Modular
 
-- src/app: routes, pages, and API handlers
-- src/components: UI and route guards
-- src/lib: clients, db setup, helpers, schemas
-- src/drizzle: runtime schema definitions
-- drizzle and supabase/migrations: SQL and migration artifacts
-- scripts/seed.ts: seed script for bulk sample data
-- scripts/clean-and-seed.ts: reseta dados atuais e roda seed completo
+Todos os hooks de autenticação e organização agora seguem uma arquitetura modular, evitando componentes órfãos e promovendo boundaries claros entre domínios:
+
+- **Autenticação:**
+  - `useUserSession` e `useSignOut` ficam em `src/modules/auth/hooks/`
+- **Organização:**
+  - `useCurrentOrg` e `useSwitchOrg` ficam em `src/modules/organization/hooks/`
+
+Importe sempre via o módulo:
+
+```ts
+import { useUserSession } from "@/modules/auth";
+import { useCurrentOrg } from "@/modules/organization";
+```
+
+Não utilize mais hooks de domínio em `lib/` ou componentes órfãos. Siga a separação de módulos para lógica de domínio, conforme recomendações do livro "Arquitetura: As Partes Difíceis".
 
 ## Architecture
 
@@ -40,6 +44,18 @@ The project follows a modular monolith architecture with server-first API routes
 - Architecture baseline and rules: see `ARCHITECTURE.md`
 - Module decomposition and boundaries: see `src/modules/README.md`
 - Operational governance and commit/audit contract: see `AGENTS.md`
+
+## Naming Convention
+
+- Source and executable script filenames use kebab-case.
+- Example patterns:
+  - `use-user-session.ts`
+  - `check-test-coverage.ts`
+  - `organization-service.ts`
+- Why:
+  - Consistent path style reduces CI/container path mismatch issues.
+  - Improves maintainability and discoverability in grep/search-based workflows.
+  - Keeps module, script, and workflow references aligned over time.
 
 ## Environment Variables
 
@@ -190,6 +206,11 @@ For Railway deployment details, see:
 ## Documentation
 
 - ARCHITECTURE.md: architecture baseline, layering, and conventions
+- docs/adr/README.md: architecture decision records (ADRs) index and accepted decisions
+- docs/github-governance.md: CI pipelines and branch protection policy
+- docs/github-branch-protection-checklist.md: 2-minute setup checklist for required checks on `main`
+- .github/pull_request_template.md: PR checklist for ADR/risk/validation/audit alignment
+- .github/CODEOWNERS: automatic reviewer ownership for critical repository paths
 - src/modules/README.md: component/module decomposition and dependency rules
 - BUGS.md: bug tracking with status and commit references
 - NOTES.md: execution notes and checklist

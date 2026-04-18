@@ -1,0 +1,19 @@
+# Default ownership for the repository.
+* @matheuslino86
+
+# Critical governance and architecture files.
+/AGENTS.md @matheuslino86
+/ARCHITECTURE.md @matheuslino86
+/NOTES.md @matheuslino86
+/REVIEW.md @matheuslino86
+/BUGS.md @matheuslino86
+/AI_USAGE.md @matheuslino86
+
+# Security and data-boundary sensitive areas.
+/src/app/api/ @matheuslino86
+/src/modules/ @matheuslino86
+/supabase/ @matheuslino86
+
+# CI/governance controls.
+/.github/ @matheuslino86
+/docs/adr/ @matheuslino86

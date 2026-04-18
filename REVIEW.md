@@ -91,3 +91,58 @@
 - Branch history was rewritten to remove the offending commit from active refs and force-pushed.
 - Local repository artifacts were pruned after rewrite.
 - Residual platform cache risk was acknowledged; credential rotation remains mandatory operational guidance.
+=======
+## Frontend Data Layer Update (2026-04-17)
+
+- Adopted React Query for server-state handling in notes flows to reduce imperative fetch orchestration.
+- Added app-level QueryClient provider and migrated:
+  - `/dashboard/notes`
+  - `/dashboard/notes/[id]`
+  - `/dashboard/notes/[id]/versions`
+  - `/dashboard/settings`
+- Preserved submit-based search and pagination behavior while reducing custom loading/error wiring.
+- Residual risk: onboarding and remaining org bootstrap flows still include imperative data orchestration and can diverge from cache strategy until migrated.
+
+## Fitness Naming Consistency Update (2026-04-17)
+
+- Standardized `src/fitness` script filenames to kebab-case to align with repository naming conventions.
+- Updated CI and local orchestrator references (`.github/workflows/fitness.yml` and `scripts/fitness-run.sh`) to prevent path-resolution regressions.
+- Updated supporting documentation (`src/fitness/README.md`, `NOTES.md`) to keep audit/discoverability aligned with executable paths.
+- Added a dedicated naming fitness gate to prevent reintroduction of camelCase/PascalCase filenames in `src/`, `scripts/`, and `tests/`.
+
+## ADR Governance Update (2026-04-17)
+
+- Added ADR baseline under `docs/adr/` with index/template and initial accepted records for architecture, naming policy, and server-state strategy.
+- Linked ADR navigation from architecture and contributor documentation.
+- Residual risk: decision drift can still happen if new architecture-impacting changes are logged only in `NOTES.md` and not promoted to ADR when they become long-lived.
+
+## Documentation Model Decision Update (2026-04-17)
+
+- Formalized a hybrid model in ADR (`NOTES.md` for operational timeline + `docs/adr/` for durable decisions).
+- Explicitly documented trade-offs and promotion workflow to reduce ambiguity during future refactors.
+- Residual risk: if promotion cadence is not followed, rationale can fragment between logs and ADRs.
+
+## ADR Expansion Update (2026-04-17)
+
+- Added ADRs for API auth resolution order, tenant-boundary invariants, and Docker delivery validation reference.
+- Decision rationale and trade-offs are now explicit for three high-risk areas that previously depended on scattered execution logs.
+- Residual risk: implementation drift remains possible if endpoint-level behavior diverges from ADR-0005/0006 without corresponding ADR updates.
+
+## GitHub Governance Update (2026-04-17)
+
+- Added a fast CI workflow (`CI / verify`) to complement existing fitness checks.
+- Added governance runbook for branch protection and required checks.
+- Residual risk: required-check policy can become noisy if flaky steps are not stabilized before being enforced.
+
+## PR Template Governance Update (2026-04-17)
+
+- Added repository PR template to enforce consistent risk declaration, ADR linkage, and validation evidence.
+- Improved reviewer signal quality by standardizing merge-readiness checklist.
+- Residual risk: checklist fatigue can reduce signal if template is not periodically trimmed.
+
+## Code Ownership Governance Update (2026-04-17)
+
+- Added repository-level `CODEOWNERS` with explicit ownership for API/module/governance-sensitive paths.
+- Branch-protection checklist now includes required Code Owner review.
+- Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
+>>>>>>> main

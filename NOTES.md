@@ -8,55 +8,72 @@
 
 ## Security/Build Log (2026-04-17) - Safe Docker build without runtime secret injection
 
-- Decision:
   - Do not inject real `DATABASE_URL` in Docker build stages.
   - Keep `NEXT_PUBLIC_SUPABASE_*` as build-time args (public values), and use a build-only non-secret placeholder for `DATABASE_URL` validation path.
-- Why:
   - Avoid leaking runtime DB credentials into image layers/history.
   - Preserve successful `next build` in CI where server env modules are evaluated during compilation.
-- Implemented changes:
   - `Dockerfile`: restored builder `ARG`/`ENV` for `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` only.
   - `src/lib/env.ts`: added build-phase-only placeholder fallback for `DATABASE_URL` when `NEXT_PHASE=phase-production-build`.
   - `README.md`: clarified that `DATABASE_URL` remains runtime-required and should not be injected as a real build secret.
 
 ## Security/Build Log (2026-04-17) - Standard lazy validation refactor
 
-- Decision:
   - Replace build-phase fake server env fallback with a standard lazy runtime validation approach.
-- Why:
   - Avoid non-standard fake-server-env behavior while keeping build independent from runtime secrets.
   - Enforce strict runtime validation without import-time side effects during `next build`.
-- Implemented changes:
   - `src/lib/env.ts`: introduced cached lazy getters/proxies (`getClientEnv`, `getServerEnv`) and removed build-only `DATABASE_URL` fallback.
   - `src/lib/db.ts`: switched DB initialization to lazy singleton via `getDb()` and proxy export to preserve existing call sites.
 
 ## Security Incident Log (2026-04-17) - Secret exposure in commit history (remediated)
 
-- Incident:
   - A temporary change injected sensitive server env handling in a way that was not acceptable for security review.
   - A related commit (`fe78067a0c7eb45646977049f0280e70bd100fca`) became visible in branch history.
-- Remediation performed:
   - Rewrote branch history to remove the offending commit from active refs.
   - Force-pushed updated branch state and verified no local/remote refs contain the removed commit.
   - Expired reflog and pruned local objects (`git reflog expire` + `git gc --prune=now --aggressive`).
   - Implemented standard lazy env/db initialization approach to avoid repeating build-time secret handling mistakes.
-- Mandatory operational follow-up:
   - Rotate any credential that may have been exposed during the incident window.
 
 ## Infra Hotfix Log (2026-04-17) - Docker production build env validation
 
-- Decision: inject `NEXT_PUBLIC_SUPABASE_*` into Docker builder stage via `ARG`/`ENV` to prevent build-time env validation failure.
-- Why:
   - Next.js build imports env-validated modules during route compilation.
   - Without these variables in the builder stage, `npm run build` fails with `Invalid client environment variables`.
-- Implemented changes:
   - `Dockerfile`: added builder-stage args/envs:
     - `ARG NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`
     - `ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=build-time-anon-key`
     - mapped to `ENV` before `RUN npm run build`
   - `README.md`: documented production build args for CI/CD.
-- Validation target:
   - `docker build -t e3-takehome-check:latest .`
+=======
+## Frontend State Decision Log (2026-04-17) - React Query adoption
+
+  - Remove repetitive manual fetch orchestration (`useEffect`, loading toggles, and response state wiring).
+  - Improve consistency and cache behavior for org-scoped paginated notes.
+  - Reduce auth/session race-condition surface in list refresh scenarios.
+  - Added dependency: `@tanstack/react-query`.
+  - Added global provider: `src/components/providers/query-provider.tsx`.
+  - Wired provider in root layout: `src/app/layout.tsx`.
+  - Migrated notes list fetch to `useQuery`: `src/app/dashboard/notes/page.tsx`.
+  - Migrated note detail fetch to `useQuery`: `src/app/dashboard/notes/[id]/page.tsx`.
+  - Migrated note versions flow to `useQuery`: `src/app/dashboard/notes/[id]/versions/page.tsx`.
+  - Migrated organization members management to React Query (`useQuery` + mutations with invalidation): `src/app/dashboard/settings/page.tsx`.
+  - Migrated onboarding/org bootstrap (create + load) to React Query: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
+  - Preserved UX behavior for search-by-submit and pagination.
+  - React Query is being introduced incrementally to avoid broad refactor risk.
+  - Initial increment covered notes list; second increment covered detail and versions pages.
+  - Third increment covered organization settings member management.
+  - Fourth increment cobriu onboarding/org bootstrap (criação e seleção de organização) com React Query, eliminando fetch imperativo/manual.
+
+## Frontend State Validation Log (2026-04-17) - Onboarding/Org Bootstrap React Query
+
+- Scope: Migrated onboarding/org bootstrap (create + load) to React Query, garantindo consistência e cache global.
+- Files: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
+- Validation:
+  - `npm run build`: passed.
+  - `npx vitest run --coverage`: all unit tests passed, integration tests skipped due to missing env vars (expected).
+  - Dashboard e onboarding agora usam apenas estado cacheado do React Query para organizações.
+  - Nenhum fetch imperativo/manual remanescente para organizações.
+>>>>>>> main
 
 ## Fitness/Quality Log (2026-04-17) - Coverage threshold calibration and test expansion
 
@@ -65,11 +82,110 @@
   - Keep CI quality gates actionable without creating false blockers during incremental hardening.
   - Enable gradual increase of coverage baseline over time.
 - Implemented changes:
-  - `src/fitness/checkTestCoverage.ts`: default threshold changed to `60`, configurable via `MIN_TEST_COVERAGE`.
+  - `src/fitness/check-test-coverage.ts`: default threshold changed to `60`, configurable via `MIN_TEST_COVERAGE`.
   - Added new unit tests:
     - `tests/lib/utils.test.ts`
     - `tests/lib/logger.test.ts`
   - `src/fitness/README.md`: documented coverage fitness and threshold override.
+
+## Naming Decision Log (2026-04-17) - Kebab-case standardization
+
+- Decision: enforce kebab-case for source and executable script filenames.
+- Why:
+  - Keep naming deterministic across Linux CI and Docker runtime.
+  - Reduce broken references caused by mixed naming conventions.
+  - Improve code search and review ergonomics for modularized code.
+- Applied in this cycle:
+  - Fitness scripts renamed to kebab-case under `src/fitness/`.
+  - References updated in `.github/workflows/fitness.yml`, `scripts/fitness-run.sh`, and `src/fitness/README.md`.
+  - Governance docs aligned (`AGENTS.md`, `ARCHITECTURE.md`, `README.md`).
+  - Added guard fitness function `src/fitness/check-file-naming.ts` and integrated it into local runner and CI workflow.
+
+## Documentation Decision Log (2026-04-17) - ADR baseline adoption
+
+- Decision: adopt ADRs for long-lived architecture decisions while keeping `NOTES.md` as operational timeline.
+- Why:
+  - Keep architecture rationale durable and easy to discover.
+  - Prevent loss of decision context across refactors and handoffs.
+  - Reduce review ambiguity by separating strategic decisions from execution logs.
+- Trade-offs:
+  - Requires discipline to promote decisions from `NOTES.md` into ADRs at the right time.
+  - Adds dual-update overhead when links between execution logs and ADRs are not maintained.
+  - Introduces a small documentation cost on each architecture-impacting change.
+- Applied in this cycle:
+  - Added ADR index and template under `docs/adr/`.
+  - Added initial ADR set:
+    - `docs/adr/0001-adopt-modular-monolith-boundaries.md`
+    - `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
+    - `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
+    - `docs/adr/0004-use-hybrid-notes-and-adr-documentation-model.md`
+  - Linked ADR discoverability in `ARCHITECTURE.md` and `README.md`.
+
+## Notes -> ADR Promotion Map
+
+- Architecture baseline and boundaries -> `docs/adr/0001-adopt-modular-monolith-boundaries.md`
+- Kebab-case naming policy and enforcement -> `docs/adr/0002-standardize-kebab-case-filenames-with-fitness-gate.md`
+- Dashboard server-state strategy (React Query) -> `docs/adr/0003-adopt-react-query-for-dashboard-server-state.md`
+- Documentation model decision (operational timeline + durable decisions) -> `docs/adr/0004-use-hybrid-notes-and-adr-documentation-model.md`
+
+## ADR Expansion Log (2026-04-17) - Delivery-critical decisions
+
+- Added `docs/adr/0005-standardize-api-auth-resolution-order.md`
+  - Motive: remove auth inconsistency across bearer/cookie clients and reduce `401/403` regressions.
+  - Trade-offs: requires uniform handler migration discipline to avoid behavior drift.
+- Added `docs/adr/0006-enforce-tenant-boundaries-in-data-access.md`
+  - Motive: formalize tenant isolation as non-negotiable invariant across reads/writes.
+  - Trade-offs: increases migration/plumbing effort on legacy paths.
+- Added `docs/adr/0007-adopt-docker-test-flow-as-delivery-reference.md`
+  - Motive: reduce host/container validation mismatch and improve reproducibility.
+  - Trade-offs: slower full validation path and Docker dependency for release confidence.
+
+## CI/GitHub Governance Log (2026-04-17)
+
+- Decision: adopt two-tier GitHub validation with required branch protection checks.
+- Why:
+  - Keep fast PR feedback for developers.
+  - Keep stronger quality constraints enforced before merge.
+  - Prevent policy bypass through direct merge without validated checks.
+- Trade-offs:
+  - More CI runtime cost per PR.
+  - Higher friction when a required check is flaky.
+  - Requires ongoing curation of required checks as pipeline evolves.
+- Applied in this cycle:
+  - Added `.github/workflows/ci.yml` (`CI / verify`) for lint/build/test.
+  - Kept `.github/workflows/fitness.yml` for architecture/fitness constraints.
+  - Added governance runbook: `docs/github-governance.md`.
+
+## PR Governance Log (2026-04-17)
+
+- Decision: standardize pull requests with a repository-level template.
+- Why:
+  - Ensure consistent ADR/risk/validation disclosure in every PR.
+  - Reduce review omissions for tenant/auth/security-sensitive changes.
+  - Keep audit-file alignment explicit before merge.
+- Trade-offs:
+  - Slightly more authoring friction per PR.
+  - Template can become noisy if not maintained.
+  - Requires team discipline to avoid checkbox-only compliance.
+- Applied in this cycle:
+  - Added `.github/pull_request_template.md`.
+  - Linked usage in `docs/github-governance.md` and `README.md`.
+
+  ## Code Ownership Governance Log (2026-04-17)
+
+  - Decision: enforce path-based review ownership with repository-level `CODEOWNERS`.
+  - Why:
+    - Ensure security-sensitive paths always route to accountable reviewers.
+    - Reduce review-routing ambiguity for architecture and governance files.
+    - Pair branch protection with deterministic reviewer assignment.
+  - Trade-offs:
+    - Can increase review wait time in small teams.
+    - Requires ongoing maintenance when code ownership boundaries evolve.
+    - Owner overload risk if all critical paths map to a single reviewer.
+  - Applied in this cycle:
+    - Added `.github/CODEOWNERS`.
+    - Updated `docs/github-governance.md` and `docs/github-branch-protection-checklist.md` to require Code Owner review.
+    - Linked discoverability in `README.md`.
 
 ## Infra Optimization Log (2026-04-17) - Production image size reduction
 
