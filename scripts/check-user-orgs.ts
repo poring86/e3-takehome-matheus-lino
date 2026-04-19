@@ -12,14 +12,14 @@ async function main() {
         const memberships = await db
           .select({ orgId: orgMembers.orgId })
           .from(orgMembers)
-          .where(orgMembers.userId === user.id);
+          .where(orgMembers.userId.eq(user.id));
         if (memberships.length === 0) {
           console.log(`${user.email} NÃO está em nenhuma organização!`);
         } else {
           const orgs = await db
             .select({ name: organizations.name })
             .from(organizations)
-            .where(organizations.id === memberships[0].orgId);
+            .where(organizations.id.eq(memberships[0].orgId));
           console.log(`${user.email} está em: ${orgs.map(o => o.name).join(", ")}`);
         }
       } catch (userErr) {

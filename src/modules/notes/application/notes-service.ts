@@ -109,10 +109,13 @@ export async function listNotesForOrg(userId: string, input: ListNotesInput) {
     .limit(input.limit)
     .offset(input.offset);
 
+  // Remove duplicatas pelo id da nota
+  const uniqueNotes = Array.from(new Map(userNotes.map(n => [n.id, n])).values());
+
   return {
     ok: true,
     data: {
-      notes: userNotes,
+      notes: uniqueNotes,
       total: totalCount,
       limit: input.limit,
       offset: input.offset,

@@ -1,0 +1,10 @@
+// Patch de sanitização de noteId para evitar problemas com query string
+// Aplique manualmente se necessário
+
+// Substitua na função NoteContent:
+// Antes:
+// const noteId = Array.isArray(params.id) ? params.id[0] : params.id;
+// Depois:
+const rawNoteId = Array.isArray(params.id) ? params.id[0] : params.id;
+// Remove qualquer query string do id (ex: ?_rsc=...)
+const noteId = typeof rawNoteId === 'string' ? rawNoteId.split('?')[0] : rawNoteId;

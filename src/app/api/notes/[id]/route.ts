@@ -15,16 +15,19 @@ type RouteContext = {
 // GET /api/notes/[id] - Get a specific note
 export async function GET(request: NextRequest, context: RouteContext) {
   const { id } = await Promise.resolve(context.params);
+  // --- Patch: sanitiza o id para remover query string (_rsc ou outros)
+  const cleanId = typeof id === 'string' ? id.split('?')[0] : id;
+  // --- Fim do patch
   try {
     const user = await getAuthenticatedUser(request);
     if (!user) {
-      logPermissionDenied("get_note", undefined, undefined, id, {
+      logPermissionDenied("get_note", undefined, undefined, cleanId, {
         reason: "unauthorized",
       });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const result = await getNoteByIdForUser(user.id, id);
+    const result = await getNoteByIdForUser(user.id, cleanId);
 
     if (!result.ok && result.error === "NOT_FOUND") {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
@@ -47,10 +50,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
 // PUT /api/notes/[id] - Update a note
 export async function PUT(request: NextRequest, context: RouteContext) {
   const { id } = await Promise.resolve(context.params);
+  // --- Patch: sanitiza o id para remover query string (_rsc ou outros)
+  const cleanId = typeof id === 'string' ? id.split('?')[0] : id;
+  // --- Fim do patch
   try {
     const user = await getAuthenticatedUser(request);
     if (!user) {
-      logPermissionDenied("update_note", undefined, undefined, id, {
+      logPermissionDenied("update_note", undefined, undefined, cleanId, {
         reason: "unauthorized",
       });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -59,7 +65,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const body = await request.json();
     const validatedData = updateNoteSchema.parse(body);
 
-    const result = await updateNoteByIdForUser(user.id, id, {
+    const result = await updateNoteByIdForUser(user.id, cleanId, {
       title: validatedData.title,
       content: validatedData.content,
       visibility: validatedData.visibility,
@@ -86,16 +92,19 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 // DELETE /api/notes/[id] - Delete a note
 export async function DELETE(request: NextRequest, context: RouteContext) {
   const { id } = await Promise.resolve(context.params);
+  // --- Patch: sanitiza o id para remover query string (_rsc ou outros)
+  const cleanId = typeof id === 'string' ? id.split('?')[0] : id;
+  // --- Fim do patch
   try {
     const user = await getAuthenticatedUser(request);
     if (!user) {
-      logPermissionDenied("delete_note", undefined, undefined, id, {
+      logPermissionDenied("delete_note", undefined, undefined, cleanId, {
         reason: "unauthorized",
       });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const result = await deleteNoteByIdForUser(user.id, id);
+    const result = await deleteNoteByIdForUser(user.id, cleanId);
 
     if (!result.ok && result.error === "NOT_FOUND") {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });

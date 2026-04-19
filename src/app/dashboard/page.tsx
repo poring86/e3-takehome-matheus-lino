@@ -15,7 +15,7 @@ import Link from 'next/link';
 
 function DashboardContent() {
   const { user } = useUserSession();
-  const { currentOrg, userOrgs, refreshOrganizations } = useCurrentOrg();
+  const { currentOrg, userOrgs, refreshOrganizations, setCurrentOrgId } = useCurrentOrg();
   const switchOrg = useSwitchOrg({
     onSwitched: () => refreshOrganizations(),
   });
@@ -84,7 +84,10 @@ function DashboardContent() {
                         <Button
                           key={orgMember.org_id}
                           variant={activeOrg?.id === orgMember.org_id ? "default" : "outline"}
-                          onClick={() => switchOrg(orgMember.org_id)}
+                          onClick={async () => {
+                            setCurrentOrgId(orgMember.org_id); // troca instantânea
+                            await switchOrg(orgMember.org_id);
+                          }}
                           className="justify-start"
                         >
                           <Building2 className="h-4 w-4 mr-2" />
