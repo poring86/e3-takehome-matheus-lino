@@ -163,7 +163,7 @@ function NotesContent() {
               />
             </form>
             <div className="flex items-center gap-2">
-              <Label htmlFor="notes-per-page" className="text-sm">Notas por página:</Label>
+              <Label htmlFor="notes-per-page" className="text-sm">Notes per page:</Label>
               <select
                 id="notes-per-page"
                 className="border rounded px-2 py-1 text-sm"

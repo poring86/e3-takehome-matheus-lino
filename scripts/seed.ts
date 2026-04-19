@@ -249,16 +249,23 @@ async function seedDatabase() {
           SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
         const title = `Note ${totalNotes + 1}: ${content.substring(0, 50)}...`;
 
-        const [note] = await db
-          .insert(notes)
-          .values({
-            orgId: org.id,
-            title,
-            content,
-            visibility,
-            createdBy: author.userId,
-          })
-          .returning();
+
+        let note;
+        try {
+          [note] = await db
+            .insert(notes)
+            .values({
+              orgId: org.id,
+              title,
+              content,
+              visibility,
+              createdBy: author.userId,
+            })
+            .returning();
+        } catch (err) {
+          console.error('Erro ao criar nota:', err);
+          continue;
+        }
 
         // Create version
         await db.insert(noteVersions).values({
@@ -275,10 +282,14 @@ async function seedDatabase() {
             .slice(0, numTags);
 
           for (const tag of noteTagsToAdd) {
-            await db.insert(noteTags).values({
-              noteId: note.id,
-              tagId: tag.id,
-            });
+            try {
+              await db.insert(noteTags).values({
+                noteId: note.id,
+                tagId: tag.id,
+              });
+            } catch (err) {
+              console.error('Erro ao associar tag à nota:', note.id, tag.id, err);
+            }
           }
         }
 

@@ -1,4 +1,5 @@
-2026-04-18: Limite de bundle size ajustado para 1024KB. Todos os testes, lint, build e fitness functions passam. Decisão documentada para manter rastreabilidade.
+
+2026-04-18: Bundle size limit adjusted to 1024KB. All tests, lint, build, and fitness functions pass. Decision documented to maintain traceability.
 
 # REVIEW.md
 
@@ -165,10 +166,7 @@
 
 - Added repository-level `CODEOWNERS` with explicit ownership for API/module/governance-sensitive paths.
 - Branch-protection checklist now includes required Code Owner review.
-  <<<<<<< HEAD
-- Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
-  > > > > > > > # main
-- # Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
+  - Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
 
 ## Build Reliability Update (2026-04-17)
 
@@ -194,4 +192,4 @@
 - Fixed coverage fitness check fragility caused by non-deterministic summary file generation/lookup.
 - Coverage step now enforces JSON summary reporter and reads summary from deterministic absolute path.
 - Result: fitness coverage gate behavior aligned between local and CI execution.
-  > > > > > > > origin/main
+  
