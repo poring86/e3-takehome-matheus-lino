@@ -18,12 +18,19 @@ import { NotePageProvider } from './components/note-page-context';
 import type { Note } from './components/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+
 function NoteContent() {
   const params = useParams();
   const router = useRouter();
   const { user, session } = useUserSession();
   const { currentOrg, userOrgs } = useCurrentOrg();
   const queryClient = useQueryClient();
+
+  // --- Patch para garantir que só busca nota se o ID estiver limpo
+  const rawNoteId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const noteId = typeof rawNoteId === 'string' ? rawNoteId.split('?')[0] : rawNoteId;
+  const isDirty = rawNoteId !== noteId;
+
   // --- Patch para limpar a URL se vier com query string (_rsc ou outros)
   useEffect(() => {
     const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -34,22 +41,11 @@ function NoteContent() {
   }, [params, router]);
   // --- Fim do patch
 
-  // --- Patch para garantir que só busca nota se o ID estiver limpo
-  const rawNoteId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const noteId = typeof rawNoteId === 'string' ? rawNoteId.split('?')[0] : rawNoteId;
-  const isDirty = rawNoteId !== noteId;
-
   useEffect(() => {
     if (isDirty) {
       router.replace(`/dashboard/notes/${noteId}`);
     }
   }, [isDirty, noteId, router]);
-
-  if (isDirty) {
-    return <div>Carregando...</div>;
-  }
-
-  // --- Fim do patch
 
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
@@ -107,6 +103,10 @@ function NoteContent() {
       },
     },
   });
+
+  if (isDirty) {
+    return <div>Carregando...</div>;
+  }
 
   useEffect(() => {
     if (noteQuery.isSuccess && note === null) {
