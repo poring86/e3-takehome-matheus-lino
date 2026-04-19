@@ -1,6 +1,8 @@
+
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { serverEnv } from "./env";
+import Groq from "groq-sdk";
 
 export async function generateSummary({
   title,
@@ -21,6 +23,30 @@ export async function generateSummary({
     const result = await model.generateContent(prompt);
     const summary = result.response.text().trim();
     if (!summary) throw new Error("No summary returned by Gemini");
+    return summary;
+  } else if (aiProvider === "groq") {
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error("GROQ_API_KEY is not configured");
+    }
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const completion = await groq.chat.completions.create({
+      model: "llama3-70b-8192", // Altere para outro modelo Groq se desejar
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant that creates concise, structured summaries of notes. Keep summaries under 200 words and focus on key points, action items, and insights.",
+        },
+        {
+          role: "user",
+          content: `Please summarize this note titled \"${title}\":\n\n${content}`,
+        },
+      ],
+      max_tokens: 300,
+      temperature: 0.3,
+    });
+    const summary = completion.choices[0]?.message?.content?.trim();
+    if (!summary) throw new Error("No summary returned by Groq");
     return summary;
   } else {
     if (!serverEnv.OPENAI_API_KEY) {
