@@ -12,10 +12,13 @@ import Link from 'next/link';
 
 
 
+
 function DashboardContent() {
   const { user } = useUserSession();
-  const { currentOrg, userOrgs } = useCurrentOrg();
-  const switchOrg = useSwitchOrg();
+  const { currentOrg, userOrgs, refreshOrganizations } = useCurrentOrg();
+  const switchOrg = useSwitchOrg({
+    onSwitched: () => refreshOrganizations(),
+  });
   const signOut = useSignOut;
   const router = useRouter();
   const activeOrg = currentOrg || userOrgs[0]?.organizations || null;
