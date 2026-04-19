@@ -14,7 +14,7 @@ const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
-  AI_PROVIDER: z.enum(["openai", "gemini"]).optional(),
+  AI_PROVIDER: z.enum(["openai", "gemini", "groq"]).optional(),
   LOG_LEVEL: z.string().optional(),
   APP_PORT: z.string().optional(),
 });

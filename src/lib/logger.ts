@@ -1,6 +1,6 @@
 import pino from "pino";
 
-type LogDetails = Record<string, unknown>;
+// type LogDetails = Record<string, unknown>;
 
 export const logger = pino({
   level: process.env.LOG_LEVEL || "info",

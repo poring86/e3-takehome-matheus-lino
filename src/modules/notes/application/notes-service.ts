@@ -75,6 +75,7 @@ export async function listNotesForOrg(userId: string, input: ListNotesInput) {
     );
   }
 
+  // Busca todas as notas que batem com o filtro, remove duplicatas, e só então pagina
   const notesQuery = db
     .select({
       id: notes.id,
@@ -96,23 +97,21 @@ export async function listNotesForOrg(userId: string, input: ListNotesInput) {
     .leftJoin(noteTags, eq(noteTags.noteId, notes.id))
     .leftJoin(tagSchema, eq(noteTags.tagId, tagSchema.id))
     .leftJoin(noteShares, eq(noteShares.noteId, notes.id))
-    .where(and(...filters));
+    .where(and(...filters))
+    .orderBy(desc(notes.updatedAt));
 
-  const countQuery = db.$with("notes_query").as(notesQuery);
-  const [{ count: totalCount }] = await db
-    .with(countQuery)
-    .select({ count: count() })
-    .from(countQuery);
-
-  const userNotes = await notesQuery
-    .orderBy(desc(notes.updatedAt))
-    .limit(input.limit)
-    .offset(input.offset);
+  // Busca todas as notas (pode ser otimizado para grandes bases)
+  const allNotes = await notesQuery;
+  // Remove duplicatas
+  const uniqueNotes = Array.from(new Map(allNotes.map(n => [n.id, n])).values());
+  const totalCount = uniqueNotes.length;
+  // Pagina após remover duplicatas
+  const paginatedNotes = uniqueNotes.slice(input.offset, input.offset + input.limit);
 
   return {
     ok: true,
     data: {
-      notes: userNotes,
+      notes: paginatedNotes,
       total: totalCount,
       limit: input.limit,
       offset: input.offset,

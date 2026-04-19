@@ -14,10 +14,37 @@ Production-style take-home project built with Next.js, Supabase, Drizzle, and Ty
 - Structured logging for key events
 - Seed data for large test volume
 
+
 ## Tech Stack
 
 - Next.js 16
 - TypeScript
+- Suporte a AI: OpenAI, Gemini, Groq (Llama/Mixtral)
+## AI Provider: OpenAI, Gemini, Groq (Llama/Mixtral)
+
+O sistema suporta múltiplos provedores de AI para sumarização de notas:
+
+- **OpenAI** (gpt-3.5-turbo)
+- **Gemini** (gemini-pro)
+- **Groq** (Llama-2, Llama-3, Mixtral)
+
+### Como configurar o Groq/Llama
+
+1. Crie uma conta em https://console.groq.com/ e gere uma API Key.
+2. No arquivo `.env` ou `.env.local`, adicione:
+
+```
+GROQ_API_KEY=sua-chave-groq
+AI_PROVIDER=groq
+```
+
+3. O modelo padrão é `mixtral-8x7b-32768`. Para usar Llama-2 ou Llama-3, altere o modelo em `src/lib/ai-summary.ts`.
+
+4. Para usar OpenAI ou Gemini, basta mudar o valor de `AI_PROVIDER` para `openai` ou `gemini` e configurar a respectiva chave.
+
+**Importante:**
+- O provider é selecionado via variável de ambiente `AI_PROVIDER`.
+- O sistema já está pronto para usar Groq/Llama para sumarização de notas.
 
 ## Autenticação e Organização: Arquitetura Modular
 
@@ -268,26 +295,28 @@ The note summary feature depends on a valid and funded OpenAI API key (`OPENAI_A
 - You do NOT need OpenAI credits to run tests, CRUD, authentication, versioning, etc.
 - To test the AI summary, just add a valid key and restart the backend.
 
-## AI: Note Summary (OpenAI or Gemini)
 
-By default, note summaries use OpenAI (gpt-3.5-turbo). You can switch to Gemini (Google) if preferred.
+## AI: Note Summary (OpenAI, Gemini, or Groq)
+
+By default, note summaries use OpenAI (gpt-3.5-turbo). You can switch to Gemini (Google) or Groq (Mixtral) if preferred.
 
 ### Provider Selection
 
 In your `.env`:
 
 ```
-AI_PROVIDER=openai   # or gemini
+AI_PROVIDER=openai   # or gemini or groq
 ```
 
 - For OpenAI: set `OPENAI_API_KEY`.
 - For Gemini: set `GEMINI_API_KEY`.
+- For Groq: set `GROQ_API_KEY`.
 
-Exemplo:
+Example:
 
 ```
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_key_here
+AI_PROVIDER=groq
+GROQ_API_KEY=your_groq_key_here
 ```
 
 If `AI_PROVIDER` is not set, the default is `openai`.
@@ -295,6 +324,6 @@ If `AI_PROVIDER` is not set, the default is `openai`.
 ### Notes
 
 - The mandatory challenge delivery must work with OpenAI.
-- Gemini support is optional and considered an extra.
-- The demo video can be recorded with any tool (Gemini, OBS, Loom, etc).
+- Gemini and Groq support are optional and considered extras.
+- The demo video can be recorded with any tool (Gemini, Groq, OBS, Loom, etc).
 - Document in the video/README which provider is being used.

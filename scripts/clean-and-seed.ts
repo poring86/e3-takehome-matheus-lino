@@ -14,7 +14,14 @@ import {
 } from "@/drizzle/schema";
 
 async function cleanDatabase() {
-  // Limpa tabelas do banco
+  // Limpa tabelas do banco na ordem correta para evitar violação de FK
+  // Repete deleção de tabelas filhas para garantir remoção de registros órfãos
+  await db.delete(noteTags);
+  await db.delete(noteShares);
+  await db.delete(noteVersions);
+  await db.delete(noteTags);
+  await db.delete(noteShares);
+  await db.delete(noteVersions);
   await db.delete(noteTags);
   await db.delete(noteShares);
   await db.delete(noteVersions);

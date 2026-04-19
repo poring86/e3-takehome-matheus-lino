@@ -50,10 +50,10 @@ const SAMPLE_TAGS = [
   "sales",
 ];
 
+
 async function seedDatabase() {
   const roles = ["owner", "admin", "member"] as const;
   const visibilities = ["public", "private", "shared"] as const;
-
   const DEFAULT_PASSWORD = "Temp@12345678";
 
   console.log("Starting database seeding...");
@@ -103,13 +103,11 @@ async function seedDatabase() {
     }
     console.log(`Created ${sampleUsers.length} users (Auth + DB)`);
 
-    // Add users to organizations with roles
+    // Add users to organizations with roles (aleatório)
     for (const org of orgs) {
       const orgUsers = sampleUsers.slice(0, Math.floor(Math.random() * 8) + 3); // 3-10 users per org
-
       for (const user of orgUsers) {
         const role = roles[Math.floor(Math.random() * roles.length)];
-
         await db.insert(orgMembers).values({
           orgId: org.id,
           userId: user.id,
@@ -117,7 +115,97 @@ async function seedDatabase() {
         });
       }
     }
-    console.log("Added users to organizations");
+    // Garante que todo usuário está em pelo menos uma organização
+    for (const user of sampleUsers) {
+      const memberships = await db
+        .select()
+        .from(orgMembers)
+        .where(eq(orgMembers.userId, user.id));
+      if (memberships.length === 0) {
+        // Adiciona à Organization 1 como member
+        await db.insert(orgMembers).values({
+          orgId: orgs[0].id,
+          userId: user.id,
+          role: "member",
+        });
+      }
+    }
+    console.log(
+      "Garantido que todos os usuários estão em pelo menos uma organização",
+    );
+
+    // Garante que cada usuário tenha uma nota privada, uma pública e uma compartilhada
+    for (const user of sampleUsers) {
+      // Busca uma organização do usuário
+      const memberships = await db
+        .select()
+        .from(orgMembers)
+        .where(eq(orgMembers.userId, user.id));
+      if (memberships.length > 0) {
+        const orgId = memberships[0].orgId;
+        // Nota privada
+        const contentPriv = SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
+        const [notePriv] = await db
+          .insert(notes)
+          .values({
+            orgId,
+            title: `Private note for ${user.email}`,
+            content: contentPriv,
+            visibility: "private",
+            createdBy: user.id,
+          })
+          .returning();
+        await db.insert(noteVersions).values({
+          noteId: notePriv.id,
+          version: 1,
+          content: contentPriv,
+        });
+        // Nota pública
+        const contentPub = SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
+        const [notePub] = await db
+          .insert(notes)
+          .values({
+            orgId,
+            title: `Public note for ${user.email}`,
+            content: contentPub,
+            visibility: "public",
+            createdBy: user.id,
+          })
+          .returning();
+        await db.insert(noteVersions).values({
+          noteId: notePub.id,
+          version: 1,
+          content: contentPub,
+        });
+        // Nota compartilhada
+        const contentShared = SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
+        const [noteShared] = await db
+          .insert(notes)
+          .values({
+            orgId,
+            title: `Shared note for ${user.email}`,
+            content: contentShared,
+            visibility: "shared",
+            createdBy: user.id,
+          })
+          .returning();
+        await db.insert(noteVersions).values({
+          noteId: noteShared.id,
+          version: 1,
+          content: contentShared,
+        });
+        // Compartilha com outro membro aleatório da mesma organização
+        const otherMembers = memberships.filter(m => m.userId !== user.id);
+        if (otherMembers.length > 0) {
+          const shareWith = otherMembers[Math.floor(Math.random() * otherMembers.length)];
+          await db.insert(noteShares).values({
+            noteId: noteShared.id,
+            userId: shareWith.userId,
+          });
+        }
+      }
+    }
+    console.log("Garantido que cada usuário tenha nota privada, pública e compartilhada");
 
     // Create tags for each organization
     const orgTags = new Map();
@@ -141,7 +229,8 @@ async function seedDatabase() {
     console.log("Created tags for organizations");
 
     // Create 10,000+ notes across organizations
-    const NOTES_PER_ORG = 2500; // ~12,500 total notes
+    // Use menos notas para testes rápidos
+    const NOTES_PER_ORG = process.env.SEED_FAST === "1" ? 10 : 2500; // 10 para testes rápidos
     let totalNotes = 0;
 
     for (const org of orgs) {
@@ -160,16 +249,23 @@ async function seedDatabase() {
           SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
         const title = `Note ${totalNotes + 1}: ${content.substring(0, 50)}...`;
 
-        const [note] = await db
-          .insert(notes)
-          .values({
-            orgId: org.id,
-            title,
-            content,
-            visibility,
-            createdBy: author.userId,
-          })
-          .returning();
+
+        let note;
+        try {
+          [note] = await db
+            .insert(notes)
+            .values({
+              orgId: org.id,
+              title,
+              content,
+              visibility,
+              createdBy: author.userId,
+            })
+            .returning();
+        } catch (err) {
+          console.error('Erro ao criar nota:', err);
+          continue;
+        }
 
         // Create version
         await db.insert(noteVersions).values({
@@ -186,10 +282,14 @@ async function seedDatabase() {
             .slice(0, numTags);
 
           for (const tag of noteTagsToAdd) {
-            await db.insert(noteTags).values({
-              noteId: note.id,
-              tagId: tag.id,
-            });
+            try {
+              await db.insert(noteTags).values({
+                noteId: note.id,
+                tagId: tag.id,
+              });
+            } catch (err) {
+              console.error('Erro ao associar tag à nota:', note.id, tag.id, err);
+            }
           }
         }
 
@@ -250,3 +350,4 @@ seedDatabase()
     console.error("Database seeding failed:", error);
     process.exit(1);
   });
+

@@ -29,7 +29,7 @@ interface Note {
 }
 
 function NotesContent() {
-  const { user, session } = useUserSession();
+  const { user } = useUserSession();
   const { currentOrg } = useCurrentOrg();
   const signOut = useSignOut;
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,8 +42,8 @@ function NotesContent() {
   };
 
   const notesQuery = useQuery<{ notes: Note[]; total: number }>({
-    queryKey: ['notes', currentOrg?.id, currentPage, notesPerPage, appliedQuery, session?.access_token],
-    enabled: Boolean(currentOrg),
+    queryKey: ['notes', currentOrg?.id, currentPage, notesPerPage, appliedQuery],
+    enabled: !!currentOrg, // Só busca quando currentOrg estiver definido
     queryFn: async () => {
       if (!currentOrg) {
         return { notes: [], total: 0 };
@@ -51,9 +51,12 @@ function NotesContent() {
 
       const offset = (currentPage - 1) * notesPerPage;
       const url = `/api/notes?orgId=${currentOrg.id}&limit=${notesPerPage}&offset=${offset}${appliedQuery ? `&q=${encodeURIComponent(appliedQuery)}` : ''}`;
+      // Busca o access_token atualizado do Supabase
+      const { data } = await import("@/lib/supabase-client").then(m => m.supabase.auth.getSession());
+      const access_token = data?.session?.access_token;
       const headers: HeadersInit = {};
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
+      if (access_token) {
+        headers.Authorization = `Bearer ${access_token}`;
       }
 
       const response = await fetch(url, {
@@ -160,7 +163,7 @@ function NotesContent() {
               />
             </form>
             <div className="flex items-center gap-2">
-              <Label htmlFor="notes-per-page" className="text-sm">Notas por página:</Label>
+              <Label htmlFor="notes-per-page" className="text-sm">Notes per page:</Label>
               <select
                 id="notes-per-page"
                 className="border rounded px-2 py-1 text-sm"

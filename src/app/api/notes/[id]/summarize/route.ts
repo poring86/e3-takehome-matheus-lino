@@ -13,18 +13,21 @@ type RouteContext = {
 // POST /api/notes/[id]/summarize - Generate AI summary for a note
 export async function POST(request: NextRequest, context: RouteContext) {
   const { id: noteId } = await Promise.resolve(context.params);
+  // --- Patch: sanitiza o noteId para remover query string (_rsc ou outros)
+  const cleanNoteId = typeof noteId === 'string' ? noteId.split('?')[0] : noteId;
+  // --- Fim do patch
 
   try {
     const user = await getAuthenticatedUser(request);
 
     if (!user) {
-      logPermissionDenied("summarize_note", undefined, undefined, noteId, {
+      logPermissionDenied("summarize_note", undefined, undefined, cleanNoteId, {
         reason: "unauthorized",
       });
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const result = await generateNoteSummaryForUser(user.id, noteId);
+    const result = await generateNoteSummaryForUser(user.id, cleanNoteId);
 
     if (!result.ok && result.error === "NOT_FOUND") {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
