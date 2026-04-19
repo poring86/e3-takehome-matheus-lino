@@ -75,6 +75,7 @@ export async function listNotesForOrg(userId: string, input: ListNotesInput) {
     );
   }
 
+  // Garante unicidade direto na query SQL usando DISTINCT ON (notes.id)
   const notesQuery = db
     .select({
       id: notes.id,
@@ -96,16 +97,22 @@ export async function listNotesForOrg(userId: string, input: ListNotesInput) {
     .leftJoin(noteTags, eq(noteTags.noteId, notes.id))
     .leftJoin(tagSchema, eq(noteTags.tagId, tagSchema.id))
     .leftJoin(noteShares, eq(noteShares.noteId, notes.id))
-    .where(and(...filters));
+    .where(and(...filters))
+    .distinctOn(notes.id)
+    .orderBy(desc(notes.updatedAt));
 
-  const countQuery = db.$with("notes_query").as(notesQuery);
-  const [{ count: totalCount }] = await db
-    .with(countQuery)
-    .select({ count: count() })
-    .from(countQuery);
+  // Conta o total de notas únicas
+  const countQuery = db
+    .select({ id: notes.id })
+    .from(notes)
+    .leftJoin(noteTags, eq(noteTags.noteId, notes.id))
+    .leftJoin(tagSchema, eq(noteTags.tagId, tagSchema.id))
+    .leftJoin(noteShares, eq(noteShares.noteId, notes.id))
+    .where(and(...filters))
+    .distinctOn(notes.id);
+  const totalCount = (await countQuery).length;
 
   const userNotes = await notesQuery
-    .orderBy(desc(notes.updatedAt))
     .limit(input.limit)
     .offset(input.offset);
 

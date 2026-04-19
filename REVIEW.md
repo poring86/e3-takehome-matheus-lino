@@ -1,3 +1,9 @@
+## Pull Request: chore/clean-unused-tests + efficient pagination (2026-04-19)
+
+- Removidos testes vazios/placeholders para evitar cobertura falsa e ruído em CI.
+- Refatorada a paginação de notas para garantir unicidade diretamente na query SQL (DISTINCT ON), tornando o backend eficiente mesmo com grandes volumes de dados.
+- Documentação e scripts revisados para refletir as mudanças.
+
 2026-04-18: Limite de bundle size ajustado para 1024KB. Todos os testes, lint, build e fitness functions passam. Decisão documentada para manter rastreabilidade.
 
 # REVIEW.md
