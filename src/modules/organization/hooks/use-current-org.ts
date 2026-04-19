@@ -27,7 +27,7 @@ export function useCurrentOrg(options?: UseCurrentOrgOptions) {
 
   // Decide qual organização mostrar: otimista ou do backend
   let currentOrg = data?.currentOrg || null;
-  let userOrgs = data?.orgs || [];
+  const userOrgs = data?.orgs || [];
   if (optimisticOrgId && userOrgs.length > 0) {
     const optimistic = userOrgs.find((m) => m.org_id === optimisticOrgId);
     if (optimistic?.organizations) {

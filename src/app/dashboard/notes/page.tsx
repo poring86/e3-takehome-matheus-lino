@@ -29,7 +29,7 @@ interface Note {
 }
 
 function NotesContent() {
-  const { user, session } = useUserSession();
+  const { user } = useUserSession();
   const { currentOrg } = useCurrentOrg();
   const signOut = useSignOut;
   const [searchQuery, setSearchQuery] = useState('');

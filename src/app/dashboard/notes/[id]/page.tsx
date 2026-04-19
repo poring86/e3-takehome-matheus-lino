@@ -104,9 +104,6 @@ function NoteContent() {
     },
   });
 
-  if (isDirty) {
-    return <div>Carregando...</div>;
-  }
 
   useEffect(() => {
     if (noteQuery.isSuccess && note === null) {
@@ -124,6 +121,10 @@ function NoteContent() {
     if (!editor || !note) return;
     editor.commands.setContent(note.content || '');
   }, [editor, note]);
+
+  if (isDirty) {
+    return <div>Carregando...</div>;
+  }
 
   const handleEdit = () => {
     setEditing(true);
