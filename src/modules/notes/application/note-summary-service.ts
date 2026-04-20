@@ -73,7 +73,7 @@ export async function generateNoteSummaryForUser(
 
   logAIRequest("summarize_request", userId, note.orgId, noteId, {
     title: note.title,
-    aiProvider: process.env.AI_PROVIDER || "openai",
+    aiProvider: "groq",
   });
 
   let summary = "";

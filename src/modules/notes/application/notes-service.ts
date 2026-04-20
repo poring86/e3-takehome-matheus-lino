@@ -8,7 +8,7 @@ import {
   tags as tagSchema,
   noteShares,
 } from "@/drizzle/schema";
-import { eq, and, or, like, desc, inArray, count } from "drizzle-orm";
+import { eq, and, or, like, desc, inArray } from "drizzle-orm";
 import { logMutation, logPermissionDenied } from "@/lib/logger";
 
 type NoteVisibility = "public" | "private" | "shared";

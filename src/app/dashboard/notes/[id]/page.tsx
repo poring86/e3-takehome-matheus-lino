@@ -26,26 +26,13 @@ function NoteContent() {
   const { currentOrg, userOrgs } = useCurrentOrg();
   const queryClient = useQueryClient();
 
-  // --- Patch para garantir que só busca nota se o ID estiver limpo
-  const rawNoteId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const noteId = typeof rawNoteId === 'string' ? rawNoteId.split('?')[0] : rawNoteId;
-  const isDirty = rawNoteId !== noteId;
 
-  // --- Patch para limpar a URL se vier com query string (_rsc ou outros)
-  useEffect(() => {
-    const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
-    const cleanId = typeof rawId === 'string' ? rawId.split('?')[0] : rawId;
-    if (rawId !== cleanId) {
-      router.replace(`/dashboard/notes/${cleanId}`);
-    }
-  }, [params, router]);
-  // --- Fim do patch
-
-  useEffect(() => {
-    if (isDirty) {
-      router.replace(`/dashboard/notes/${noteId}`);
-    }
-  }, [isDirty, noteId, router]);
+  // Centraliza a limpeza do noteId ao ler params.id
+  const noteId = typeof params.id === 'string'
+    ? params.id.split('?')[0]
+    : Array.isArray(params.id)
+      ? params.id[0].split('?')[0]
+      : params.id;
 
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
@@ -105,26 +92,25 @@ function NoteContent() {
   });
 
 
-  useEffect(() => {
-    if (noteQuery.isSuccess && note === null) {
-      router.push('/dashboard/notes');
-    }
-  }, [note, noteQuery.isSuccess, router]);
+
+
+  const showNotFound = noteQuery.isSuccess && note === null;
+
 
   useEffect(() => {
-    if (!note) return;
-    setTitle(note.title);
-    setVisibility(note.visibility);
+    if (note) {
+      setTitle(note.title);
+      setVisibility(note.visibility);
+    }
   }, [note]);
 
   useEffect(() => {
-    if (!editor || !note) return;
-    editor.commands.setContent(note.content || '');
+    if (editor && note) {
+      editor.commands.setContent(note.content || '');
+    }
   }, [editor, note]);
 
-  if (isDirty) {
-    return <div>Carregando...</div>;
-  }
+
 
   const handleEdit = () => {
     setEditing(true);
@@ -286,6 +272,7 @@ function NoteContent() {
     }
   };
 
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -294,12 +281,18 @@ function NoteContent() {
     );
   }
 
-  if (!note) {
+  if (showNotFound) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">Note not found</h2>
-          <p className="mt-2 text-gray-600">The note you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+          <h2 className="text-xl font-semibold text-gray-900">Note not found or access denied</h2>
+          <p className="mt-2 text-gray-600">Check if you have permission or if the note exists.</p>
+          <button
+            className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => router.push('/dashboard/notes')}
+          >
+            Back to notes list
+          </button>
         </div>
       </div>
     );
@@ -309,6 +302,8 @@ function NoteContent() {
   const currentOrgMember = userOrgs.find((org: { org_id: string }) => org.org_id === currentOrg?.id);
   const canEdit = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
   const canDelete = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
+  if (!note) return null;
+
   const contextValue = {
     note,
     editing,
