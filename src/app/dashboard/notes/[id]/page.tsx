@@ -45,6 +45,10 @@ function NoteContent() {
   const noteQuery = useQuery<Note | null>({
     queryKey: ['note', noteId, session?.access_token],
     enabled: Boolean(noteId),
+    // Sempre busca do servidor ao montar a tela, ignorando cache antigo
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!noteId) return null;
 
