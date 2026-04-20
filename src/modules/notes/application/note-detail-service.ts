@@ -126,7 +126,7 @@ export async function listNoteVersionsForUser(
     .select()
     .from(noteVersions)
     .where(eq(noteVersions.noteId, noteId))
-    .orderBy(desc(noteVersions.version));
+    .orderBy(desc(noteVersions.createdAt));
 
   logMutation("read", "note_versions", userId, access.data.note.orgId, noteId, {
     count: versions.length,
