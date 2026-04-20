@@ -221,7 +221,7 @@ function NoteContent() {
       queryClient.setQueryData(['note', note.id, session?.access_token], {
         ...note,
         summary: data.summary,
-        summaryStatus: 'pending',
+        summaryStatus: data.summaryStatus || 'pending',
       });
     } catch (error) {
       console.error('Error generating summary:', error);
@@ -259,11 +259,8 @@ function NoteContent() {
         return;
       }
 
-      const data = await response.json();
-      queryClient.setQueryData(['note', note.id, session?.access_token], {
-        ...note,
-        summaryStatus: data.status,
-      });
+      // Após aceitar/rejeitar, busca o note atualizado para garantir que o resumo e status estejam corretos
+      await queryClient.invalidateQueries({ queryKey: ['note', note.id, session?.access_token] });
     } catch (error) {
       console.error('Error updating summary status:', error);
       setSummaryError('Error updating summary status');
