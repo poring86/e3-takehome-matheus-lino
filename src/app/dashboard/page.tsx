@@ -6,7 +6,7 @@ import { ProtectedRoute } from '../../components/protected-route';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
-import { LogOut, Building2, Plus } from 'lucide-react';
+import { LogOut, Building2, Plus, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -15,7 +15,7 @@ import Link from 'next/link';
 
 function DashboardContent() {
   const { user } = useUserSession();
-  const { currentOrg, userOrgs, refreshOrganizations, setCurrentOrgId } = useCurrentOrg();
+  const { currentOrg, userOrgs, refreshOrganizations, setCurrentOrgId, loading } = useCurrentOrg();
   const switchOrg = useSwitchOrg({
     onSwitched: () => refreshOrganizations(),
   });
@@ -26,6 +26,40 @@ function DashboardContent() {
   const handleSignOut = async () => {
     await signOut();
   };
+
+  // Só renderiza conteúdo após loading=false
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mb-4" />
+          <span className="text-gray-500">Loading organizations...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Só renderiza o restante se loading for false
+  if (!loading && !activeOrg) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card>
+          <CardHeader>
+            <CardTitle>Welcome!</CardTitle>
+            <CardDescription>
+              You need to create or join an organization to get started.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push('/onboarding')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Organization
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

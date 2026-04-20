@@ -45,7 +45,13 @@ function OnboardingContent() {
       const { error: orgError } = await supabase
         .from('organizations')
         .insert({ id: orgId, name: data.name });
-      if (orgError) throw orgError;
+      if (orgError) {
+        // Trata erro de constraint UNIQUE
+        if (orgError.code === '23505' || orgError.message?.toLowerCase().includes('unique')) {
+          throw new Error('An organization with this name already exists. Please choose another name.');
+        }
+        throw orgError;
+      }
 
       // Ensure user profile exists before creating membership (FK users.id)
       const { error: profileError } = await supabase
