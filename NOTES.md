@@ -1,6 +1,7 @@
+
 ### 2026-04-18: Bundle size fitness
 
-O limite rígido de 500KB estava bloqueando builds mesmo com práticas modernas de otimização. Ajustado para 1024KB, documentando que o foco do desafio é engenharia e governança, não performance extrema. Futuramente, pode-se reavaliar e otimizar o bundle.
+The strict 500KB limit was blocking builds even with modern optimization practices. Adjusted to 1024KB, documenting that the challenge focus is engineering and governance, not extreme performance. In the future, the bundle can be re-evaluated and optimized.
 
 # NOTES.md — Agent Scratchpad
 

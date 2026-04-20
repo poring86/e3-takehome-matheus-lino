@@ -45,10 +45,6 @@ function NoteContent() {
   const noteQuery = useQuery<Note | null>({
     queryKey: ['note', noteId, session?.access_token],
     enabled: Boolean(noteId),
-    // Sempre busca do servidor ao montar a tela, ignorando cache antigo
-    staleTime: 0,
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!noteId) return null;
 
@@ -223,12 +219,8 @@ function NoteContent() {
         return;
       }
 
-      const data = await response.json();
-      queryClient.setQueryData(['note', note.id, session?.access_token], {
-        ...note,
-        summary: data.summary,
-        summaryStatus: data.summaryStatus || 'pending',
-      });
+      // Invalida a query para garantir atualização do note (summary e summaryStatus)
+      await queryClient.invalidateQueries({ queryKey: ['note', note.id, session?.access_token] });
     } catch (error) {
       console.error('Error generating summary:', error);
       setSummaryError('Error generating summary');

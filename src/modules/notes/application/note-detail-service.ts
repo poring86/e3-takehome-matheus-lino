@@ -94,6 +94,8 @@ export async function getNoteByIdForUser(
       createdBy: notes.createdBy,
       createdAt: notes.createdAt,
       updatedAt: notes.updatedAt,
+      summary: notes.summary,
+      summaryStatus: notes.summaryStatus,
       author: {
         id: users.id,
         email: users.email,
