@@ -20,9 +20,7 @@ Production-grade take-home project with Next.js, Supabase, Drizzle, and TypeScri
 - Next.js 16, TypeScript, Supabase, Drizzle ORM
 - AI: OpenAI, Gemini, Groq (Llama/Mixtral)
 
-
 ## Authentication & Organization: Modular Architecture
-
 
 All auth/org hooks are modularized in `src/modules/auth` and `src/modules/organization`. Always import via the module barrel file. Avoid orphan hooks/components.
 
@@ -196,6 +194,14 @@ For Railway deployment details, see:
 
 - RAILWAY_DEPLOYMENT.md
 
+## Production Deployment
+
+The application is deployed and accessible at:
+
+- **Production URL:** https://e3-takehome-matheus-lino-production.up.railway.app/
+
+For deployment details and environment configuration, see [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md).
+
 ## Documentation
 
 - ARCHITECTURE.md: architecture baseline, layering, and conventions
@@ -293,3 +299,20 @@ If `AI_PROVIDER` is not set, the default is `openai`.
 - Gemini and Groq support are optional and considered extras.
 - The demo video can be recorded with any tool (Gemini, Groq, OBS, Loom, etc).
 - Document in the video/README which provider is being used.
+
+## Seeded Test Users
+
+The seed script automatically creates 20 test users with the following pattern:
+
+- **Email:** user1@example.com, user2@example.com, ..., user20@example.com
+- **Password:** Temp@12345678
+
+These users are added to organizations and can be used for login, testing, and permission validation.
+
+To reset all test data and users, run:
+
+```bash
+npm run db:reset:seed
+```
+
+This will clear and recreate all test users and sample data.

@@ -5,9 +5,9 @@ import { eq } from "drizzle-orm";
 
 async function main() {
   try {
-    console.log("Iniciando verificação de usuários e organizações...");
+    console.log("Starting user and organization verification...");
     const allUsers = await db.select().from(users);
-    console.log(`Total de usuários encontrados: ${allUsers.length}`);
+    console.log(`Total users found: ${allUsers.length}`);
     for (const user of allUsers) {
       try {
         const memberships = await db
@@ -15,22 +15,22 @@ async function main() {
           .from(orgMembers)
           .where(eq(orgMembers.userId, user.id));
         if (memberships.length === 0) {
-          console.log(`${user.email} NÃO está em nenhuma organização!`);
+          console.log(`${user.email} is NOT in any organization!`);
         } else {
           const orgs = await db
             .select({ name: organizations.name })
             .from(organizations)
             .where(eq(organizations.id, memberships[0].orgId));
-          console.log(`${user.email} está em: ${orgs.map(o => o.name).join(", ")}`);
+          console.log(`${user.email} is in: ${orgs.map(o => o.name).join(", ")}`);
         }
       } catch (userErr) {
-        console.error(`Erro ao verificar usuário ${user.email}:`, userErr);
+        console.error(`Error checking user ${user.email}:`, userErr);
       }
     }
-    console.log("Verificação concluída.");
+    console.log("Verification completed.");
     process.exit(0);
   } catch (err) {
-    console.error("Erro geral na execução do script:", err);
+    console.error("General error running the script:", err);
     process.exit(1);
   }
 }

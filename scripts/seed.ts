@@ -76,7 +76,7 @@ async function seedDatabase() {
     const sampleUsers = [];
     for (let i = 1; i <= 20; i++) {
       const email = `user${i}@example.com`;
-      // Cria usuário no Supabase Auth
+      // Create user in Supabase Auth
       const { data: authUser, error: authError } =
         await supabaseAdmin.auth.admin.createUser({
           email,
@@ -85,12 +85,12 @@ async function seedDatabase() {
         });
       if (authError) {
         console.error(
-          `Erro ao criar usuário no Supabase Auth: ${email}`,
+          `Error creating user in Supabase Auth: ${email}`,
           authError,
         );
         continue;
       }
-      // Cria usuário na tabela users
+      // Create user in users table
       const [user] = await db
         .insert(users)
         .values({
@@ -103,7 +103,7 @@ async function seedDatabase() {
     }
     console.log(`Created ${sampleUsers.length} users (Auth + DB)`);
 
-    // Add users to organizations with roles (aleatório)
+    // Add users to organizations with random roles
     for (const org of orgs) {
       const orgUsers = sampleUsers.slice(0, Math.floor(Math.random() * 8) + 3); // 3-10 users per org
       for (const user of orgUsers) {
@@ -115,7 +115,7 @@ async function seedDatabase() {
         });
       }
     }
-    // Garante que todo usuário está em pelo menos uma organização
+    // Ensure every user is in at least one organization
     for (const user of sampleUsers) {
       const memberships = await db
         .select()
@@ -131,10 +131,10 @@ async function seedDatabase() {
       }
     }
     console.log(
-      "Garantido que todos os usuários estão em pelo menos uma organização",
+      "Ensured all users are in at least one organization",
     );
 
-    // Garante que cada usuário tenha uma nota privada, uma pública e uma compartilhada
+    // Ensure each user has a private, a public, and a shared note
     for (const user of sampleUsers) {
       // Busca uma organização do usuário
       const memberships = await db
@@ -143,7 +143,7 @@ async function seedDatabase() {
         .where(eq(orgMembers.userId, user.id));
       if (memberships.length > 0) {
         const orgId = memberships[0].orgId;
-        // Nota privada
+        // Private note
         const contentPriv = SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
         const [notePriv] = await db
           .insert(notes)
@@ -160,7 +160,7 @@ async function seedDatabase() {
           version: 1,
           content: contentPriv,
         });
-        // Nota pública
+        // Public note
         const contentPub = SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
         const [notePub] = await db
           .insert(notes)
@@ -177,7 +177,7 @@ async function seedDatabase() {
           version: 1,
           content: contentPub,
         });
-        // Nota compartilhada
+        // Shared note
         const contentShared = SAMPLE_CONTENT[Math.floor(Math.random() * SAMPLE_CONTENT.length)];
         const [noteShared] = await db
           .insert(notes)
@@ -194,7 +194,7 @@ async function seedDatabase() {
           version: 1,
           content: contentShared,
         });
-        // Compartilha com outro membro aleatório da mesma organização
+        // Share with another random member of the same organization
         const otherMembers = memberships.filter(m => m.userId !== user.id);
         if (otherMembers.length > 0) {
           const shareWith = otherMembers[Math.floor(Math.random() * otherMembers.length)];
@@ -205,7 +205,7 @@ async function seedDatabase() {
         }
       }
     }
-    console.log("Garantido que cada usuário tenha nota privada, pública e compartilhada");
+    console.log("Ensured each user has private, public, and shared notes");
 
     // Create tags for each organization
     const orgTags = new Map();

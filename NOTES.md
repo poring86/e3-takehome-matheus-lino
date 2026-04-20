@@ -36,10 +36,10 @@ The strict 500KB limit was blocking builds even with modern optimization practic
   - React Query is being introduced incrementally to avoid broad refactor risk.
   - Initial increment covered notes list; second increment covered detail and versions pages.
   - Third increment covered organization settings member management.
-  - Fourth increment cobriu onboarding/org bootstrap (criação e seleção de organização) com React Query, eliminando fetch imperativo/manual.
+  - Fourth increment covered onboarding/org bootstrap (creation and selection of organization) with React Query, eliminating imperative/manual fetch.
 
   ## Frontend State Validation Log (2026-04-17) - Onboarding/Org Bootstrap React Query
-  - Scope: Migrated onboarding/org bootstrap (create + load) to React Query, garantindo consistência e cache global.
+  - Scope: Migrated onboarding/org bootstrap (create + load) to React Query, ensuring consistency and global cache.
   - Files: `src/app/onboarding/page.tsx`, `src/lib/auth-context.tsx`, `src/lib/use-organizations.ts`.
   - Validation:
     - `npm run build`: passed.
@@ -100,8 +100,8 @@ The strict 500KB limit was blocking builds even with modern optimization practic
 - Validation:
   - `npm run build`: passed.
   - `npx vitest run --coverage`: all unit tests passed, integration tests skipped due to missing env vars (expected).
-  - Dashboard e onboarding agora usam apenas estado cacheado do React Query para organizações.
-  - Nenhum fetch imperativo/manual remanescente para organizações.
+  - Dashboard and onboarding now use only React Query cached state for organizations.
+  - No imperative/manual fetch remaining for organizations.
     > > > > > > > # main
 
 ## Frontend State Decision Log (2026-04-17) - React Query adoption
