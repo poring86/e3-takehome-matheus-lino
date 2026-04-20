@@ -157,20 +157,29 @@ export async function updateNoteByIdForUser(
     return { ok: false, error: "ACCESS_DENIED" };
   }
 
-  const [latestVersion] = await db
-    .select({ version: noteVersions.version })
-    .from(noteVersions)
-    .where(eq(noteVersions.noteId, noteId))
-    .orderBy(desc(noteVersions.version))
-    .limit(1);
+  // Só cria nova versão se o conteúdo realmente mudou
+  let shouldCreateVersion = false;
+  let newContent = note.content || "";
+  if (input.content !== undefined && input.content !== note.content) {
+    shouldCreateVersion = true;
+    newContent = input.content;
+  }
 
-  const newVersion = (latestVersion?.version || 0) + 1;
+  if (shouldCreateVersion) {
+    const [latestVersion] = await db
+      .select({ version: noteVersions.version })
+      .from(noteVersions)
+      .where(eq(noteVersions.noteId, noteId))
+      .orderBy(desc(noteVersions.version))
+      .limit(1);
 
-  await db.insert(noteVersions).values({
-    noteId,
-    version: newVersion,
-    content: note.content || "",
-  });
+    const newVersion = (latestVersion?.version || 0) + 1;
+    await db.insert(noteVersions).values({
+      noteId,
+      version: newVersion,
+      content: newContent,
+    });
+  }
 
   const updateData: Partial<typeof notes.$inferInsert> = {
     updatedAt: new Date(),

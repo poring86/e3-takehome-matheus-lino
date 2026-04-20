@@ -81,19 +81,9 @@ function VersionsContent() {
         throw new Error('Invalid versions data received.');
       }
 
-      // Include current note state as the latest version shown in the UI.
-      const latestHistoricalVersion = versionsData[0]?.version ?? 0;
-      const currentVersion: NoteVersion = {
-        id: `current-${noteId}`,
-        noteId,
-        version: latestHistoricalVersion + 1,
-        content: currentNote.content || '',
-        createdAt: currentNote.updatedAt || new Date().toISOString(),
-      };
-
       return {
         note: currentNote,
-        versions: [currentVersion, ...versionsData],
+        versions: versionsData,
       };
     },
   });
