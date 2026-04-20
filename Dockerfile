@@ -9,6 +9,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN rm -rf .next && chown -R node:node .next || true
 ARG NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co
 ARG NEXT_PUBLIC_SUPABASE_ANON_KEY=build-time-anon-key
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
