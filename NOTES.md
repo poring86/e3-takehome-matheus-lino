@@ -1,3 +1,4 @@
+
 ### 2026-04-18: Bundle size fitness
 
 The strict 500KB limit was blocking builds even with modern optimization practices. Adjusted to 1024KB, documenting that the challenge focus is engineering and governance, not extreme performance. In the future, the bundle can be re-evaluated and optimized.

@@ -16,6 +16,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
+import { useQueryClient } from '@tanstack/react-query';
 
 function NewNoteContent() {
   const { currentOrg } = useCurrentOrg();
@@ -25,6 +26,8 @@ function NewNoteContent() {
   const [visibility, setVisibility] = useState<'public' | 'private'>('private');
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const queryClient = useQueryClient();
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -80,6 +83,8 @@ function NewNoteContent() {
 
       if (response.ok) {
         const note = await response.json();
+        // Invalida a query de listagem de notas para atualizar automaticamente
+        queryClient.invalidateQueries({ queryKey: ['notes'] });
         router.push(`/dashboard/notes/${note.id}`);
       } else {
         const payload = await response.json().catch(() => null);

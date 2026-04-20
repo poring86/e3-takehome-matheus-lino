@@ -1,88 +1,38 @@
 # E3 Take-home: Multi-tenant Notes Platform
 
-Production-style take-home project built with Next.js, Supabase, Drizzle, and TypeScript.
+
+Production-grade take-home project with Next.js, Supabase, Drizzle, and TypeScript.
 
 ## Scope Summary
 
-- Multi-tenant auth and organization membership
-- Notes CRUD with permissions
-- Visibility and selective sharing
-- Versioning and history endpoints
-- Search across title/content/tags
-- File upload flow
-- AI note summary (generate + accept/reject)
-- Structured logging for key events
-- Seed data for large test volume
+
+- Multi-tenant auth & orgs
+- Notes CRUD with permissions & visibility
+- Versioning, search, file upload
+- AI note summary (OpenAI, Gemini, Groq)
+- Logging, seed data, full test coverage
+
+
 
 
 ## Tech Stack
 
-- Next.js 16
-- TypeScript
- - AI support: OpenAI, Gemini, Groq (Llama/Mixtral)
-## AI Provider: OpenAI, Gemini, Groq (Llama/Mixtral)
+- Next.js 16, TypeScript, Supabase, Drizzle ORM
+- AI: OpenAI, Gemini, Groq (Llama/Mixtral)
 
-The system supports multiple AI providers for note summarization:
+## Authentication & Organization: Modular Architecture
 
-- **OpenAI** (gpt-3.5-turbo)
-- **Gemini** (gemini-pro)
-- **Groq** (Llama-2, Llama-3, Mixtral)
-
-### How to configure Groq/Llama
-
-1. Create an account at https://console.groq.com/ and generate an API Key.
-2. In your `.env` or `.env.local` file, add:
-
-```
-GROQ_API_KEY=your-groq-key
-AI_PROVIDER=groq
-```
-
-3. The default model is `mixtral-8x7b-32768`. To use Llama-2 or Llama-3, change the model in `src/lib/ai-summary.ts`.
-
-4. To use OpenAI or Gemini, just change the value of `AI_PROVIDER` to `openai` or `gemini` and set the respective key.
-
-**Important:**
-- The provider is selected via the `AI_PROVIDER` environment variable.
-- The system is ready to use Groq/Llama for note summarization.
-
-## Authentication and Organization: Modular Architecture
-
-All authentication and organization hooks now follow a modular architecture, avoiding orphan components and promoting clear domain boundaries:
-
-- **Authentication:**
-  - `useUserSession` and `useSignOut` are in `src/modules/auth/hooks/`
-- **Organization:**
-  - `useCurrentOrg` and `useSwitchOrg` are in `src/modules/organization/hooks/`
-
-Always import via the module:
-
-```ts
-import { useUserSession } from "@/modules/auth";
-import { useCurrentOrg } from "@/modules/organization";
-```
-
-Do not use domain hooks in `lib/` or orphan components. Follow the module separation for domain logic, as recommended by the book "Software Architecture: The Hard Parts".
+All auth/org hooks are modularized in `src/modules/auth` and `src/modules/organization`. Always import via the module barrel file. Avoid orphan hooks/components.
 
 ## Architecture
 
-The project follows a modular monolith architecture with server-first API routes and strict tenant boundaries.
 
-- Architecture baseline and rules: see `ARCHITECTURE.md`
-- Module decomposition and boundaries: see `src/modules/README.md`
-- Operational governance and commit/audit contract: see `AGENTS.md`
+Modular monolith with server-first API routes and strict tenant boundaries. See `ARCHITECTURE.md` and `src/modules/README.md` for details.
 
 ## Naming Convention
 
-- Source and executable script filenames use kebab-case.
-- Example patterns:
-  - `use-user-session.ts`
-  - `check-test-coverage.ts`
-  - `organization-service.ts`
-- Why:
-  - Consistent path style reduces CI/container path mismatch issues.
-  - Improves maintainability and discoverability in grep/search-based workflows.
-  - Keeps module, script, and workflow references aligned over time.
+
+All source and script filenames use kebab-case for consistency and CI compatibility.
 
 ## Environment Variables
 
@@ -224,7 +174,21 @@ Notes:
 - `test:notes:integration` validates authenticated note CRUD against the running app/API using Supabase auth token flow.
 - `smoke:notes` is a fast runtime guard for the most critical write path (`POST /api/notes`) and fails immediately if database/auth runtime config is broken.
 
+
 ## Deployment
+
+Production access:
+
+- [https://e3-takehome-matheus-lino-production.up.railway.app/](https://e3-takehome-matheus-lino-production.up.railway.app/)
+
+### Test user credentials
+
+You can use the following credentials to log in with seeded users:
+
+**User:** user1@example.com
+**Password:** Temp@12345678
+
+Other users: user2@example.com, user3@example.com, ... up to user20@example.com (all with the same password)
 
 For Railway deployment details, see:
 
