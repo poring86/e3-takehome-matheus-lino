@@ -15,54 +15,57 @@ Production-style take-home project built with Next.js, Supabase, Drizzle, and Ty
 - Seed data for large test volume
 
 
+
 ## Tech Stack
 
 - Next.js 16
 - TypeScript
-- Suporte a AI: OpenAI, Gemini, Groq (Llama/Mixtral)
-## AI Provider: OpenAI, Gemini, Groq (Llama/Mixtral)
+- AI Support: OpenAI, Gemini, Groq (Llama/Mixtral)
 
-O sistema suporta múltiplos provedores de AI para sumarização de notas:
+## AI Providers: OpenAI, Gemini, Groq (Llama/Mixtral)
+
+The system supports multiple AI providers for note summarization:
 
 - **OpenAI** (gpt-3.5-turbo)
 - **Gemini** (gemini-pro)
 - **Groq** (Llama-2, Llama-3, Mixtral)
 
-### Como configurar o Groq/Llama
+### How to configure Groq/Llama
 
-1. Crie uma conta em https://console.groq.com/ e gere uma API Key.
-2. No arquivo `.env` ou `.env.local`, adicione:
+1. Create an account at https://console.groq.com/ and generate an API Key.
+2. In your `.env` or `.env.local` file, add:
 
 ```
-GROQ_API_KEY=sua-chave-groq
+GROQ_API_KEY=your-groq-key
 AI_PROVIDER=groq
 ```
 
-3. O modelo padrão é `mixtral-8x7b-32768`. Para usar Llama-2 ou Llama-3, altere o modelo em `src/lib/ai-summary.ts`.
+3. The default model is `mixtral-8x7b-32768`. To use Llama-2 or Llama-3, change the model in `src/lib/ai-summary.ts`.
 
-4. Para usar OpenAI ou Gemini, basta mudar o valor de `AI_PROVIDER` para `openai` ou `gemini` e configurar a respectiva chave.
+4. To use OpenAI or Gemini, just set `AI_PROVIDER` to `openai` or `gemini` and configure the respective key.
 
-**Importante:**
-- O provider é selecionado via variável de ambiente `AI_PROVIDER`.
-- O sistema já está pronto para usar Groq/Llama para sumarização de notas.
+**Important:**
+- The provider is selected via the `AI_PROVIDER` environment variable.
+- The system is ready to use Groq/Llama for note summarization.
 
-## Autenticação e Organização: Arquitetura Modular
 
-Todos os hooks de autenticação e organização agora seguem uma arquitetura modular, evitando componentes órfãos e promovendo boundaries claros entre domínios:
+## Authentication & Organization: Modular Architecture
 
-- **Autenticação:**
-  - `useUserSession` e `useSignOut` ficam em `src/modules/auth/hooks/`
-- **Organização:**
-  - `useCurrentOrg` e `useSwitchOrg` ficam em `src/modules/organization/hooks/`
+All authentication and organization hooks now follow a modular architecture, avoiding orphan components and promoting clear domain boundaries:
 
-Importe sempre via o módulo:
+- **Authentication:**
+  - `useUserSession` and `useSignOut` are in `src/modules/auth/hooks/`
+- **Organization:**
+  - `useCurrentOrg` and `useSwitchOrg` are in `src/modules/organization/hooks/`
+
+Always import via the module:
 
 ```ts
 import { useUserSession } from "@/modules/auth";
 import { useCurrentOrg } from "@/modules/organization";
 ```
 
-Não utilize mais hooks de domínio em `lib/` ou componentes órfãos. Siga a separação de módulos para lógica de domínio, conforme recomendações do livro "Arquitetura: As Partes Difíceis".
+Do not use domain hooks in `lib/` or orphan components. Follow module separation for domain logic as recommended by "Software Architecture: The Hard Parts".
 
 ## Architecture
 
@@ -224,7 +227,21 @@ Notes:
 - `test:notes:integration` validates authenticated note CRUD against the running app/API using Supabase auth token flow.
 - `smoke:notes` is a fast runtime guard for the most critical write path (`POST /api/notes`) and fails immediately if database/auth runtime config is broken.
 
+
 ## Deployment
+
+Production access:
+
+- [https://e3-takehome-matheus-lino-production.up.railway.app/](https://e3-takehome-matheus-lino-production.up.railway.app/)
+
+### Test user credentials
+
+You can use the following credentials to log in with seeded users:
+
+**User:** user1@example.com
+**Password:** Temp@12345678
+
+Other users: user2@example.com, user3@example.com, ... up to user20@example.com (all with the same password)
 
 For Railway deployment details, see:
 
