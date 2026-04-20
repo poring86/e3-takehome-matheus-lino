@@ -228,7 +228,9 @@ function NotesContent() {
                       </div>
                     </div>
                     <CardDescription className="line-clamp-3">
-                      {note.content || 'No content'}
+                      {note.content
+                        ? note.content.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim() || 'No content'
+                        : 'No content'}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
