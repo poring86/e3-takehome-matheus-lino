@@ -352,20 +352,3 @@ npm run db:reset:seed
 ```
 
 This will clear and recreate all test users and sample data.
-
-## Seed users created automatically
-
-The seed script creates 20 test users with the following pattern:
-
-- **Email:** user1@example.com, user2@example.com, ..., user20@example.com
-- **Password:** Temp@12345678
-
-These users are added to organizations and can be used for login, testing, and permission validation.
-
-If you need to reset, just run:
-
-```bash
-npm run db:reset:seed
-```
-
-This will clear and recreate all test users and sample data.
