@@ -46,23 +46,21 @@ export async function listNotesForOrg(userId: string, input: ListNotesInput) {
     return { ok: false, error: "ACCESS_DENIED" } as const;
   }
 
-  const isOrgAdmin = orgMember.role === "admin" || orgMember.role === "owner";
+
   const searchText = input.query ? `%${input.query.toLowerCase()}%` : undefined;
 
-  const filters = [eq(notes.orgId, input.orgId)];
-
-  if (!isOrgAdmin) {
-    filters.push(
-      or(
-        eq(notes.visibility, "public"),
-        and(eq(notes.visibility, "private"), eq(notes.createdBy, userId)),
-        and(
-          eq(notes.visibility, "shared"),
-          or(eq(notes.createdBy, userId), eq(noteShares.userId, userId)),
-        ),
-      )!,
-    );
-  }
+  // Sempre restringe notas privadas ao autor, inclusive para admin/owner
+  const filters = [
+    eq(notes.orgId, input.orgId),
+    or(
+      eq(notes.visibility, "public"),
+      and(eq(notes.visibility, "private"), eq(notes.createdBy, userId)),
+      and(
+        eq(notes.visibility, "shared"),
+        or(eq(notes.createdBy, userId), eq(noteShares.userId, userId)),
+      ),
+    ),
+  ];
 
   if (searchText) {
     filters.push(
