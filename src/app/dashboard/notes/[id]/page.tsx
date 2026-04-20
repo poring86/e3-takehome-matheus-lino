@@ -155,8 +155,8 @@ function NoteContent() {
         queryClient.invalidateQueries({ queryKey: ['notes'] });
         setEditing(false);
         editor?.setEditable(false);
-        // Redireciona para a listagem após editar
-        router.push('/dashboard/notes');
+        // Redireciona para a própria nota após editar
+        router.push(`/dashboard/notes/${note.id}`);
       } else {
         console.error('Failed to update note');
       }
