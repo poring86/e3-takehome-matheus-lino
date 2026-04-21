@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "./supabase-client";
 
@@ -6,8 +5,8 @@ export function useOrganizations(userId?: string) {
   return useQuery({
     queryKey: ["organizations", userId],
     queryFn: async () => {
+      // Só busca se userId existir
       if (!userId) return { orgs: [], currentOrg: null };
-      // Recupera o access_token do Supabase
       const { data } = await supabase.auth.getSession();
       const access_token = data?.session?.access_token;
       const res = await fetch("/api/organizations", {
@@ -38,7 +37,8 @@ export function useOrganizations(userId?: string) {
       localStorage.setItem("currentOrgId", current.org_id);
       return { orgs: memberships, currentOrg: current.organizations };
     },
-    enabled: !!userId,
+    enabled: !!userId, // só busca quando userId existe
     staleTime: 30_000,
+    select: (data) => data,
   });
 }

@@ -7,8 +7,8 @@ type UseUserSessionOptions = {
 };
 
 export function useUserSession(options?: UseUserSessionOptions) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
