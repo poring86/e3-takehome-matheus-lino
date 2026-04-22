@@ -109,7 +109,7 @@ function DashboardContent() {
               </div>
 
               {/* Organization switcher */}
-              {userOrgs.length > 1 && (
+              {(userOrgs?.length ?? 0) > 1 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Switch Organization</CardTitle>
