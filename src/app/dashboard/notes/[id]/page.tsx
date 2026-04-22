@@ -294,7 +294,7 @@ function NoteContent() {
   }
 
   const isAuthor = user?.id && note?.author?.id && user.id === note.author.id;
-  const currentOrgMember = userOrgs.find((org: { org_id: string }) => org.org_id === currentOrg?.id);
+  const currentOrgMember = (userOrgs ?? []).find((org: { org_id: string }) => org.org_id === currentOrg?.id);
   const canEdit = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
   const canDelete = isAuthor || currentOrgMember?.role === 'admin' || currentOrgMember?.role === 'owner';
   if (!note) return null;

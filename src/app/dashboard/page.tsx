@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUserSession, useSignOut } from '../../modules/auth';
@@ -6,9 +7,10 @@ import { ProtectedRoute } from '../../components/protected-route';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
-import { LogOut, Building2, Plus, Loader2 } from 'lucide-react';
+import { LogOut, Building2, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+
 
 
 
@@ -16,31 +18,36 @@ import Link from 'next/link';
 function DashboardContent() {
   const { user } = useUserSession();
   const { currentOrg, userOrgs, refreshOrganizations, setCurrentOrgId, loading } = useCurrentOrg();
+  const safeUserOrgs = userOrgs ?? [];
   const switchOrg = useSwitchOrg({
     onSwitched: () => refreshOrganizations(),
   });
   const signOut = useSignOut;
   const router = useRouter();
-  const activeOrg = currentOrg || userOrgs[0]?.organizations || null;
+  const activeOrg = currentOrg || (Array.isArray(userOrgs) && userOrgs[0]?.organizations) || null;
 
   const handleSignOut = async () => {
     await signOut();
   };
 
-  // Só renderiza conteúdo após loading=false
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mb-4" />
-          <span className="text-gray-500">Loading organizations...</span>
-        </div>
-      </div>
-    );
+  // DEBUG: log states para investigar flicker
+  if (typeof window !== 'undefined') {
+    console.log('[DEBUG] currentOrg:', currentOrg, '| userOrgs:', userOrgs, '| loading:', loading, '| activeOrg:', activeOrg, '| user:', user);
   }
 
-  // Só renderiza o restante se loading for false
-  if (!loading && !activeOrg) {
+
+  // Loader removido: já existe spinner global em ProtectedRoute
+
+  // Welcome só aparece se user, currentOrg e userOrgs já carregaram e não há org
+  if (
+    typeof user !== 'undefined' &&
+    typeof currentOrg !== 'undefined' &&
+    typeof userOrgs !== 'undefined' &&
+    user &&
+    currentOrg === null &&
+    Array.isArray(userOrgs) &&
+    userOrgs.length === 0
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card>
@@ -60,7 +67,6 @@ function DashboardContent() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -104,7 +110,7 @@ function DashboardContent() {
               </div>
 
               {/* Organization switcher */}
-              {userOrgs.length > 1 && (
+              {safeUserOrgs.length > 1 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Switch Organization</CardTitle>
@@ -114,7 +120,7 @@ function DashboardContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {userOrgs.map((orgMember) => (
+                      {safeUserOrgs.map((orgMember) => (
                         <Button
                           key={orgMember.org_id}
                           variant={activeOrg?.id === orgMember.org_id ? "default" : "outline"}
@@ -151,22 +157,7 @@ function DashboardContent() {
                 </CardContent>
               </Card>
             </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Welcome!</CardTitle>
-                <CardDescription>
-                  You need to create or join an organization to get started.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={() => router.push('/onboarding')}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Organization
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          ) : null}
         </div>
       </main>
     </div>
@@ -174,8 +165,11 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
+  const { userOrgs, loading } = useCurrentOrg();
+  // O ProtectedRoute controla todo o loading e redirecionamento
+  // Agora também espera userOrgs estar pronto
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireOrg={false} extraLoading={loading || typeof userOrgs === 'undefined'}>
       <DashboardContent />
     </ProtectedRoute>
   );

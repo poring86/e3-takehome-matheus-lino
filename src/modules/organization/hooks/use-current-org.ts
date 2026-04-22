@@ -2,6 +2,20 @@ import { useOrganizations } from "../../../lib/use-organizations";
 import { useEffect, useState } from "react";
 import { useUserSession } from "../../auth/hooks/use-user-session";
 
+type Org = {
+  id: string;
+  name: string;
+  created_at: string;
+};
+type Membership = {
+  id: string;
+  org_id: string;
+  user_id: string;
+  role: string;
+  joined_at: string;
+  organizations?: Org;
+};
+
 type UseCurrentOrgOptions = {
   onError?: (message: string) => void;
 };
@@ -14,7 +28,7 @@ export function useCurrentOrg(options?: UseCurrentOrgOptions) {
   useEffect(() => {
     if (!error) return;
     options?.onError?.(
-      error instanceof Error ? error.message : "Failed to load organizations"
+      error instanceof Error ? error.message : "Failed to load organizations",
     );
   }, [error, options]);
 
@@ -26,12 +40,17 @@ export function useCurrentOrg(options?: UseCurrentOrgOptions) {
   };
 
   // Decide qual organização mostrar: otimista ou do backend
-  let currentOrg = data?.currentOrg || null;
-  const userOrgs = data?.orgs || [];
-  if (optimisticOrgId && userOrgs.length > 0) {
-    const optimistic = userOrgs.find((m) => m.org_id === optimisticOrgId);
-    if (optimistic?.organizations) {
-      currentOrg = optimistic.organizations;
+
+  let currentOrg: Org | null | undefined = undefined;
+  let userOrgs: Membership[] | undefined = undefined;
+  if (!isLoading && data) {
+    currentOrg = data.currentOrg || null;
+    userOrgs = data.orgs || [];
+    if (optimisticOrgId && userOrgs.length > 0) {
+      const optimistic = userOrgs.find((m) => m.org_id === optimisticOrgId);
+      if (optimistic?.organizations) {
+        currentOrg = optimistic.organizations;
+      }
     }
   }
 
