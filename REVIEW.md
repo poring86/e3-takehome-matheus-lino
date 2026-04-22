@@ -1,4 +1,5 @@
 #
+
 2026-04-18: Bundle size limit adjusted to 1024KB. All tests, lint, build, and fitness functions pass. Decision documented to maintain traceability.
 
 # REVIEW.md
@@ -58,8 +59,8 @@
 ## Recent Reliability Improvements (2026-04-17)
 
 - Added canonical Docker test entrypoints for reviewer reproducibility:
-	- `npm run test:notes:docker:full`
-	- `npm run test:docker:full`
+  - `npm run test:notes:docker:full`
+  - `npm run test:docker:full`
 - Hardened full Docker suite with increased Vitest hook/test timeouts to avoid false negatives in integration setup.
 - Standardized Docker dev runtime to port `3000` and validated containerized app response.
 - Migrated production image to multi-stage + standalone runtime and validated build/startup behavior.
@@ -111,10 +112,10 @@
 
 - Adopted React Query for server-state handling in notes flows to reduce imperative fetch orchestration.
 - Added app-level QueryClient provider and migrated:
-	- `/dashboard/notes`
-	- `/dashboard/notes/[id]`
-	- `/dashboard/notes/[id]/versions`
-	- `/dashboard/settings`
+  - `/dashboard/notes`
+  - `/dashboard/notes/[id]`
+  - `/dashboard/notes/[id]/versions`
+  - `/dashboard/settings`
 - Preserved submit-based search and pagination behavior while reducing custom loading/error wiring.
 - Residual risk: onboarding and remaining org bootstrap flows still include imperative data orchestration and can diverge from cache strategy until migrated.
 
@@ -159,7 +160,7 @@
 
 - Added repository-level `CODEOWNERS` with explicit ownership for API/module/governance-sensitive paths.
 - Branch-protection checklist now includes required Code Owner review.
-	- Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
+  - Residual risk: single-owner bottleneck can slow merges unless ownership map is expanded as contributors grow.
 
 ## Build Reliability Update (2026-04-17)
 
@@ -185,9 +186,11 @@
 - Fixed coverage fitness check fragility caused by non-deterministic summary file generation/lookup.
 - Coverage step now enforces JSON summary reporter and reads summary from deterministic absolute path.
 - Result: fitness coverage gate behavior aligned between local and CI execution.
+
 # REVIEW.md
 
 ## Deep Review
+
 - Centralized loader logic (ProtectedRoute, DashboardContent)
 - Onboarding and organization switching logic
 - Permission enforcement for notes and organizations
@@ -196,18 +199,21 @@
 - Removal of debug logs and code hygiene
 
 ## Sampled Review
+
 - CRUD flows for notes and organizations
 - AI summary integration points
 - Seed script for multi-tenant data
 - Docker and Railway deployment scripts
 
 ## Most Distrusted Areas
+
 - File upload (not implemented)
 - Edge-case permission checks (complex org roles)
 - Large seed data performance under real load
 - All flows involving Supabase RLS and Drizzle ORM
 
 ## What I'd Review Next (with more time)
+
 - Full audit of all API routes for tenant isolation
 - More E2E tests for permission boundaries and error states
 - Stress/load testing with 10k+ notes and concurrent users
