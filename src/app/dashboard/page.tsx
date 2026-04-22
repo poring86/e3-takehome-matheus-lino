@@ -18,6 +18,7 @@ import Link from 'next/link';
 function DashboardContent() {
   const { user } = useUserSession();
   const { currentOrg, userOrgs, refreshOrganizations, setCurrentOrgId, loading } = useCurrentOrg();
+  const safeUserOrgs = userOrgs ?? [];
   const switchOrg = useSwitchOrg({
     onSwitched: () => refreshOrganizations(),
   });
@@ -109,7 +110,7 @@ function DashboardContent() {
               </div>
 
               {/* Organization switcher */}
-              {(userOrgs?.length ?? 0) > 1 && (
+              {safeUserOrgs.length > 1 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Switch Organization</CardTitle>
@@ -119,7 +120,7 @@ function DashboardContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      {userOrgs.map((orgMember) => (
+                      {safeUserOrgs.map((orgMember) => (
                         <Button
                           key={orgMember.org_id}
                           variant={activeOrg?.id === orgMember.org_id ? "default" : "outline"}
